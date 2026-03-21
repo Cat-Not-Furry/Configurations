@@ -27,22 +27,10 @@ dwm/
 
 st/
 ├── codules/           # código fuente (.c)
-│   ├── st.c
-│   └── x.c
 ├── hodules/           # cabeceras (.h)
-│   ├── arg.h
-│   ├── st.h
-│   └── win.h
 ├── core/              # scripts de autostart (opcional)
-│   └── build.sh       # si se usa
 ├── docs/              # documentación
-│   ├── LICENSE
-│   ├── README.md
-│   ├── st.1
-│   ├── st.info
-│   └── st.png
 ├── patches/           # parches
-│   └── ... (todos los .diff)
 ├── config.h           # configuración personalizada
 ├── config.mk          # configuración de compilación
 └── Makefile           # sistema de construcción
