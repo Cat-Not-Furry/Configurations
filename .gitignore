@@ -16,9 +16,11 @@ src/
 *.swo
 build.log
 
+# Archivos temporales y de respaldo
+*.bak
+
 # Carpetas de configuración de otros proyectos (si no quieres subirlas, descomenta)
 hyperland/
-i3-wm/
 polybar/
 waybar/
 Mi-.basrc/
