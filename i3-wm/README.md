@@ -138,7 +138,6 @@ emerge -av alacritty rofi dunst feh brightnessctl pulseaudio
 > Para i3-gaps, habilitar USE flag "gaps" en /etc/portage/package.use:<br>x11-wm/i3-gaps -gaps
 
 
-
 ### FreeBSD
 
 ```bash
@@ -150,8 +149,6 @@ pkg install alacritty rofi dunst feh brightnessctl
 > [!NOTE]
 >
 > Nota: i3-gaps en FreeBSD está deprecado, se recomienda migrar a x11-wm/i3
-
-
 
 ### Slackware
 
@@ -166,8 +163,6 @@ cd i3-gaps
 # 3. Instalar paquete generado:
 installpkg /tmp/i3-gaps-*.txz
 ```
-
-
 
 ### NixOS
 
@@ -186,8 +181,6 @@ environment.systemPackages = with pkgs; [
 sudo nixos-rebuild switch
 ```
 
-
-
 ### Scripts personalizados
 Algunos atajos dependen de scripts que debes tener en las rutas indicadas:
 - `~/.config/i3/scripts/lock.sh` – bloqueo de pantalla (usado con `xss-lock`)
@@ -201,18 +194,16 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
 
 ### Notas adicionales
 - El archivo `config` utiliza **bumblebee-status** como barra; `config.hypr` usa **polybar**. Asegúrate de tener el que corresponda y quieres statusbar comenta las lineas que hacen referencia a estas barras y descomenta la bar `lineas 213 ~ 232`
-
 - Si usas `config.hypr`, ten en cuenta que está pensado para funcionar junto a **polybar** (necesitarías renombrar el archivo en `.config` o en la ubicación). 
 
   ```bash
   mv ~/.config/i3/config.hypr mv ~/.config/i3/config
   ```
 
-  
+> [!NOTE]
+> 
+> Revisa los ejecutables y rutas.
 
-  > [!NOTE]
-  >
-  > Revisa los ejecutables y rutas.
 
 - Para que los atajos de volumen y brillo funcionen, verifica que los comandos `pactl` y `brightnessctl` estén instalados y que los nombres de los sinks/dispositivos sean correctos.
 
@@ -234,9 +225,9 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
    cp ~/.config/i3/config.bak ~/.config/i3/config
    ```
 
-   > [!NOTE]
-   >
-   > Ya probe reemplazar el archivo por el de la instalación y me da errores, por lo mismo lo más recomendable es que copies y pegues las partes que te interesen para que evites conflictos de compatibilidad.
+> [!NOTE]
+>
+> Ya probe reemplazar el archivo por el de la instalación y me da errores, por lo mismo lo más recomendable es que copies y pegues las partes que te interesen para que evites conflictos de compatibilidad.
 
 2. **Abre tu archivo actual** y el archivo del repo (`config` o `config.hypr`) con un editor de texto. (Si utiliza config.hypr tiene que quitar el .hypr)
 
