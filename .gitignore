@@ -1,0 +1,27 @@
+# Archivos generados por compilación
+*.o
+*.tar.gz
+*.pkg.tar.zst
+dwm
+st
+
+# Directorios de empaquetado (pacman)
+pacman/
+pkg/
+src/
+
+# Backups y temporales
+*~
+*.swp
+*.swo
+build.log
+
+# Carpetas de configuración de otros proyectos (si no quieres subirlas, descomenta)
+hyperland/
+i3-wm/
+polybar/
+waybar/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
