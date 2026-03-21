@@ -1,0 +1,50 @@
+dwm - administrador de ventanas dinámico
+=========================================
+dwm es un administrador de ventanas extremadamente rápido, pequeño y dinámico para X.
+
+Requisitos
+----------
+Para compilar dwm necesitas los archivos de cabecera de Xlib.
+
+Instalación
+-----------
+Edita `config.mk` para que coincida con tu configuración local (dwm se instala en el espacio de nombres `/usr/local` por defecto).
+
+### Opción 1: compilación e instalación estándar
+Después ejecuta el siguiente comando para compilar e instalar dwm (como root si es necesario):
+
+    make clean install
+
+### Opción 2: instalación como paquete de Arch Linux (pacman)
+Si usas Arch Linux y prefieres un paquete gestionado por pacman:
+
+    make pac            # genera el tarball y el PKGBUILD en la carpeta pacman/
+    cd pacman
+    makepkg -s          # compila el paquete (sin instalar)
+    sudo pacman -U dwm-*.pkg.tar.zst   # instala el paquete
+
+Para futuras actualizaciones, repite los pasos y vuelve a instalar con `pacman -U`.
+
+Ejecutar dwm
+------------
+Añade la siguiente línea a tu `.xinitrc` para iniciar dwm con `startx`:
+
+    exec dwm
+
+Para conectar dwm a una pantalla específica, asegúrate de que la variable de entorno `DISPLAY` esté configurada correctamente, por ejemplo:
+
+    DISPLAY=foo.bar:1 exec dwm
+
+(Esto iniciará dwm en la pantalla :1 del host foo.bar).
+
+Para mostrar información de estado en la barra, puedes hacer algo como esto en tu `.xinitrc`:
+
+    while xsetroot -name "`date` `uptime | sed 's/.*,//'`"
+    do
+    	sleep 1
+    done &
+    exec dwm
+
+Configuración
+-------------
+La configuración de dwm se realiza creando un `config.h` personalizado y (re)compilando el código fuente.

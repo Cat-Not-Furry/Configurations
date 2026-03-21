@@ -1,0 +1,173 @@
+.TH ST 1 st\-VERSION
+.SH NOMBRE
+st \- terminal simple
+.SH SINOPSIS
+.B st
+.RB [ \-aiv ]
+.RB [ \-c
+.IR class ]
+.RB [ \-f
+.IR fuente ]
+.RB [ \-g
+.IR geometria ]
+.RB [ \-n
+.IR nombre ]
+.RB [ \-o
+.IR archivo_salida ]
+.RB [ \-T
+.IR titulo ]
+.RB [ \-t
+.IR titulo ]
+.RB [ \-l
+.IR linea ]
+.RB [ \-w
+.IR id_ventana ]
+.RB [[ \-e ]
+.IR comando
+.RI [ argumentos ...]]
+.PP
+.B st
+.RB [ \-aiv ]
+.RB [ \-c
+.IR class ]
+.RB [ \-f
+.IR fuente ]
+.RB [ \-g
+.IR geometria ]
+.RB [ \-n
+.IR nombre ]
+.RB [ \-o
+.IR archivo_salida ]
+.RB [ \-T
+.IR titulo ]
+.RB [ \-t
+.IR titulo ]
+.RB [ \-w
+.IR id_ventana ]
+.RB \-l
+.IR linea
+.RI [ argumentos_stty ...]
+.SH DESCRIPCIÓN
+.B st
+es un emulador de terminal simple.
+.SH OPCIONES
+.TP
+.B \-a
+deshabilita las pantallas alternativas en la terminal.
+.TP
+.BI \-c " class"
+define la clase de la ventana (por defecto $TERM).
+.TP
+.BI \-f " fuente"
+define la
+.I fuente
+a utilizar cuando se ejecuta st.
+.TP
+.BI \-g " geometria"
+define la cadena de geometría X11.
+La forma es [=][<columnas>{xX}<filas>][{+-}<desplazamiento_x>{+-}<desplazamiento_y>]. Consulte
+.BR XParseGeometry (3)
+para más detalles.
+.TP
+.B \-i
+fija la posición dada con la opción -g.
+.TP
+.BI \-n " nombre"
+define el nombre de instancia de la ventana (por defecto $TERM).
+.TP
+.BI \-o " archivo_salida"
+escribe toda la entrada/salida en
+.I archivo_salida.
+Esta función es útil para grabar sesiones de st. Un valor de "-" significa la salida estándar.
+.TP
+.BI \-T " titulo"
+define el título de la ventana (por defecto 'st').
+.TP
+.BI \-t " titulo"
+define el título de la ventana (por defecto 'st').
+.TP
+.BI \-w " id_ventana"
+incrusta st dentro de la ventana identificada por
+.I id_ventana.
+.TP
+.BI \-l " linea"
+utiliza una línea TTY
+.I linea
+en lugar de un pseudo terminal.
+.I linea
+debe ser un dispositivo serie (pseudo)serie (por ejemplo, /dev/ttyS0 en Linux para el puerto serie 0).
+Cuando se da esta bandera, los argumentos restantes se utilizan como banderas para
+.BR stty(1).
+Por defecto st inicializa la línea serie a 8 bits, sin paridad, 1 bit de parada
+y una velocidad de 38400 baudios. La velocidad se establece agregándola como último argumento
+(por ejemplo, 'st -l /dev/ttyS0 115200'). Los argumentos antes del último son
+banderas de
+.BR stty(1).
+Si desea establecer paridad impar a 115200 baudios, use por ejemplo 'st -l
+/dev/ttyS0 parenb parodd 115200'. Establezca el número de bits usando por
+ejemplo 'st -l /dev/ttyS0 cs7 115200'. Consulte
+.BR stty(1)
+para más argumentos y casos.
+.TP
+.B \-v
+muestra información de la versión en stderr y termina.
+.TP
+.BI \-e " comando " [ " argumentos " "... ]"
+st ejecuta
+.I comando
+en lugar del intérprete de comandos. Si se usa, esta opción
+.B debe ser la última
+en la línea de comandos, como en xterm / rxvt.
+Esta opción es solo para compatibilidad,
+y todos los argumentos restantes se utilizan como un comando
+incluso sin ella.
+.SH ATAJOS
+.TP
+.B Break
+Envía una interrupción en la línea serie.
+La tecla Break se obtiene en los teclados de PC
+presionando simultáneamente Control y Pausa.
+.TP
+.B Ctrl-Imprimir Pantalla
+Alterna si st debe imprimir en el
+.I archivo_salida.
+.TP
+.B Shift-Imprimir Pantalla
+Imprime la pantalla completa en el
+.I archivo_salida.
+.TP
+.B Imprimir Pantalla
+Imprime la selección en el
+.I archivo_salida.
+.TP
+.B Ctrl-Shift-Re Pág
+Aumenta el tamaño de la fuente.
+.TP
+.B Ctrl-Shift-Av Pág
+Disminuye el tamaño de la fuente.
+.TP
+.B Ctrl-Shift-Inicio
+Restablece el tamaño de fuente predeterminado.
+.TP
+.B Ctrl-Shift-y
+Pega desde la selección primaria (botón central del ratón).
+.TP
+.B Ctrl-Shift-c
+Copia el texto seleccionado al portapapeles.
+.TP
+.B Ctrl-Shift-v
+Pega desde el portapapeles.
+.SH PERSONALIZACIÓN
+.B st
+se puede personalizar creando un archivo config.h personalizado y (re)compilando el código fuente. Esto lo mantiene rápido, seguro y simple.
+.SH AUTORES
+Consulte el archivo LICENSE para los autores.
+.SH LICENCIA
+Consulte el archivo LICENSE para los términos de redistribución.
+.SH VÉASE TAMBIÉN
+.BR tabbed (1),
+.BR utmp (1),
+.BR stty (1),
+.BR scroll (1)
+.SH ERRORES
+Consulte el archivo TODO en la distribución.

@@ -1,0 +1,7 @@
+# Archivos de respaldo
+*~
+*.swp
+*.swo
+
+# Logs de construcción
+build.log

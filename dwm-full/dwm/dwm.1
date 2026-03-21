@@ -1,0 +1,170 @@
+.TH DWM 1 dwm\-VERSION
+.SH NOMBRE
+dwm \- administrador de ventanas dinámico
+.SH SINOPSIS
+.B dwm
+.RB [ \-v ]
+.SH DESCRIPCIÓN
+dwm es un administrador de ventanas dinámico para X. Administra ventanas en distribuciones en mosaico (tiled), monocle y flotante.
+Cualquier distribución puede aplicarse dinámicamente, optimizando el entorno para la aplicación en uso y la tarea realizada.
+.P
+En las distribuciones en mosaico las ventanas se organizan en un área maestra y una de apilamiento. El área maestra a la izquierda contiene una ventana por defecto, y el área de apilamiento a la derecha contiene todas las demás ventanas. El número de ventanas en el área maestra se puede ajustar desde cero hasta cualquier número. En la distribución monocle todas las ventanas se maximizan al tamaño de la pantalla. En la distribución flotante las ventanas pueden redimensionarse y moverse libremente. Las ventanas de diálogo siempre se gestionan en modo flotante, independientemente de la distribución aplicada.
+.P
+Las ventanas se agrupan mediante etiquetas (tags). Cada ventana puede tener una o varias etiquetas. Seleccionar ciertas etiquetas muestra todas las ventanas con esas etiquetas.
+.P
+Cada pantalla contiene una pequeña barra de estado que muestra todas las etiquetas disponibles, la distribución, el título de la ventana enfocada y el texto leído de la propiedad del nombre de la ventana raíz, si la pantalla está enfocada. Una ventana flotante se indica con un cuadrado vacío y una ventana flotante maximizada se indica con un cuadrado relleno antes del título de la ventana. Las etiquetas seleccionadas se indican con un color diferente. Las etiquetas de la ventana enfocada se indican con un cuadrado relleno en la esquina superior izquierda. Las etiquetas que se aplican a una o más ventanas se indican con un cuadrado vacío en la esquina superior izquierda.
+.P
+dwm dibuja un pequeño borde alrededor de las ventanas para indicar el estado de enfoque.
+.P
+Al inicio, dwm puede iniciar programas adicionales que pueden especificarse en dos scripts especiales (ver la sección ARCHIVOS más abajo), autostart_blocking.sh y autostart.sh. El primero se ejecuta primero y dwm espera su finalización antes de comenzar. El segundo se ejecuta en segundo plano antes de que dwm entre en su bucle de eventos.
+.P
+Cualquiera de estos archivos puede omitirse.
+.SH OPCIONES
+.TP
+.B \-v
+muestra información de la versión en stderr y luego termina.
+.SH USO
+.SS Barra de estado
+.TP
+.B Nombre de la ventana raíz X
+se lee y se muestra en el área de texto de estado. Se puede establecer con el comando
+.BR xsetroot (1).
+.TP
+.B Botón1
+hacer clic en una etiqueta de tag muestra todas las ventanas con esa etiqueta; hacer clic en la etiqueta de distribución alterna entre distribución en mosaico y flotante.
+.TP
+.B Botón3
+hacer clic en una etiqueta de tag añade/elimina todas las ventanas con esa etiqueta a/de la vista.
+.TP
+.B Mod1\-Botón1
+hacer clic en una etiqueta de tag aplica esa etiqueta a la ventana enfocada.
+.TP
+.B Mod1\-Botón3
+hacer clic en una etiqueta de tag añade/elimina esa etiqueta a/de la ventana enfocada.
+.SS Comandos de teclado
+.TP
+.B Mod1\-Shift\-Return
+Inicia
+.BR st(1).
+.TP
+.B Mod1\-p
+Ejecuta
+.BR dmenu(1)
+para lanzar otros programas.
+.TP
+.B Mod1\-,
+Enfoca la pantalla anterior, si existe.
+.TP
+.B Mod1\-.
+Enfoca la pantalla siguiente, si existe.
+.TP
+.B Mod1\-Shift\-,
+Envía la ventana enfocada a la pantalla anterior, si existe.
+.TP
+.B Mod1\-Shift\-.
+Envía la ventana enfocada a la pantalla siguiente, si existe.
+.TP
+.B Mod1\-b
+Alterna la barra entre visible e invisible.
+.TP
+.B Mod1\-t
+Establece la distribución en mosaico.
+.TP
+.B Mod1\-f
+Establece la distribución flotante.
+.TP
+.B Mod1\-m
+Establece la distribución monocle.
+.TP
+.B Mod1\-space
+Alterna entre la distribución actual y la anterior.
+.TP
+.B Mod1\-j
+Enfoca la siguiente ventana.
+.TP
+.B Mod1\-k
+Enfoca la ventana anterior.
+.TP
+.B Mod1\-i
+Aumenta el número de ventanas en el área maestra.
+.TP
+.B Mod1\-d
+Disminuye el número de ventanas en el área maestra.
+.TP
+.B Mod1\-l
+Aumenta el tamaño del área maestra.
+.TP
+.B Mod1\-h
+Disminuye el tamaño del área maestra.
+.TP
+.B Mod1\-Return
+Acerca/alterna la ventana enfocada hacia/desde el área maestra (solo distribuciones en mosaico).
+.TP
+.B Mod1\-Shift\-c
+Cierra la ventana enfocada.
+.TP
+.B Mod1\-Shift\-space
+Alterna la ventana enfocada entre estado flotante y en mosaico.
+.TP
+.B Mod1\-Tab
+Alterna a las etiquetas seleccionadas previamente.
+.TP
+.B Mod1\-Shift\-[1..n]
+Aplica la n-ésima etiqueta a la ventana enfocada.
+.TP
+.B Mod1\-Shift\-0
+Aplica todas las etiquetas a la ventana enfocada.
+.TP
+.B Mod1\-Control\-Shift\-[1..n]
+Añade/elimina la n-ésima etiqueta a/de la ventana enfocada.
+.TP
+.B Mod1\-[1..n]
+Muestra todas las ventanas con la n-ésima etiqueta.
+.TP
+.B Mod1\-0
+Muestra todas las ventanas con cualquier etiqueta.
+.TP
+.B Mod1\-Control\-[1..n]
+Añade/elimina todas las ventanas con la n-ésima etiqueta a/de la vista.
+.TP
+.B Mod1\-Shift\-q
+Sale de dwm.
+.SS Comandos del ratón
+.TP
+.B Mod1\-Botón1
+Mueve la ventana enfocada mientras se arrastra. Las ventanas en mosaico cambiarán a estado flotante.
+.TP
+.B Mod1\-Botón2
+Alterna la ventana enfocada entre flotante y en mosaico.
+.TP
+.B Mod1\-Botón3
+Redimensiona la ventana enfocada mientras se arrastra. Las ventanas en mosaico cambiarán a estado flotante.
+.SH ARCHIVOS
+Los archivos que contienen programas a iniciar junto con dwm se buscan en los siguientes directorios:
+.IP "1. $XDG_DATA_HOME/dwm"
+.IP "2. $HOME/.local/share/dwm"
+.IP "3. $HOME/.dwm"
+.P
+El primer directorio existente se escanea en busca de cualquiera de los archivos de autostart que se indican a continuación.
+.TP 15
+autostart.sh
+Este archivo se inicia como un proceso en segundo plano antes de que dwm entre en su bucle de eventos.
+.TP 15
+autostart_blocking.sh
+Este archivo se inicia antes que cualquier autostart.sh; dwm espera su finalización.
+.SH PERSONALIZACIÓN
+dwm se personaliza creando un archivo config.h personalizado y (re)compilando el código fuente. Esto lo mantiene rápido, seguro y simple.
+.SH VÉASE TAMBIÉN
+.BR dmenu (1),
+.BR st (1)
+.SH PROBLEMAS
+Las aplicaciones Java que utilizan el backend XToolkit/XAWT pueden dibujar ventanas grises solamente. El backend XToolkit/XAWT incumple el cumplimiento de ICCCM en versiones recientes de JDK 1.5 y primeras de JDK 1.6, porque asume un administrador de ventanas que reparenta. Las posibles soluciones son usar JDK 1.4 (que no incluye el backend XToolkit/XAWT) o establecer la variable de entorno
+.BR AWT_TOOLKIT=MToolkit
+(para usar el backend Motif más antiguo) o ejecutar
+.B xprop -root -f _NET_WM_NAME 32a -set _NET_WM_NAME LG3D
+o
+.B wmname LG3D
+(para simular que se está ejecutando un administrador de ventanas que no reparenta y que el backend XToolkit/XAWT puede reconocer) o, cuando se usa OpenJDK, establecer la variable de entorno
+.BR _JAVA_AWT_WM_NONREPARENTING=1 .
+.SH ERRORES
+Envía todos los informes de error con un parche a hackers@suckless.org.
