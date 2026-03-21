@@ -21,7 +21,8 @@ hyperland/
 i3-wm/
 polybar/
 waybar/
-
+Mi-.basrc/
+dwm-full/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
