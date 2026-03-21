@@ -1,0 +1,33 @@
+#!/bin/bash
+
+i3lock \
+  --blur 5 \
+  --bar-indicator \
+  --bar-pos x+225:y+h-460 \
+  --bar-direction 1 \
+  --bar-max-height 250 \
+  --bar-color=1e2132ff \
+  --keyhl-color=84a0c6ff \
+  --bar-total-width 1500 \
+  --bar-periodic-step 20 \
+  --bar-orientation horizontal \
+  --redraw-thread \
+  --clock \
+  --time-str="%H:%M:%S" \
+  --time-pos x+950:y+h-350 \
+  --time-color=84a0c6ff \
+  --time-size=100 \
+  --date-size=50 \
+  --date-pos x+950:y+h-300 \
+  --date-color=84a0ffff \
+  --verif-text="Verificando" \
+  --wrong-text="Incorrecto" \
+  --wrong-size=50 \
+  --noinput-text="" \
+  --insidever-color=00000000 \
+  --insidewrong-color=00000000 \
+  --ringver-color=00000000 \
+  --ringwrong-color=d75f5fff \
+  --separator-color=00000000 \
+  --verif-color=ffffffff \
+  --wrong-color=ffffffff
