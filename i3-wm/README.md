@@ -1,10 +1,27 @@
 # **i3-wm**
 
 ## La configuración de mi escritorio
-*** Grita * La procrastinación esta matándome, debería estar estudiando para calculo integral... pero prefiero explicar las dependencias de mi config**
+~/.config/i3/<br>
+├── config                         # Archivo principal con includes<br>
+├── conf.d/<br>
+│   ├── 00-exec.conf               # Ejecuciones automáticas (nm-applet, blueman, xss-lock, etc.)<br>
+│   ├── 01-binds_media.conf        # Atajos de volumen, brillo, bloqueo<br>
+│   ├── 02-binds_focus_move.conf   # Atajos de terminal, matar, lanzadores, foco, mover, split, layout, flotante<br>
+│   ├── 03-workspaces.conf         # Nombres de workspaces, atajos para cambiar/mover<br>
+│   ├── 04-binds_misc.conf         # Recargar, reiniciar, salir, modo resize<br>
+│   ├── 05-bbar.conf               # Barra (bumblebee-status y el launch de polybar)<br>
+│   ├── 06-sbar.conf               # Barra (statusbar)<br>
+│   ├── 07-gaps_borders.conf       # Gaps, bordes, colores<br>
+│   └── 08-scripts.conf            # Atajos misceláneos (flameshot, eww, fondos animados, setxkbmap)<br>
+└── scripts/                       # Scripts auxiliares (ya existentes)<br>
+    ├── dmenu-script.sh<br>
+    ├── dmenu-script1.sh<br>
+    └── lock.sh<br>
+
+**(Grita) La procrastinación esta matándome, debería estar programando un proyecto muy importante... pero prefiero explicar las dependencias de mi config**
 
 >[!WARNING]
->Cabe resaltar que no soy ningún experto y que, por consiguiente es **tu** responsabilidad la descarga y reemplazo de este archivo.
+>Cabe resaltar que no soy ningún experto y que, por consiguiente es **tu** responsabilidad la descarga y reemplazo de este archivo. ya que no tiene la misma atencion al detalle que el fork de [dwm](https://github.com/Cat-Not-Furry/Configurations/tree/main/dwm-full) que esta en este repo.
 **Aun así, si deseas probar la configuración que tengo puedes hacer lo siguiente...**
 
 **Si gustas puedes pasarte por el [sitio oficial](https://i3wm.org/docs/userguide.html) a ver la guía de usuario**
@@ -105,7 +122,7 @@ apk add alacritty rofi dunst feh brightnessctl pulseaudio-utils
 
 > [!NOTE]
 >
-> i3-gaps no está disponible en repositorios oficiales de Alpine
+> i3-gaps no está disponible en repositorios oficiales de Alpine, se recomiendo buscar parches para i3wm.
 
 
 
@@ -142,13 +159,9 @@ emerge -av alacritty rofi dunst feh brightnessctl pulseaudio
 
 ```bash
 pkg update
-pkg install i3-gaps
+pkg install x11-wm/i3
 pkg install alacritty rofi dunst feh brightnessctl
 ```
-
-> [!NOTE]
->
-> Nota: i3-gaps en FreeBSD está deprecado, se recomienda migrar a x11-wm/i3
 
 ### Slackware
 
@@ -192,14 +205,6 @@ Algunos atajos dependen de scripts que debes tener en las rutas indicadas:
 
 Si no usas estas funciones, comenta o borra las líneas correspondientes en el archivo de configuración.
 
-### Notas adicionales
-- El archivo `config` utiliza **bumblebee-status** como barra; `config.hypr` usa **polybar**. Asegúrate de tener el que corresponda y quieres statusbar comenta las lineas que hacen referencia a estas barras y descomenta la bar `lineas 213 ~ 232`
-- Si usas `config.hypr`, ten en cuenta que está pensado para funcionar junto a **polybar** (necesitarías renombrar el archivo en `.config` o en la ubicación). 
-
-  ```bash
-  mv ~/.config/i3/config.hypr mv ~/.config/i3/config
-  ```
-
 > [!NOTE]
 > 
 > Revisa los ejecutables y rutas.
@@ -207,13 +212,13 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
 
 - Para que los atajos de volumen y brillo funcionen, verifica que los comandos `pactl` y `brightnessctl` estén instalados y que los nombres de los sinks/dispositivos sean correctos.
 
-## Cómo fusionar la configuración (para evitar errores)
+## Cómo fusionar la configuración para evitar errores (configuración monolitica avanzada*)
 
 ### En lugar de reemplazar completamente tu archivo `~/.config/i3/config`, lo mejor es **fusionar** las partes personalizadas. Sigue estos pasos:
 
 ### Instrucciones:
 
-1. Copie la configuración de su entorno en u archivo bak
+1. Copie la configuración de su entorno en un archivo bak
 
    ```bash
    cp ~/.config/i3/config ~/.config/i3/config.bak
@@ -229,7 +234,7 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
 >
 > Ya probe reemplazar el archivo por el de la instalación y me da errores, por lo mismo lo más recomendable es que copies y pegues las partes que te interesen para que evites conflictos de compatibilidad.
 
-2. **Abre tu archivo actual** y el archivo del repo (`config` o `config.hypr`) con un editor de texto. (Si utiliza config.hypr tiene que quitar el .hypr)
+2. **Abre tu archivo actual** y los archivos del repo (`config`, `conf.d/`, `scripts/`) con un editor de texto.
 
 3. **Identifica el punto de inserción**: Por lo general, el archivo generado por i3 tiene una estructura fija. Puedes empezar a copiar después de la línea que define `$mod` (normalmente `set $mod Mod4`). Si quieres conservar la sección de fuentes, comienza después del bloque `font pango: ...`.
 
@@ -251,7 +256,7 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
    i3-msg reload
    ```
 
-   Si no hay errores, el cambio se aplica. Si aparece algún error, revisa las líneas que pegaste.
+   Si no hay errores, el cambio se aplica. Si aparece algún error, revisa las líneas que pegaste y el config que te da i3.
 
 7. Si todo funciona, reinicia i3 con $mod+Shift+r para asegurarte de que todo arranca correctamente.
 
@@ -260,6 +265,23 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
 Suponiendo que tu archivo generado actualmente termina después de la definición de `mode "resize"` y la barra básica, podrías añadir después de `bindsym $mod+r mode "resize"` todo lo que viene en mi configuración desde la línea `# Miselaneus` en adelante, pero revisando que no haya duplicados.
 
 Si prefieres un enfoque más automático, puedes usar `sed` para insertar después de una línea específica, pero es más fácil hacerlo manualmente la primera vez.
+
+## Utilizando configuración establecida:
+
+1. Copiar todos los archivos a ~/.config/i3/
+
+   ```bash
+   chmod +x config conf.d/* scripts/*
+   cp -r conf.d/ config scripts/ ~/.config/i3/
+   ```
+
+2. Recarga con:
+
+   ```bash
+   i3-msg reload
+   ```
+
+   Si no hay errores, el cambio se aplica. Si aparece algún error, revisa las líneas que pegaste y el config que te da i3.
 
 > [!NOTE]
 >

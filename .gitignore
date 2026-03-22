@@ -20,6 +20,7 @@ build.log
 *.bak
 
 # Carpetas de configuración de otros proyectos (si no quieres subirlas, descomenta)
+bumblebee-status/
 hyperland/
 polybar/
 waybar/

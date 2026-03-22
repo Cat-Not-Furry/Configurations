@@ -9,18 +9,18 @@ Esta compilación de DWM está configurada para ajustarse a mi flujo de trabajo,
 
 ## Estructura del proyecto
 
-dwm/
-├── bar/               # scripts de la barra de estado
-│   ├── bar.sh
-│   └── scripts/
-├── codules/           # código fuente (.c)
-├── hodules/           # cabeceras (.h) temáticas
-├── core/              # scripts de autostart y configuración
-├── docs/              # documentación y capturas
-├── patches/           # parches aplicados
-├── config.h           # configuración principal
-├── config.mk          # configuración de compilación
-└── Makefile           # sistema de construcción
+dwm/<br>
+├── bar/               # scripts de la barra de estado<br>
+│   ├── bar.sh<br>
+│   └── scripts/<br>
+├── codules/           # código fuente (.c)<br>
+├── hodules/           # cabeceras (.h) temáticas<br>
+├── core/              # scripts de autostart y configuración<br>
+├── docs/              # documentación y capturas<br>
+├── patches/           # parches aplicados<br>
+├── config.h           # configuración principal<br>
+├── config.mk          # configuración de compilación<br>
+└── Makefile           # sistema de construcción<br>
 
 ## Como instalar DWM
 
