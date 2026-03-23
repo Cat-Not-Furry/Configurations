@@ -1,0 +1,138 @@
+#!/bin/bash
+# sdm - Selector de entornos gráficos con opciones del sistema
+
+set -euo pipefail
+
+# Colores ANSI
+reset="\e[0m"
+bold="\e[1m"
+red="\e[31m"
+green="\e[32m"
+yellow="\e[33m"
+blue="\e[34m"
+magenta="\e[35m"
+cyan="\e[36m"
+
+LAST_SESSION_FILE="$HOME/.last_session"
+
+save_last_session() {
+    echo "$1" > "$LAST_SESSION_FILE"
+}
+
+get_last_session() {
+    if [ -f "$LAST_SESSION_FILE" ]; then
+        cat "$LAST_SESSION_FILE"
+    else
+        echo ""
+    fi
+}
+
+show_menu() {
+    # Limpiar pantalla (descomentar si prefieres)
+    # clear
+    local last=$(get_last_session)
+    if [ -z "$last" ]; then
+        last="Ninguna"
+    fi
+    echo -e "${cyan}${bold}=====================================${reset}"
+    echo -e "${cyan}${bold}        Selector de Entornos         ${reset}"
+    echo -e "${cyan}${bold}=====================================${reset}"
+    echo -e "${green}Última sesión: ${yellow}$last${reset}"
+    echo ""
+    echo -e "${green}1) i3 (X11)${reset}"
+    echo -e "${green}2) Hyprland (Wayland)${reset}"
+    echo ""
+    echo -e "${magenta}3) Suspender${reset}"
+    echo -e "${magenta}4) Hibernar${reset}"
+    echo -e "${red}5) Apagar${reset}"
+    echo -e "${red}6) Reiniciar${reset}"
+    echo -e "${yellow}7) Salir a la consola${reset}"
+    echo ""
+}
+
+start_i3() {
+    echo -e "${green}Iniciando i3...${reset}"
+    save_last_session "i3"
+    exec startx /usr/bin/i3 -- vt$(fgconsole)
+}
+
+start_hyprland() {
+    echo -e "${green}Iniciando Hyprland...${reset}"
+    save_last_session "hyprland"
+    exec Hyprland
+}
+
+confirm_action() {
+    local msg="$1"
+    echo -ne "${yellow}$msg [s/N]: ${reset}"
+    read -r confirm
+    [[ "$confirm" =~ ^[sS]$ ]]
+}
+
+do_suspend() {
+    if confirm_action "¿Suspender el sistema?"; then
+        systemctl suspend
+    fi
+}
+
+do_hibernate() {
+    if confirm_action "¿Hibernar el sistema?"; then
+        systemctl hibernate
+    fi
+}
+
+do_poweroff() {
+    if confirm_action "¿Apagar el sistema?"; then
+        systemctl poweroff
+    fi
+}
+
+do_reboot() {
+    if confirm_action "¿Reiniciar el sistema?"; then
+        systemctl reboot
+    fi
+}
+
+handle_session_error() {
+    echo -e "${red}Error: La sesión no se pudo iniciar correctamente.${reset}"
+    read -p "¿Deseas volver al menú? (s/n): " retry
+    if [[ "$retry" =~ ^[sS]$ ]]; then
+        return 0
+    else
+        echo "Saliendo a la consola..."
+        exit 1
+    fi
+}
+
+while true; do
+    show_menu
+    read -p "Opción [1-7]: " opcion
+    case "$opcion" in
+        1)
+            start_i3 || handle_session_error
+            ;;
+        2)
+            start_hyprland || handle_session_error
+            ;;
+        3)
+            do_suspend
+            ;;
+        4)
+            do_hibernate
+            ;;
+        5)
+            do_poweroff
+            ;;
+        6)
+            do_reboot
+            ;;
+        7)
+            echo -e "${yellow}Saliendo a la consola...${reset}"
+            exit 0
+            ;;
+        *)
+            echo -e "${red}Opción inválida.${reset} Presiona Enter para continuar..."
+            read
+            ;;
+    esac
+done

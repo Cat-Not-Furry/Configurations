@@ -9,8 +9,8 @@
 │   ├── 02-binds_focus_move.conf   # Atajos de terminal, matar, lanzadores, foco, mover, split, layout, flotante<br>
 │   ├── 03-workspaces.conf         # Nombres de workspaces, atajos para cambiar/mover<br>
 │   ├── 04-binds_misc.conf         # Recargar, reiniciar, salir, modo resize<br>
-│   ├── 05-bbar.conf               # Barra (bumblebee-status y el launch de polybar)<br>
-│   ├── 06-sbar.conf               # Barra (statusbar)<br>
+│   ├── 05-bbar.conf               # Barra (bumblebee-status)<br>
+│   ├── 06-pbar.conf               # Barra (polybar)<br>
 │   ├── 07-gaps_borders.conf       # Gaps, bordes, colores<br>
 │   └── 08-scripts.conf            # Atajos misceláneos (flameshot, eww, fondos animados, setxkbmap)<br>
 └── scripts/                       # Scripts auxiliares (ya existentes)<br>
