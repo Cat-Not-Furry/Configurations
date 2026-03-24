@@ -63,9 +63,9 @@ ln -s ~/.config/i3/bumblebee-status ~/.config/bumblebee-status
 
 ## Integración con i3 (mi config)
 
-| ![datetime](/home/cipactli_mx/Games/configurations/bumblebee-status/images/datetime.png) | ![host](/home/cipactli_mx/Games/configurations/bumblebee-status/images/host.png) | ![custom](/home/cipactli_mx/Games/configurations/bumblebee-status/images/custom.png) | ![brig](/home/cipactli_mx/Games/configurations/bumblebee-status/images/brig.png) | ![vol](/home/cipactli_mx/Games/configurations/bumblebee-status/images/vol.png) |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![batt](/home/cipactli_mx/Games/configurations/bumblebee-status/images/batt.png) | ![disk](/home/cipactli_mx/Games/configurations/bumblebee-status/images/disk.png) | ![mem](/home/cipactli_mx/Games/configurations/bumblebee-status/images/mem.png) | ![freq](/home/cipactli_mx/Games/configurations/bumblebee-status/images/freq.png) | ![cpu](/home/cipactli_mx/Games/configurations/bumblebee-status/images/cpu.png) |
+| ![datetime](images/datetime.png) | ![host](images/host.png) | ![custom](images/custom.png) | ![brig](images/brig.png)          | ![vol](images/vol.png) |
+| -------------------------------- | ------------------------ | ---------------------------- | --------------------------------- | ---------------------- |
+| ![batt](images/batt.png)         | ![disk](images/disk.png) | ![mem](images/mem.png)       | ![tem_freq](images/temp_freq.png) | ![cpu](images/cpu.png) |
 
 
 
@@ -136,7 +136,7 @@ bar {
 
 Los módulos que he habilitado son:
 
-- `cmus` – reproductor de música (necesita `cmus` instalado)
+- `cmus` – reproductor de música (necesita `cmus` instalado) ![cmus](images/cmus.png)
 - `cpu` – uso de CPU
 - `sensors` – temperatura del sistema (necesita `lm-sensors`)
 - `memory` – uso de memoria
