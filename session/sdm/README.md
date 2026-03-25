@@ -29,6 +29,8 @@
 
 1. **Copia el script** a `/usr/local/bin/` (o cualquier otra ruta en tu `$PATH`):
    ```bash
+   # Existe sdm.sh (antiguo) y sdm.new (nuevo solo renombre el que prefieras) Usa:
+   # mv sdm.sh sdm  o mv sdm.new sdm
    sudo cp sdm /usr/local/bin/
    sudo chmod +x /usr/local/bin/sdm
    ```
