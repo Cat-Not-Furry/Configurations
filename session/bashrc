@@ -1,0 +1,69 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+# bash-completion
+complete -cf sudo
+
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi
+
+# FZF (fuzzy finder)
+if [ -f .fzf.bash ]; then
+  source .fzf.bash
+fi
+
+# === Colors ===
+BLACK='\[\e[0;30m\]'
+RED='\[\e[0;31m\]'
+GREEN='\[\e[0;32m\]'
+YELLOW='\[\e[0;33m\]'
+BLUE='\[\e[0;34m\]'
+MAGENTA='\[\e[0;35m\]'
+CYAN='\[\e[0;36m\]'
+WHITE='\[\e[0;37m\]'
+RESET='\[\e[0m\]'
+BOLD='\[\e[1m\]'
+
+# alias ls='ls --color=auto'
+# alias ll='ls -lah --color=auto'
+
+alias ','='cd ..'
+alias '.'='cd'
+alias cl='clear'
+alias ls='exa --icons -lh --color=always'
+alias l='exa --icons --color=always'
+alias grep='grep --color=auto'
+alias ver='bat'
+alias ñ='pwd'
+alias o='nvim'
+# eval "$(thefuck --alias)"
+# eval "$(starship init bash)"
+# powerline -p
+
+#PS1="${BOLD}╭[\u]${RESET}${RED}@${RESET}[\h]${MAGENTA} → ${BLUE}\W\n${RESET}│\n╰ "
+#PS1="${BOLD}${RESET}╭${GREEN}[\u]${RED}@${GREEN}[\h]${MAGENTA} → ${BLUE}\W\n${RESET}╰${GREEN} "
+PS1="${BOLD}╭[\u]${RED}@${RESET}[\h]${MAGENTA} → ${BLUE}\W\n${RESET}╰ "
+
+[[ -r "/usr/share/z/z.sh" ]] && source /usr/share/z/z.sh
+
+export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/build-tools/*/
+export PATH=$PATH:$ANDROID_HOME/tools/bin
+alias android-emulator='QT_QPA_PLATFORM=xcb emulator'
+# echo "Broma pesada a mi carnal, le hago pensar que clone mi repositorio de github pero no es lo hice"
+alias adb-logcat='adb logcat'
+export PATH=$PATH:$HOME/.local/bin
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+# sudo hostname Puto-el-que-lo-lea-menos-el-que-lo-escribe

@@ -1,3 +1,40 @@
+# Mi  .bahsrc
+### Por seguridad subi mi [.basrc](https://www.zeppelinux.es/bashrc-uso-de-los-archivos-bashrc-y-etc-bashrc/), ya que no me gustaria tener que investigar nuevamente.
+Deberia estudiar... pero la proscrastinación es más fuerte.
+
+## Dependencias necesarias
+#### bash-completion
+```
+sudo pacman -S bash-completion
+```
+#### fzf
+```
+sudo pacman -S fzf  
+```
+
+#### fuck
+```
+sudo pacman -S thefuck
+```
+#### z
+```
+sudo pacman -S z
+```
+#### exa
+```
+sudo pacman -S exa
+```
+#### bat
+```
+sudo pacman -S bat
+```
+## alias
+. = cd<br>
+, = cd ..<br>
+ls = lista con iconos<br>
+ll = lista con iconos pero con '-l' y '-h'<br>
+ver = bat 'versión mejorada de cat'
+
 # sdm – Selector de entornos gráficos minimalista
 
 `sdm` es un selector de entornos gráficos diseñado para sistemas minimalistas que no usan un gestor de pantalla (display manager) tradicional. Se ejecuta desde la consola (TTY) después de iniciar sesión y te permite elegir entre **i3** (X11) y **Hyprland** (Wayland), además de ofrecer acciones del sistema como suspender, hibernar, apagar o reiniciar.
@@ -28,27 +65,28 @@
 ## Instalación
 
 1. **Copia el script** a `/usr/local/bin/` (o cualquier otra ruta en tu `$PATH`):
+
    ```bash
    # Existe sdm.sh (antiguo) y sdm.new (nuevo solo renombre el que prefieras) Usa:
    # mv sdm.sh sdm  o mv sdm.new sdm
    sudo cp sdm /usr/local/bin/
    sudo chmod +x /usr/local/bin/sdm
    ```
-   
-1. **Asegúrate de que tu shell ejecute `sdm` al iniciar sesión**.
+
+2. **Asegúrate de que tu shell ejecute `sdm` al iniciar sesión**.
    Edita tu archivo de perfil (por ejemplo `~/.bash_profile` o `~/.profile`) y añade al final:
-   
+
    ```bash
    # Selector de sesion de pantalla
    if [ -z "$DISPLAY" ] && [ -z "$WAYLAND_DISPLAY" ] && [ -t 0 ] && [ -z "$SSH_TTY" ]; then
      sdm
    fi
    ```
+
    
-   
-   
+
    Esto hará que después de ingresar tu usuario y contraseña en la consola, se ejecute automáticamente el selector.
-   
+
 3. **Si usas un shell diferente a Bash**, ajusta el archivo de perfil correspondiente (`.zprofile` para Zsh, etc.).
 
 ## Uso
