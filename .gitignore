@@ -20,9 +20,7 @@ build.log
 *.bak
 
 # Carpetas de configuración de otros proyectos (si no quieres subirlas, descomenta)
-polybar/
 waybar/
-Mi-.basrc/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
