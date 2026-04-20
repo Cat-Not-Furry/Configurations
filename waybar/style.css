@@ -1,0 +1,82 @@
+* {
+    font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;
+    font-size: 8pt;
+    border: none;
+    border-radius: 0;
+}
+
+window#waybar {
+    background-color: #161821;
+    color: #FFFFFF;
+    border: 1px solid #84A0C6;
+    border-radius: 20px;
+    transition-property: background-color;
+    transition-duration: .5s;
+}
+
+#workspaces button {
+    padding: 0 5px;
+    color: #FFFFFF;
+    background-color: transparent;
+}
+
+#workspaces button.active {
+    color: #84A0C6;
+    border-bottom: 1px solid #84A0C6;
+}
+
+#workspaces button.urgent {
+    background-color: #E27878;
+}
+
+#battery.charging {
+    color: #84A0C6;
+}
+
+#custom-cava {
+    color: #84A0C6;
+    font-family: "Hack Nerd Font", monospace;
+    margin: 1px;
+    min-width: 80px;
+    background-color: rgba(22, 24, 33, 0.8);
+    border-radius: 5px;
+    padding: 0 5px;
+}
+
+#custom-cava:hover {
+    background-color: #1e2130;
+    color: #a2b9d6;
+}
+
+/* ---- ESTILO PARA TODOS LOS MÓDULOS ---- */
+#cpu,
+#custom-temp,
+#memory,
+#disk,
+#pulseaudio,
+#backlight,
+#battery,
+#custom-keyboard-toggle,
+#custom-hostname,
+#custom-date,
+#tray,
+#hyprland-window,
+#custom-cmus {
+    padding: 0 7px;
+    margin: 0 3px;
+}
+
+/* ---- COLORES DINÁMICOS ---- */
+#battery.warning, #memory.warning, #cpu.warning, #disk.warning, #custom-temp.warning {
+    color: #fba922;
+}
+
+#battery.critical, #memory.critical, #cpu.critical, #disk.critical, #custom-temp.critical {
+    color: #ff5555;
+}
+
+#tray menu {
+    border-radius: 10px;
+    border: 1px solid #161821;
+    background-color: #161821;
+}
