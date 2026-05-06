@@ -4,19 +4,13 @@ if ! pgrep -x "cmus" >/dev/null; then
   exit
 fi
 
-STATUS=$(cmus-remote -Q 2>/dev/null | grep "status" | cut -d ' ' -f 2)
-ARTIST=$(cmus-remote -Q 2>/dev/null | grep "artist" | cut -d ' ' -f 3-)
-TITLE=$(cmus-remote -Q 2>/dev/null | grep "title" | cut -d ' ' -f 3-)
+STATUS=$(cmus-remote -Q | grep "status" | cut -d ' ' -f 2)
 
-case "$STATUS" in
-  playing) ICON="" ;;
-  paused)  ICON="" ;;
-  *)       ICON="" ;;
-esac
-
-if [ -n "$TITLE" ]; then
-  output="$ICON $ARTIST - $TITLE"
-  echo "${output:0:30}"
+if [ "$STATUS" = "playing" ]; then
+  ICON=""
+elif [ "$STATUS" = "paused" ]; then
+  ICON=""
 else
-  echo "$ICON Cmus"
+  ICON=""
 fi
+echo "$ICON"

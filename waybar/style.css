@@ -1,10 +1,12 @@
+/* ---- ESTILO GLOBAL ---- */
 * {
     font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;
     font-size: 8pt;
-    border: none;
-    border-radius: 0;
+    border: 20;
+    border-radius: 100;
 }
 
+/* ---- ESTILO DE LA BARRA PRINCIPAL ---- */
 window#waybar {
     background-color: #161821;
     color: #FFFFFF;
@@ -14,6 +16,7 @@ window#waybar {
     transition-duration: .5s;
 }
 
+/* ---- ESTILO DE LOS WORKSPACES ---- */
 #workspaces button {
     padding: 0 5px;
     color: #FFFFFF;
@@ -30,7 +33,7 @@ window#waybar {
 }
 
 #battery.charging {
-    color: #84A0C6;
+    color: #84A0C6; /* Azul que ya usas en otros lados */
 }
 
 #custom-cava {
@@ -65,8 +68,9 @@ window#waybar {
     padding: 0 7px;
     margin: 0 3px;
 }
+#custom-cava
 
-/* ---- COLORES DINÁMICOS ---- */
+/* ---- COLORES DINÁMICOS PARA ESTADOS ---- */
 #battery.warning, #memory.warning, #cpu.warning, #disk.warning, #custom-temp.warning {
     color: #fba922;
 }
@@ -75,8 +79,38 @@ window#waybar {
     color: #ff5555;
 }
 
+#custom-media-prev,
+#custom-media-next {
+    font-size: 1.2em;
+    padding: 0 5px;
+}
+#custom-media-main {
+    padding: 0 8px;
+}
+#custom-media-main.playing {
+    color: #a6e3a1; /* verde cuando suena */
+}
+#custom-media-main.paused {
+    color: #f9e2af;
+}
+
+#custom-keyboard {
+    padding: 0 8px;
+    border-radius: 8px;
+}
+
+#custom-keyboard.on {
+    color: #84A0C6;
+    background-color: rgba(132, 160, 198, 0.2);
+}
+
+#custom-keyboard.off {
+    color: #ff5555;
+    background-color: rgba(255, 85, 85, 0.2);
+}
+
+/* Busca la sección #tray o crea una si no existe */
 #tray menu {
-    border-radius: 10px;
-    border: 1px solid #161821;
-    background-color: #161821;
+    border-radius: 10px; /* O un valor bajo como 5px */
+    border: 5px solid #161821; /* Puedes ajustar el borde a tu gusto */
 }

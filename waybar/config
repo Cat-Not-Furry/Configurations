@@ -1,105 +1,171 @@
 {
-    "layer": "top",
-    "position": "top",
-    "height": 26,
-    "spacing": 4,
-
-    "modules-left": ["hyprland/workspaces", "hyprland/window"],
-    "modules-center": ["custom/cmus"],
-    "modules-right": ["cpu", "custom/temp", "memory", "disk", "pulseaudio", "backlight", "battery", "custom/keyboard-toggle", "custom/hostname", "custom/date", "tray"],
-
-    // --- MÓDULOS DE LA IZQUIERDA ---
-    "hyprland/workspaces": {
-        "format": "{icon}",
-        "format-icons": {
-            "default": "",
-            "active": "󰀃",
-            "urgent": ""
-        },
-        "persistent_workspaces": {
-            "*": 5 // Muestra al menos 5 workspaces
-        }
+  "layer": "top",
+  "position": "top",
+  "height": 26,
+  "spacing": 2,
+  "modules-left": [
+    "hyprland/workspaces",
+    "hyprland/window"
+  ],
+  "modules-center": [
+    "custom/cmus",
+    "custom/cava"
+  ],
+  "modules-right": [
+    "custom/media-prev",
+    "custom/media-main",
+    "custom/media-next",
+    "cpu",
+    "custom/temp",
+    "memory",
+    "disk",
+    "pulseaudio",
+    "custom/kblight",
+    "backlight",
+    "battery",
+    "custom/hostname",
+    "custom/date",
+    "tray"
+  ],
+  // --- MÓDULOS DE LA IZQUIERDA ---
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "on-scroll-up": "hyprctl dispatch workspace e+1",
+    "on-scroll-down": "hyprctl dispatch workspace e-1",
+    "format-icons": {
+      "default": "󰊠",
+      "active": "󰮯",
+      "urgent": ""
     },
-    "hyprland/window": {
-        "format": " {} ",
-        "max-length": 60
-    },
-
-    // --- MÓDULO CENTRAL ---
-    "custom/cmus": {
-        "format": " {}",
-        "interval": 2,
-        "exec": "~/.config/waybar/scripts/cmus_status.sh",
-        "on-click": "cmus-remote --pause",
-        "on-scroll-up": "cmus-remote --next",
-        "on-scroll-down": "cmus-remote --prev"
-    },
-
-    // --- MÓDULOS DE LA DERECHA ---
-    "cpu": {
-        "format": "{icon}{usage}%",
-        "format-icons": ["󰾆 ", "󰾅 ", "󰓅 "],
-        "on-click": "alacritty -e htop"
-    },
-    "custom/temp": {
-        "exec": "~/.config/waybar/scripts/temp_status.sh",
-        "format": "{}",
-        "interval": 3
-    },
-    "memory": {
-        "format": " {}%",
-        "tooltip-format": "{used:0.2f}GB / {total:0.2f}GB",
-        "interval": 3
-    },
-    "disk": {
-        "interval": 120,
-        "format": " {percentage_used}%",
-        "path": "/"
-    },
-    "pulseaudio": {
-        "format": "{icon} {volume}%",
-        "format-muted": " Muted",
-        "format-icons": {
-            "default": ["", "", ""]
-        },
-        "on-click": "pavucontrol"
-    },
-    "backlight": {
-        "device": "intel_backlight",
-        "format": "{icon} {percent}%",
-        "format-icons": ["󰃞", "󰃟", "󰃠"]
-    },
-    "battery": {
-        "states": {
-            "good": 95,
-            "warning": 30,
-            "critical": 20
-        },
-        "format": "{icon} {capacity}%",
-        "format-charging": " {capacity}%",
-        "format-plugged": " {capacity}%",
-        "format-alt": "{time} {icon}",
-        "format-icons": ["", "", "", "", ""]
-    },
-    "custom/keyboard-toggle": {
-        "exec": "~/.config/waybar/scripts/keyboard_status.sh",
-        "format": "{}",
-        "interval": 2,
-        "on-click": "~/.local/bin/toggle-keyboard.sh"
-    },
-    "custom/hostname": {
-        "exec": "cat /etc/hostname",
-        "format": " {}",
-        "interval": "once"
-    },
-    "custom/date": {
-        "exec": "~/.config/waybar/scripts/waybar_date_icon.sh", // Renombramos el script
-        "format": " {}",
-        "interval": 1,
-        "on-click": "alacritty -e bash -c 'cal -y; read'"
-    },
-    "tray": {
-        "icon-size": 16,
-        "spacing": 5
+    "persistent_workspaces": {
+      "*": 1 // Muestra al menos 5 workspaces
     }
+  },
+  "hyprland/window": {
+    "format": " {} ",
+    "max-length": 60
+  },
+  // --- MÓDULO CENTRAL ---
+  "custom/cmus": {
+    "format": " {}",
+    "interval": 2,
+    "exec": "~/.config/waybar/scripts/cmus_status.sh",
+    "on-click-middle": "cmus-remote --pause",
+    "on-click-right": "cmus-remote --next",
+    "on-click": "cmus-remote --prev"
+  },
+  //"custom/cava": {
+  //"format": "{}",
+  //"interval": 1,
+  //"exec": "~/.config/waybar/scripts/visualizer.sh",
+  //"escape": false
+  //},
+  // --- MÓDULOS DE LA DERECHA ---
+  "custom/media-prev": {
+    "exec": "~/.config/waybar/scripts/media.py --widget=prev --icon-prev '⏮'",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "~/.config/waybar/scripts/media.py --prev",
+    "tooltip": false
+  },
+  "custom/media-main": {
+    "exec": "~/.config/waybar/scripts/media.py --widget=main --format '{state} {artist} - {title}' --icon-play '▶' --icon-pause '⏸' --icon-stop '⏹'",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "~/.config/waybar/scripts/media.py --play-pause",
+    "on-scroll-up": "~/.config/waybar/scripts/media.py --vol-up",
+    "on-scroll-down": "~/.config/waybar/scripts/media.py --vol-down",
+    "tooltip": true
+  },
+  "custom/media-next": {
+    "exec": "~/.config/waybar/scripts/media.py --widget=next --icon-next '⏭'",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "~/.config/waybar/scripts/media.py --next",
+    "tooltip": false
+  },
+  "cpu": {
+    "format": "{icon}{usage}%",
+    "format-icons": [
+      "󰾆 ",
+      "󰾅 ",
+      "󰓅 "
+    ],
+    "on-click": "alacritty -e htop"
+  },
+  "custom/temp": {
+    "exec": "~/.config/waybar/scripts/temp_status.sh",
+    "format": "{}",
+    "interval": 3
+  },
+  "memory": {
+    "format": " {used:0.1f}/{total:0.1f}GB",
+    "tooltip-format": "{used:0.2f}GB / {total:0.2f}GB",
+    "interval": 3
+  },
+  "disk": {
+    "interval": 120,
+    "format": " {used}/{total}B",
+    "path": "/"
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "format-muted": " Muted",
+    "format-icons": {
+      "default": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "on-click": "pavucontrol"
+  },
+  "custom/kblight": {
+    "format": "{}",
+    "exec": "~/.config/waybar/scripts/kblight.sh",
+    "interval": 3,
+    "tooltip": true
+  },
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ]
+  },
+  "battery": {
+    "states": {
+      "good": 95,
+      "warning": 30,
+      "critical": 20
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": "{icon} {capacity}%",
+    "format-plugged": " {capacity}%",
+    "format-alt": "{time} {icon}",
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "custom/hostname": {
+    "exec": "cat /etc/hostname",
+    "format": " {}",
+    "interval": "once"
+  },
+  "custom/date": {
+    "exec": "~/.config/waybar/scripts/waybar_date_icon.sh", // Renombramos el script
+    "format": " {}",
+    "interval": 1,
+    "on-click": "alacritty -e bash -c 'cal -y; read'"
+  },
+  "tray": {
+    "icon-size": 16,
+    "spacing": 5
+  }
 }

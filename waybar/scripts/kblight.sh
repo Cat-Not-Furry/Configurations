@@ -1,17 +1,24 @@
 #!/bin/bash
 
 DEVICE="tpacpi::kbd_backlight"
-ICON="󰌵"
 
-if [ ! -d "/sys/class/leds/$DEVICE" ]; then
-  echo ""
-  exit 1
-fi
+# --- LÓGICA PARA MOSTRAR EN WAYBAR ---
+# Si no hay argumentos, mostramos el estado actual.
+BRIGHTNESS=$(brightnessctl --device=$DEVICE get)
+TEXT=""
 
-BRIGHTNESS=$(brightnessctl --device="$DEVICE" get 2>/dev/null)
-case "$BRIGHTNESS" in
-0) echo "" ;;
-1) echo "$ICON 50%" ;;
-2) echo "$ICON 100%" ;;
-*) echo "$ICON ?" ;;
+# Usamos un 'case' como en tu script original para definir el texto.
+case $BRIGHTNESS in
+0)
+  TEXT=""
+  ;;
+1)
+  TEXT="󰌵 50%"
+  ;;
+2)
+  TEXT="󰌵 100%"
+  ;;
 esac
+
+# Imprimimos el resultado en formato JSON para Waybar.
+echo "$TEXT"
