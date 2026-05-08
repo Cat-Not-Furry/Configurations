@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+
+# --- Auto sudo ---
+if [[ $EUID -ne 0 ]]; then
+    exec sudo "$0" "$@"
+fi
+
+FAN="/proc/acpi/ibm/fan"
+
+# --- Detectar usuario real ---
+REAL_USER=${SUDO_USER:-$(logname)}
+USER_ID=$(id -u "$REAL_USER")
+
+# --- DBus del usuario ---
+DBUS_ADDR="unix:path=/run/user/$USER_ID/bus"
+
+# --- Función universal de notificación ---
+notify() {
+    sudo -u "$REAL_USER" DBUS_SESSION_BUS_ADDRESS="$DBUS_ADDR" \
+        notify-send "$1" "$2" 2>/dev/null || true
+}
+
+# --- Seguridad ---
+cleanup() {
+    echo "level auto" > "$FAN"
+    notify "Fanctl" "Modo automático restaurado"
+}
+trap cleanup EXIT
+
+# --- Configuración de modos ---
+set_mode() {
+    case "$1" in
+        silent) LEVEL="level 1" ;;
+        balanced) LEVEL="level 3" ;;
+        performance) LEVEL="level 5" ;;
+        turbo) LEVEL="level 7" ;;
+        max) LEVEL="level disengaged" ;;
+        auto) LEVEL="level auto" ;;
+        *) echo "Modo inválido"; exit 1 ;;
+    esac
+}
+
+# --- Obtener estado ---
+get_status() {
+    LEVEL_NOW=$(grep "level:" "$FAN" | awk '{print $2}')
+    SPEED=$(grep "speed:" "$FAN" | awk '{print $2}')
+    TEMP=$(sensors | grep -m 1 'Package id 0:' | awk '{print $4}')
+}
+
+# --- Aplicar modo ---
+apply_mode() {
+    echo "level auto" > "$FAN"
+    sleep 0.2
+    echo "watchdog 60" > "$FAN"
+    echo "$LEVEL" > "$FAN"
+}
+
+# --- Parseo ---
+MODE="$1"
+TIME=0
+
+shift
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -t|--time)
+            TIME="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# --- Validación ---
+if [[ -z "$MODE" ]]; then
+    echo "Uso: fanctl-notify {silent|balanced|performance|turbo|max|auto} [-t segundos]"
+    exit 1
+fi
+
+set_mode "$MODE"
+apply_mode
+
+notify "Fanctl" "Modo aplicado: $MODE"
+
+# --- Si no hay tiempo ---
+if [[ "$TIME" -le 0 ]]; then
+    exit 0
+fi
+
+# --- Loop ---
+END_TIME=$((SECONDS + TIME))
+NEXT_NOTIFY=$((SECONDS + 60))
+
+while [[ $SECONDS -lt $END_TIME ]]; do
+    REMAIN=$((END_TIME - SECONDS))
+
+    if [[ $SECONDS -ge $NEXT_NOTIFY ]]; then
+        get_status
+        notify "Fanctl Status" "Nivel: $LEVEL_NOW | RPM: $SPEED | Temp: $TEMP"
+        NEXT_NOTIFY=$((SECONDS + 60))
+    fi
+
+    if [[ $REMAIN -eq 5 ]]; then
+        notify "Fanctl" "Volviendo a automático en 5 segundos"
+    fi
+
+    sleep 1
+done

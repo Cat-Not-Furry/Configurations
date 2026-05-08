@@ -1,0 +1,188 @@
+#!/usr/bin/env bash
+# monitor-wofi.sh - Configuración de monitores con wofi para Hyprland
+# Uso: monitor-wofi [p|d|ex|s]  (opcional)
+#   p: solo portátil
+#   d: duplicar
+#   ex: extender derecha
+#   s: solo externa
+# Sin argumentos: menú interactivo con wofi
+
+set -euo pipefail
+
+# Función para mostrar notificaciones
+notify() {
+  notify-send "Monitor" "$1" -t 3000
+}
+
+# Función para detectar monitores
+detectar_monitores() {
+  # Obtener lista de monitores conectados usando hyprctl
+  monitors=$(hyprctl monitors all | grep -E "^(Monitor)" | awk '{print $2}' | sed 's/:$//')
+  if [ -z "$monitors" ]; then
+    echo "Error: No se pudieron detectar monitores"
+    notify "No se detectaron monitores"
+    exit 1
+  fi
+
+  # Convertir a array
+  mapfile -t mon_list <<<"$monitors"
+
+  # Identificar monitor interno (típicamente eDP-*) y externo
+  internal=""
+  external=""
+  for m in "${mon_list[@]}"; do
+    if [[ "$m" == eDP-* ]]; then
+      internal="$m"
+    else
+      external="$m"
+    fi
+  done
+
+  # Si no se encontró interno, usar el primero como interno y el segundo como externo
+  if [ -z "$internal" ]; then
+    internal="${mon_list[0]}"
+    if [ ${#mon_list[@]} -gt 1 ]; then
+      external="${mon_list[1]}"
+    fi
+  fi
+
+  # Si hay más de dos, usar el segundo como externo principal
+  if [ ${#mon_list[@]} -gt 2 ]; then
+    external="${mon_list[1]}"
+    echo "Nota: Múltiples externos, usando $external como principal"
+  fi
+}
+
+# Función para obtener resolución del monitor interno (para duplicar)
+get_resolucion_interno() {
+  hyprctl monitors | grep -A10 "^Monitor $internal" | grep -m1 "availableModes" | awk '{print $2}' | cut -d'@' -f1
+}
+
+# Funciones de acción
+accion_solo_portatil() {
+  hyprctl keyword monitor "$internal", preferred, 0x0, 1
+  if [ -n "$external" ]; then
+    hyprctl keyword monitor "$external", disable
+  fi
+  notify "Solo portátil: $internal"
+}
+
+accion_solo_externa() {
+  if [ -z "$external" ]; then
+    echo "Error: No hay monitor externo conectado"
+    notify "No hay monitor externo"
+    exit 1
+  fi
+  hyprctl keyword monitor "$external", preferred, 0x0, 1
+  hyprctl keyword monitor "$internal", disable
+  notify "Solo externa: $external"
+}
+
+accion_duplicar() {
+  if [ -z "$external" ]; then
+    echo "Error: No hay monitor externo conectado"
+    notify "No hay monitor externo"
+    exit 1
+  fi
+  res=$(get_resolucion_interno)
+  [ -z "$res" ] && res="preferred"
+  hyprctl keyword monitor "$internal", "$res", 0x0, 1
+  hyprctl keyword monitor "$external", "$res", 0x0, 1
+  notify "Duplicado: $internal y $external"
+}
+
+accion_extender_derecha() {
+  if [ -z "$external" ]; then
+    echo "Error: No hay monitor externo conectado"
+    notify "No hay monitor externo"
+    exit 1
+  fi
+  hyprctl keyword monitor "$internal", preferred, 0x0, 1
+  hyprctl keyword monitor "$external", preferred, auto-right, 1
+  notify "Extendido a la derecha"
+}
+
+# Mostrar ayuda
+mostrar_ayuda() {
+  cat <<EOF
+Uso: monitor-wofi [opción]
+
+Opciones:
+  p    - Solo portátil
+  d    - Duplicar pantallas
+  ex   - Extender a la derecha
+  s    - Solo externa
+  ?    - Mostrar esta ayuda
+
+Sin opciones: muestra menú interactivo con wofi.
+EOF
+}
+
+# ============================================
+# PROGRAMA PRINCIPAL
+# ============================================
+
+# Detectar monitores
+detectar_monitores
+
+# Si no hay argumentos, mostrar menú interactivo
+if [ $# -eq 0 ]; then
+  # Construir opciones del menú
+  options=()
+  [ -n "$internal" ] && options+=("Solo portátil ($internal)")
+  [ -n "$external" ] && options+=("Solo externa ($external)" "Duplicar ($internal ↔ $external)" "Extender derecha ($internal ←→ $external)")
+  options+=("Cancelar")
+
+  if [ ${#options[@]} -eq 1 ]; then
+    echo "Error: No hay opciones disponibles"
+    exit 1
+  fi
+
+  # Mostrar menú con wofi
+  selected=$(printf '%s\n' "${options[@]}" | wofi --dmenu --prompt "Configurar monitores" --width 450 --height 300)
+
+  [ -z "$selected" ] || [ "$selected" = "Cancelar" ] && {
+    echo "Cancelado"
+    exit 0
+  }
+
+  # Ejecutar según selección
+  case "$selected" in
+  "Solo portátil"*) accion_solo_portatil ;;
+  "Solo externa"*) accion_solo_externa ;;
+  "Duplicar"*) accion_duplicar ;;
+  "Extender derecha"*) accion_extender_derecha ;;
+  *)
+    echo "Opción no reconocida"
+    exit 1
+    ;;
+  esac
+
+  exit 0
+fi
+
+# Si hay argumentos, procesarlos
+case "$1" in
+p)
+  accion_solo_portatil
+  ;;
+d)
+  accion_duplicar
+  ;;
+ex)
+  accion_extender_derecha
+  ;;
+s)
+  accion_solo_externa
+  ;;
+"?" | --help | -h)
+  mostrar_ayuda
+  ;;
+*)
+  echo "Opción no válida: $1"
+  mostrar_ayuda
+  exit 1
+  ;;
+esac
+
+echo "Configuración aplicada"

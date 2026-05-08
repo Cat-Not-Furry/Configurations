@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+cat <<'EOF'
+╔═══════════════════════════════════════════════════════════════════╗
+║               SCRIPTS PERSONALIZADOS - AYUDA                      ║
+╚═══════════════════════════════════════════════════════════════════╝
+
+ COMANDO       DESCRIPCIÓN
+─────────────────────────────────────────────────────────────────────
+ actualizar    Actualiza el sistema (requiere sudo y confirmación)
+ cpu-mode      Cambia la frecuencia del procesador (requiere sudo)
+    +          Frecuencia máxima (rendimiento máximo)
+    =          Frecuencia dinámica (configuración por defecto)
+    -          Frecuencia mínima (ahorro de energía)
+    ?          Muestra la configuración actual
+
+ bateria       Muestra el porcentaje de la batería
+ brillo        Ajusta el brillo de la pantalla
+    +          Aumenta brillo 2%
+    -          Disminuye brillo 2%
+
+ fondo         Gestor de fondos de pantalla
+    f          Fondo aleatorio con feh
+    s          Selecciona fondo
+    h          Fondo H aleatorio con feh
+    hs         Selecciona fondo h
+    t          Inicia picom (transparencias)
+    a          Ambos (fondo + picom)
+    k          Termina picom
+
+ carga         Gestor de perfiles TLP
+   -b          Modo batería
+   +b          Modo rendimiento
+   ?           Muestra configuración actual
+
+ monitor       Configuración de pantallas múltiples
+ temperatura   Muestra temperatura del CPU con iconos
+ frecuencia    Muestra frecuencia actual del CPU
+ life_fondo    Fondo de pantalla animado con video
+
+─────────────────────────────────────────────────────────────────────
+Made by Cat-Not-Furry :: https://github.com/Cat-Not-Furry
+EOF
