@@ -9,7 +9,7 @@ st
 pacman/
 pkg/
 src/
-
+body/
 # Backups y temporales
 *~
 *.swp
