@@ -91,7 +91,7 @@
       "󰾅 ",
       "󰓅 "
     ],
-    "on-click": "alacritty -e htop"
+    "on-click": "foot -e htop"
   },
   "custom/temp": {
     "exec": "~/.config/waybar/scripts/temp_status.sh",
@@ -110,7 +110,7 @@
   },
   "pulseaudio": {
     "format": "{icon} {volume}%",
-    "format-muted": " Muted",
+    "format-muted": " Mute",
     "format-icons": {
       "default": [
         "",
@@ -156,13 +156,16 @@
   "custom/hostname": {
     "exec": "cat /etc/hostname",
     "format": " {}",
-    "interval": "once"
+    "interval": "once",
+    "on-click": "sleep 0.1 && ignis toggle-window ignis_CONTROL_CENTER",
+    "tooltip": true,
+    "tooltip-format": "Centro de control"
   },
   "custom/date": {
     "exec": "~/.config/waybar/scripts/waybar_date_icon.sh", // Renombramos el script
     "format": " {}",
     "interval": 1,
-    "on-click": "alacritty -e bash -c 'cal -y; read'"
+    "on-click": "foot -e bash -c 'cal -y; read'"
   },
   "tray": {
     "icon-size": 16,

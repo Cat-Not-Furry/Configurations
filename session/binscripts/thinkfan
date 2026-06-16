@@ -1,110 +1,597 @@
 #!/usr/bin/env bash
+# -------------------------------------------------------------------
+# thinkfan – control temporal del ventilador en ThinkPad
+# -------------------------------------------------------------------
 
-# --- Auto sudo ---
-if [[ $EUID -ne 0 ]]; then
-    exec sudo "$0" "$@"
-fi
+set -Eeuo pipefail
 
-FAN="/proc/acpi/ibm/fan"
+# ------------------------------------------------------------
+# CONSTANTES
+# ------------------------------------------------------------
+readonly FAN_INTERFACE="/proc/acpi/ibm/fan"
 
-# --- Detectar usuario real ---
-REAL_USER=${SUDO_USER:-$(logname)}
-USER_ID=$(id -u "$REAL_USER")
+readonly STATE_FILE="/tmp/thinkfan.state"
+readonly PID_FILE="/tmp/thinkfan.pid"
+readonly ENV_FILE="/tmp/thinkfan.env"
+readonly LOG_FILE="/tmp/thinkfan.log"
+readonly READY_FILE="/tmp/thinkfan.ready"
 
-# --- DBus del usuario ---
-DBUS_ADDR="unix:path=/run/user/$USER_ID/bus"
+readonly OVERDRIVE_REFRESH_SECONDS=110
+readonly MINIMUM_DURATION_SECONDS=5
+readonly WATCHDOG_VALUE=60
+readonly NOTIFY_INTERVAL=60
+readonly WORKER_START_TIMEOUT=15
+readonly STATE_READ_RETRIES=5
+readonly FAN_REFRESH_INTERVAL=30
+readonly MAX_LOG_SIZE=$((1024 * 1024))
 
-# --- Función universal de notificación ---
-notify() {
-    sudo -u "$REAL_USER" DBUS_SESSION_BUS_ADDRESS="$DBUS_ADDR" \
-        notify-send "$1" "$2" 2>/dev/null || true
+# ------------------------------------------------------------
+# UTILIDADES
+# ------------------------------------------------------------
+safe_trim() {
+    local s="$1"
+    s=${s#"${s%%[!$' \t\r\n']*}"}
+    s=${s%"${s##*[!$' \t\r\n']}"}
+    printf '%s' "$s"
 }
 
-# --- Seguridad ---
-cleanup() {
-    echo "level auto" > "$FAN"
-    notify "Fanctl" "Modo automático restaurado"
-}
-trap cleanup EXIT
+rotate_log_if_needed() {
+    [[ -f "$LOG_FILE" ]] || return 0
 
-# --- Configuración de modos ---
-set_mode() {
-    case "$1" in
-        silent) LEVEL="level 1" ;;
-        balanced) LEVEL="level 3" ;;
-        performance) LEVEL="level 5" ;;
-        turbo) LEVEL="level 7" ;;
-        max) LEVEL="level disengaged" ;;
-        auto) LEVEL="level auto" ;;
-        *) echo "Modo inválido"; exit 1 ;;
+    local size=0
+    size=$(stat -c '%s' "$LOG_FILE" 2>/dev/null || echo 0)
+    if [[ "$size" =~ ^[0-9]+$ ]] && (( size > MAX_LOG_SIZE )); then
+        : > "$LOG_FILE"
+    fi
+}
+
+# ------------------------------------------------------------
+# ENTORNO GRÁFICO
+# ------------------------------------------------------------
+load_graphical_environment() {
+    if [[ -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+    fi
+}
+
+# ------------------------------------------------------------
+# LOG Y NOTIFICACIÓN
+# ------------------------------------------------------------
+log_message() {
+    rotate_log_if_needed
+    echo "$(date '+%F %H:%M:%S') - $*" >> "$LOG_FILE"
+}
+
+notify_user() {
+    local title="$1" message="$2"
+    local real_user user_id bus_address
+
+    real_user="${USER:-}"
+
+    if [[ -z "$real_user" ]]; then
+        return 0
+    fi
+
+    user_id=$(id -u "$real_user" 2>/dev/null || echo "")
+    [[ "$user_id" =~ ^[0-9]+$ ]] || return 0
+
+    bus_address="unix:path=/run/user/$user_id/bus"
+
+    timeout 3s sudo -u "$real_user" \
+        DBUS_SESSION_BUS_ADDRESS="$bus_address" \
+        DISPLAY="${DISPLAY:-}" \
+        XAUTHORITY="${XAUTHORITY:-}" \
+        notify-send "$title" "$message" 2>/dev/null || true
+}
+
+# ------------------------------------------------------------
+# INTERACCIÓN CON EL VENTILADOR
+# ------------------------------------------------------------
+write_to_fan() {
+    local value="$1"
+
+    printf '%s\n' "$value" |
+        sudo tee "$FAN_INTERFACE" >/dev/null
+}
+
+read_fan_line() {
+    local key="$1"
+    awk -v k="$key" -F': *' '$1 == k { print $2; exit }' "$FAN_INTERFACE" 2>/dev/null || true
+}
+
+# ------------------------------------------------------------
+# TEMPERATURA
+# ------------------------------------------------------------
+read_temperature() {
+    local temp_file temp
+
+    for temp_file in \
+        /sys/class/thermal/thermal_zone0/temp \
+        /sys/class/hwmon/hwmon0/temp1_input
+    do
+        if [[ -r "$temp_file" ]]; then
+            temp=$(< "$temp_file")
+            if [[ "$temp" =~ ^[0-9]+$ ]]; then
+                if (( temp > 1000 )); then
+                    awk -v t="$temp" 'BEGIN { printf "%.1f°C", t / 1000 }'
+                else
+                    awk -v t="$temp" 'BEGIN { printf "%.1f°C", t }'
+                fi
+                return 0
+            fi
+        fi
+    done
+
+    if command -v sensors &>/dev/null; then
+        local raw_output temperature
+        raw_output=$(sensors 2>/dev/null) || true
+
+        temperature=$(grep -m1 'Package id 0:' <<< "$raw_output" | awk '{print $4}') || true
+        if [[ -n "${temperature:-}" ]]; then
+            echo "$temperature"
+            return 0
+        fi
+
+        temperature=$(grep -m1 -E '^(CPU|temp1):' <<< "$raw_output" | awk '{print $2}') || true
+        if [[ -n "${temperature:-}" ]]; then
+            echo "$temperature"
+            return 0
+        fi
+
+        temperature=$(grep -m1 -E '\+[0-9]+\.[0-9]°C' <<< "$raw_output" | awk '{print $NF}') || true
+        if [[ -n "${temperature:-}" ]]; then
+            echo "$temperature"
+            return 0
+        fi
+    fi
+
+    echo "N/D"
+}
+
+# ------------------------------------------------------------
+# ESTADO COMPLETO
+# ------------------------------------------------------------
+read_fan_status() {
+    local status speed level temperature
+    status=$(read_fan_line "status")
+    speed=$(read_fan_line "speed")
+    level=$(read_fan_line "level")
+    temperature=$(read_temperature)
+
+    echo "${status:-desconocido}" "${speed:-0}" "${level:-desconocido}" "${temperature:-N/D}"
+}
+
+# ------------------------------------------------------------
+# GESTIÓN DE ARCHIVOS DE ESTADO
+# ------------------------------------------------------------
+write_state_file() {
+    local mode="$1" pid="$2" start_ts="$3" end_ts="$4"
+    cat > "$STATE_FILE" <<EOF
+MODE=$mode
+PID=$pid
+START=$start_ts
+END=$end_ts
+EOF
+    printf '%s\n' "$pid" > "$PID_FILE"
+}
+
+load_worker_state() {
+    [[ -f "$STATE_FILE" ]] || return 1
+
+    # shellcheck disable=SC1090
+    source "$STATE_FILE"
+
+    [[ -n "${PID:-}" ]]
+}
+
+remove_worker_state() {
+    rm -f "$STATE_FILE" "$PID_FILE" "$READY_FILE"
+}
+
+is_worker_running() {
+    [[ -f "$PID_FILE" ]] || return 1
+    local pid
+    pid=$(< "$PID_FILE")
+    [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+    kill -0 "$pid" 2>/dev/null
+}
+
+# ------------------------------------------------------------
+# LIMPIEZA DE WORKERS
+# ------------------------------------------------------------
+kill_all_workers() {
+    local pid
+
+    if [[ -f "$PID_FILE" ]]; then
+        pid=$(< "$PID_FILE")
+
+        if [[ "$pid" =~ ^[0-9]+$ ]] &&
+           kill -0 "$pid" 2>/dev/null; then
+
+            kill "$pid" 2>/dev/null || true
+            sleep 0.5
+            kill -TERM "$pid" 2>/dev/null || true
+        fi
+    fi
+
+    remove_worker_state
+
+    write_to_fan "level auto" || true
+    write_to_fan "watchdog $WATCHDOG_VALUE" || true
+
+    log_message "Instancias detenidas"
+}
+
+# ------------------------------------------------------------
+# PERFILES
+# ------------------------------------------------------------
+map_profile_to_level() {
+    local profile="$1"
+    case "$profile" in
+        idle)      echo "level 1" ;;
+        cool)      echo "level 3" ;;
+        dev)       echo "level 5" ;;
+        turbo)     echo "level 7" ;;
+        overdrive) echo "level disengaged" ;;
+        *)         echo "" ;;
     esac
 }
 
-# --- Obtener estado ---
-get_status() {
-    LEVEL_NOW=$(grep "level:" "$FAN" | awk '{print $2}')
-    SPEED=$(grep "speed:" "$FAN" | awk '{print $2}')
-    TEMP=$(sensors | grep -m 1 'Package id 0:' | awk '{print $4}')
-}
+# ------------------------------------------------------------
+# APLICAR NIVEL
+# ------------------------------------------------------------
+apply_fan_level() {
+    local level="$1"
 
-# --- Aplicar modo ---
-apply_mode() {
-    echo "level auto" > "$FAN"
+    write_to_fan "level auto"
     sleep 0.2
-    echo "watchdog 60" > "$FAN"
-    echo "$LEVEL" > "$FAN"
+    write_to_fan "watchdog $WATCHDOG_VALUE"
+
+    if write_to_fan "$level"; then
+        log_message "Nivel aplicado: $level"
+        return 0
+    fi
+
+    if [[ "$level" == "level disengaged" ]]; then
+        level="level 7"
+        if write_to_fan "$level"; then
+            notify_user "Thinkfan" "Overdrive no soportado, usando turbo (level 7)"
+            log_message "Overdrive no soportado, usando turbo"
+            return 0
+        fi
+    fi
+
+    log_message "ERROR: no se pudo escribir $level en $FAN_INTERFACE"
+    notify_user "Thinkfan Error" "No se pudo establecer el nivel $level"
+    return 1
 }
 
-# --- Parseo ---
-MODE="$1"
-TIME=0
+# ------------------------------------------------------------
+# COMANDOS DE SOLO LECTURA
+# ------------------------------------------------------------
+show_status() {
+    if [[ ! -r "$FAN_INTERFACE" ]]; then
+        echo "No tienes permiso para leer $FAN_INTERFACE."
+        echo "Prueba 'sudo thinkfan status' o configura sudo sin contraseña."
+        return
+    fi
 
-shift
+    local status speed level temperature
+    read -r status speed level temperature <<< "$(read_fan_status)"
 
-while [[ $# -gt 0 ]]; do
-    case "$1" in
-        -t|--time)
-            TIME="$2"
-            shift 2
+    echo
+    echo "Estado actual"
+    echo "-------------"
+    echo "Estado      : $status"
+    echo "Nivel       : $level"
+    echo "RPM         : $speed"
+    echo "Temperatura : $temperature"
+
+    if ! command -v sensors &>/dev/null; then
+        echo
+        echo "[!] 'sensors' no está instalado. Instala lm_sensors."
+    fi
+
+    if load_worker_state && is_worker_running; then
+        echo
+        echo "Instancia activa"
+        echo "----------------"
+        echo "Perfil      : $MODE"
+        echo "PID         : $PID"
+        if [[ "$END" == "infinity" ]]; then
+            echo "Restante    : infinito"
+        else
+            local now remaining
+            now=$(date +%s)
+            if (( END > now )); then
+                remaining=$((END - now))
+                printf "Restante    : %02d:%02d:%02d\n" $((remaining/3600)) $(((remaining%3600)/60)) $((remaining%60))
+            else
+                echo "Restante    : finalizando"
+            fi
+        fi
+    fi
+    echo
+}
+
+show_auto_status() {
+    if [[ ! -r "$FAN_INTERFACE" ]]; then
+        echo "No tienes permiso para leer $FAN_INTERFACE."
+        return
+    fi
+
+    local status speed level temperature
+    read -r status speed level temperature <<< "$(read_fan_status)"
+
+    echo
+    echo "Estado BIOS/EC"
+    echo "--------------"
+    echo "Estado      : $status"
+    echo "Nivel       : $level"
+    echo "RPM         : $speed"
+    echo "Temperatura : $temperature"
+    echo
+    if [[ "$level" == "auto" ]]; then
+        echo "Control automático activo."
+    else
+        echo "Control automático NO activo."
+    fi
+    echo
+}
+
+# ------------------------------------------------------------
+# STOP
+# ------------------------------------------------------------
+stop_all_instances() {
+    kill_all_workers
+    echo "Todas las instancias detenidas."
+    notify_user "Thinkfan" "Todas las instancias detenidas"
+}
+
+# ------------------------------------------------------------
+# WORKER
+# ------------------------------------------------------------
+cleanup_worker() {
+    local rc=$?
+    write_to_fan "level auto" || true
+    write_to_fan "watchdog $WATCHDOG_VALUE" || true
+    remove_worker_state
+    notify_user "Thinkfan" "Modo automático restaurado"
+    log_message "Cleanup: vuelta a automático"
+    exit "$rc"
+}
+
+run_worker_loop() {
+    local mode="$1" duration="$2" level="$3"
+    set +e
+
+    trap cleanup_worker EXIT INT TERM
+
+    if ! apply_fan_level "$level"; then
+        log_message "apply_fan_level falló, worker aborta"
+        exit 0
+    fi
+
+    local start_ts end_ts next_notify next_overdrive next_watchdog
+    start_ts=$(date +%s)
+
+    if [[ "$duration" == "infinity" ]]; then
+        end_ts="infinity"
+    else
+        end_ts=$((start_ts + duration))
+    fi
+
+    write_state_file "$mode" "$$" "$start_ts" "$end_ts"
+    : > "$READY_FILE"
+
+    notify_user "Thinkfan" "Perfil: $mode"
+    log_message "Worker iniciado: MODE=$mode, DURATION=$duration"
+
+    next_notify=$(( $(date +%s) + NOTIFY_INTERVAL ))
+    next_overdrive=$(( $(date +%s) + OVERDRIVE_REFRESH_SECONDS ))
+    next_watchdog=$(( $(date +%s) + FAN_REFRESH_INTERVAL ))
+
+    while true; do
+        local now
+        now=$(date +%s)
+
+        if [[ "$duration" != "infinity" ]]; then
+            if (( now >= end_ts )); then
+                log_message "Tiempo cumplido, saliendo"
+                break
+            fi
+            local remain=$((end_ts - now))
+            if (( remain == 5 )); then
+                notify_user "Thinkfan" "Volviendo a automático en 5 segundos"
+            fi
+        fi
+
+        if [[ "$mode" == "overdrive" && $now -ge $next_overdrive ]]; then
+            write_to_fan "level disengaged" || write_to_fan "level 7"
+            next_overdrive=$((now + OVERDRIVE_REFRESH_SECONDS))
+        fi
+
+        if (( now >= next_watchdog )); then
+            write_to_fan "watchdog $WATCHDOG_VALUE" || true
+            next_watchdog=$((now + FAN_REFRESH_INTERVAL))
+        fi
+
+        if (( now >= next_notify )); then
+            local temp
+            temp=$(read_temperature)
+            notify_user "Thinkfan Status" "${mode} | ${temp}"
+            log_message "Notificación periódica: ${mode} | ${temp}"
+            next_notify=$((now + NOTIFY_INTERVAL))
+        fi
+
+        sleep 1
+    done
+}
+
+# ------------------------------------------------------------
+# LANZAR NUEVO WORKER
+# ------------------------------------------------------------
+start_new_worker() {
+    local mode="$1" duration="$2"
+
+    rm -f "$READY_FILE"
+    kill_all_workers
+
+    local level
+    level=$(map_profile_to_level "$mode")
+    if [[ -z "$level" ]]; then
+        echo "Perfil inválido: $mode" >&2
+        exit 1
+    fi
+
+    nohup "$0" --worker "$mode" "$duration" "$level" >/dev/null 2>&1 &
+
+    echo -n "Esperando inicio del worker..."
+    local i
+    for ((i=0; i<WORKER_START_TIMEOUT*2; i++)); do
+        if [[ -f "$READY_FILE" ]]; then
+            echo " listo."
+            break
+        fi
+        sleep 0.5
+    done
+
+    if [[ ! -f "$READY_FILE" ]]; then
+        echo
+        echo "Error: el worker no respondió a tiempo."
+        echo "Puede que el proceso siga ejecutándose; revisa 'thinkfan status'."
+        log_message "Timeout esperando $READY_FILE"
+        return 1
+    fi
+
+    rm -f "$READY_FILE"
+
+    local retries=0
+    while ! load_worker_state && (( retries < STATE_READ_RETRIES )); do
+        sleep 0.2
+        ((retries++))
+    done
+
+    if load_worker_state; then
+        echo
+        echo "Thinkfan iniciado"
+        echo "Perfil    : $MODE"
+        echo "Duración  : $( [[ "$duration" == "infinity" ]] && echo infinito || printf "%02d:%02d:%02d" $((duration/3600)) $(((duration%3600)/60)) $((duration%60)) )"
+        echo "PID       : $PID"
+        echo
+    else
+        echo
+        echo "Error: el worker no pudo guardar su estado."
+        echo "Revisa el log en $LOG_FILE"
+        return 1
+    fi
+}
+
+# ------------------------------------------------------------
+# AYUDA
+# ------------------------------------------------------------
+show_help() {
+    cat << EOF
+Thinkfan – Control temporal del ventilador
+
+USO
+  thinkfan <perfil> -t SEGUNDOS
+  thinkfan <perfil> -t infinity
+
+PERFILES
+  idle        → level 1
+  cool        → level 3
+  dev         → level 5
+  turbo       → level 7
+  overdrive   → level disengaged (si no soportado, usa turbo)
+
+COMANDOS
+  auto        Verifica control automático BIOS/EC
+  status      Estado actual del ventilador
+  stop        Detener todas las instancias activas
+  ?           Esta ayuda
+
+EOF
+}
+
+# ------------------------------------------------------------
+# MAIN
+# ------------------------------------------------------------
+main() {
+    local command="${1:-}"
+
+    case "$command" in
+        "?"|-h|--help)
+            show_help
+            exit 0
             ;;
-        *)
+        status)
+            load_graphical_environment
+            show_status
+            exit 0
+            ;;
+        stop)
+            load_graphical_environment
+            stop_all_instances
+            exit 0
+            ;;
+        auto)
+            load_graphical_environment
+            show_auto_status
+            exit 0
+            ;;
+        --worker)
             shift
+            run_worker_loop "$1" "$2" "$3"
+            exit 0
             ;;
     esac
-done
 
-# --- Validación ---
-if [[ -z "$MODE" ]]; then
-    echo "Uso: fanctl-notify {silent|balanced|performance|turbo|max|auto} [-t segundos]"
-    exit 1
-fi
+    load_graphical_environment
 
-set_mode "$MODE"
-apply_mode
+    local profile="${1:-}"
+    if [[ -z "$profile" ]]; then
+        show_help
+        exit 1
+    fi
+    shift
 
-notify "Fanctl" "Modo aplicado: $MODE"
+    local time=""
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -t|--time)
+                time="${2:-}"
+                shift 2
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
 
-# --- Si no hay tiempo ---
-if [[ "$TIME" -le 0 ]]; then
-    exit 0
-fi
-
-# --- Loop ---
-END_TIME=$((SECONDS + TIME))
-NEXT_NOTIFY=$((SECONDS + 60))
-
-while [[ $SECONDS -lt $END_TIME ]]; do
-    REMAIN=$((END_TIME - SECONDS))
-
-    if [[ $SECONDS -ge $NEXT_NOTIFY ]]; then
-        get_status
-        notify "Fanctl Status" "Nivel: $LEVEL_NOW | RPM: $SPEED | Temp: $TEMP"
-        NEXT_NOTIFY=$((SECONDS + 60))
+    if [[ -z "$time" ]]; then
+        echo
+        echo "Por seguridad debe especificar una duración."
+        echo "  thinkfan $profile -t SEGUNDOS"
+        echo "  thinkfan $profile -t infinity"
+        echo
+        exit 1
     fi
 
-    if [[ $REMAIN -eq 5 ]]; then
-        notify "Fanctl" "Volviendo a automático en 5 segundos"
+    if [[ "$time" != "infinity" ]]; then
+        if [[ ! "$time" =~ ^[0-9]+$ ]]; then
+            echo "Tiempo inválido." >&2
+            exit 1
+        fi
+        if (( time < MINIMUM_DURATION_SECONDS )); then
+            echo "Tiempo mínimo: $MINIMUM_DURATION_SECONDS segundos." >&2
+            exit 1
+        fi
     fi
 
-    sleep 1
-done
+    start_new_worker "$profile" "$time"
+}
+
+# ------------------------------------------------------------
+main "$@"

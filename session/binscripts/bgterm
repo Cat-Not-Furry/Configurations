@@ -107,11 +107,13 @@ run_x11() {
   if ! pgrep -x "picom" >/dev/null; then
     echo -e "${YELLOW}Advertencia: picom no está corriendo. La transparencia puede fallar.${NC}"
   fi
-  local transparency_opts=""
+
+  local depth_opts=""
   if [ "$TRANSPARENT" = "yes" ]; then
-    transparency_opts="-tr -sh 85" # true transparency + shading 85%
+    depth_opts="-depth 32 -bg rgba:0000/0000/0000/0000"
   fi
-  local urxvt_cmd="urxvt $transparency_opts -embed {windowid} -e $cmd $args"
+
+  local urxvt_cmd="urxvt +sb -b 0 -w 0 $depth_opts -embed {windowid} -e $cmd $args"
   echo -e "${GREEN}▶ X11 (i3):${NC} i3bgwin $urxvt_cmd"
   exec i3bgwin $urxvt_cmd
 }

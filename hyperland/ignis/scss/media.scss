@@ -1,0 +1,106 @@
+.control-center-dismiss {
+    background-color: transparent;
+}
+
+.media-wrapper {
+    padding: 0 1rem 1rem;
+}
+
+.media-card {
+    background-color: $surfaceContainer;
+    border: 1px solid $outlineVariant;
+    border-radius: 1.25rem;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.media-art {
+    min-height: 220px;
+    min-width: 220px;
+    border-radius: 1rem;
+    background-color: $surfaceContainerHigh;
+    margin-bottom: 0.75rem;
+}
+
+.media-title {
+    color: $onSurface;
+    font-size: 1.1rem;
+    margin-top: 0.25rem;
+}
+
+.media-artist {
+    color: $onSurfaceVariant;
+    font-size: 0.95rem;
+    font-weight: normal;
+    margin-bottom: 0.75rem;
+}
+
+.media-times {
+    margin-bottom: 0.35rem;
+
+    label {
+        color: $onSurfaceVariant;
+        font-size: 0.85rem;
+        font-weight: normal;
+    }
+}
+
+.media-scale {
+    all: unset;
+    margin-bottom: 0.75rem;
+
+    trough,
+    trough highlight {
+        background-color: $surfaceContainerHighest;
+        border-radius: 1rem;
+        min-height: 0.35rem;
+    }
+
+    trough highlight {
+        background-color: $primary;
+    }
+
+    slider {
+        background-color: $onSurface;
+        min-width: 0.75rem;
+        min-height: 0.75rem;
+        border-radius: 1rem;
+    }
+}
+
+.media-controls {
+    padding-top: 0.25rem;
+}
+
+.media-btn {
+    all: unset;
+    padding: 0.45rem;
+    margin: 0 0.35rem;
+    border-radius: 1rem;
+    color: $onSurface;
+    transition: 0.2s;
+
+    &:hover {
+        background-color: $surfaceContainerHigh;
+        color: $primary;
+    }
+
+    &.active {
+        color: $primary;
+    }
+}
+
+.media-play-btn {
+    all: unset;
+    background-color: $primary;
+    color: $onPrimary;
+    border-radius: 2rem;
+    min-width: 3.25rem;
+    min-height: 3.25rem;
+    margin: 0 0.75rem;
+    transition: 0.2s;
+
+    &:hover {
+        background-color: lighten($primary, 5%);
+    }
+}

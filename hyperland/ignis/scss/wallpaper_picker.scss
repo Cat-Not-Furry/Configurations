@@ -1,0 +1,58 @@
+.wallpaper-picker-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.wallpaper-picker-content {
+    @include window;
+    /* Default rectangular picker size: 900x600 (56.25rem x 37.5rem) */
+    min-width: 56.25rem;
+    min-height: 37.5rem;
+}
+
+.wallpaper-picker-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.wallpaper-picker-scroll {
+    min-height: 30rem;
+}
+
+.wallpaper-picker-grid {
+    padding: 0.25rem;
+}
+
+.wallpaper-picker-row {
+    margin-bottom: 0.5rem;
+}
+
+.wallpaper-picker-item {
+    @include hover($surfaceContainer);
+    border-radius: 0.75rem;
+    margin: 0.25rem;
+    padding: 0.75rem;
+    /* Approx 300x180px previews */
+    min-width: 18.75rem;
+    min-height: 11.25rem;
+
+    &:focus {
+        @include hover($primary);
+        color: $surface;
+    }
+}
+
+.wallpaper-picker-item-box {
+    margin: 0.25rem;
+}
+
+.wallpaper-picker-item-label {
+    margin-top: 0.35rem;
+}
+
+.wallpaper-picker-empty {
+    padding: 2rem;
+}
+
+.wallpaper-picker-empty-label {
+    opacity: 0.7;
+}

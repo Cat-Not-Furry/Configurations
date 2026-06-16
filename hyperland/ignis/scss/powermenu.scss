@@ -1,0 +1,86 @@
+.powermenu {
+    @include window;
+}
+
+.powermenu-button {
+    @include hover($surfaceContainer);
+    transition: 0.3s;
+    border-radius: 10rem;
+    min-width: 8rem;
+    min-height: 8rem;
+
+    &:focus {
+        @include hover($primary);
+        color: $surface;
+    }
+}
+
+.powermenu-button-label {
+    margin-top: 0.5rem;
+}
+
+.powermenu-button-box {
+    margin: 0.5rem;
+}
+
+.powermenu-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.powermenu-kexec-view {
+    min-width: 24rem;
+}
+
+.powermenu-kexec-tiles {
+    margin: 0.5rem;
+}
+
+.powermenu-kexec-tile {
+    @include hover($surfaceContainer);
+    transition: 0.3s;
+    border-radius: 1rem;
+    min-width: 10rem;
+    min-height: 10rem;
+    margin: 0.5rem;
+
+    &:focus {
+        @include hover($primary);
+        color: $surface;
+    }
+}
+
+.powermenu-kexec-tile-box {
+    padding: 0.75rem;
+}
+
+.powermenu-kexec-tile-label {
+    margin-top: 0.5rem;
+}
+
+.powermenu-kexec-confirm {
+    min-width: 22rem;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    background-color: $surfaceContainer;
+}
+
+.powermenu-kexec-confirm-text {
+    margin-bottom: 1rem;
+}
+
+.powermenu-kexec-confirm-actions {
+    margin-top: 0.5rem;
+}
+
+.powermenu-kexec-confirm-btn {
+    @include hover($primary);
+    padding: 0.5rem 1.25rem;
+    border-radius: 0.5rem;
+}
+
+.powermenu-view-back {
+    @include hover($surfaceContainer);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    margin-top: 0.75rem;
+}

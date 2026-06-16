@@ -1,0 +1,9 @@
+{
+  "ruta": "Videos/Wallpapers",
+  "entries": {
+    "video1": "sample1.mp4",
+    "video2": "sample2.mp4",
+    "video3": "sample3.mp4",
+    "video4": "sample4.mp4"
+  }
+}
