@@ -113,8 +113,10 @@ exec = waybar &
 
 ### Módulos de la izquierda
 
+- `custom/launcher` – Icono de la distro (Nerd Font). Clic abre Wofi drun (`wofi-launch.sh`).
+- `custom/bar-position` – Flecha ↓/↑ según posición actual. Clic alterna barra arriba/abajo.
 - `hyprland/workspaces` – Espacios de trabajo con íconos (activo, inactivo, urgente). Scroll para cambiar.
-- `hyprland/window` – Título de la ventana activa.
+- `hyprland/window` – Título de la ventana activa (máx. 20 caracteres).
 
 ### Módulos centrales
 
@@ -140,7 +142,9 @@ exec = waybar &
 
 ### Colores y estilo
 
-Edita `style.css` para cambiar colores, bordes, redondeo, fuentes, etc. Las variables principales están en la sección `window#waybar`.
+Los colores dinámicos están en `waybar-colors.css` (generado por `hyperland/scripts/apply-theme.sh` desde `palettes.json`). `style.css` importa ese archivo con `@import "waybar-colors.css"`.
+
+Para cambiar tema: botón Tema en Ignis o `apply-theme.sh [theme_id]`.
 
 ### Modificar íconos
 

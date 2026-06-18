@@ -1,9 +1,11 @@
 {
   "layer": "top",
-  "position": "top",
+  "position": "bottom",
   "height": 26,
   "spacing": 2,
   "modules-left": [
+    "custom/launcher",
+    "custom/bar-position",
     "hyprland/workspaces",
     "hyprland/window"
   ],
@@ -28,6 +30,13 @@
     "tray"
   ],
   // --- MÓDULOS DE LA IZQUIERDA ---
+  "custom/bar-position": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-position-icon.sh",
+    "interval": 1,
+    "on-click": "~/.config/hypr/scripts/toggle-waybar-position.sh",
+    "tooltip-format": "Mover barra"
+  },
   "hyprland/workspaces": {
     "format": "{icon}",
     "on-scroll-up": "hyprctl dispatch workspace e+1",
@@ -43,7 +52,7 @@
   },
   "hyprland/window": {
     "format": " {} ",
-    "max-length": 60
+    "max-length": 20
   },
   // --- MÓDULO CENTRAL ---
   "custom/cmus": {
@@ -160,6 +169,13 @@
     "on-click": "sleep 0.1 && ignis toggle-window ignis_CONTROL_CENTER",
     "tooltip": true,
     "tooltip-format": "Centro de control"
+  },
+  "custom/launcher": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-launcher-icon.sh",
+    "interval": "once",
+    "on-click": "~/.config/hypr/scripts/wofi-launch.sh",
+    "tooltip-format": "Lanzador"
   },
   "custom/date": {
     "exec": "~/.config/waybar/scripts/waybar_date_icon.sh", // Renombramos el script

@@ -1,19 +1,58 @@
-Método 2: Usar Git con Sparse Checkout (recomendado para usuarios avanzados)
-Este método usa Git desde la terminal y es ideal si ya tienes Git instalado o si necesitas hacer esto con frecuencia.
+# Configuraciones de escritorio
 
-Abre tu terminal y ejecuta estos comandos:
+Repositorio central de dotfiles para entornos Linux (Hyprland, Waybar, Ignis, Wofi, i3, DWM, etc.).
 
-bash
-# Clona el repositorio sin descargar los archivos
-git clone --filter=blob:none --no-checkout https://github.com/usuario/repositorio.git
-cd repositorio
+## Stack Hyprland 
 
-# Habilita sparse checkout
-git sparse-checkout init --cone
+| Carpeta | Destino en `~/.config/` | Descripción |
+|---------|-------------------------|-------------|
+| `hyperland/` | `hypr/` | Compositor, keybinds, scripts, temas |
+| `waybar/` | `waybar/` | Barra de estado |
+| `ignis/` | `ignis/` | Shell GTK (centro de control, OSD) |
+| `wofi/` | `wofi/` | Lanzador de aplicaciones temático |
 
-# Especifica qué carpeta quieres descargar
-git sparse-checkout set ruta/a/carpeta
+## Despliegue rápido (Hyprland)
 
-# Descarga solo los archivos de esa carpeta
-git checkout
-Este método descarga únicamente los archivos necesarios, no todo el historial del repositorio 
+Desde este repositorio (ruta relativa al clone):
+
+```bash
+/path/al/repo/hyperland/scripts/deploy-configs.sh
+```
+
+El script auto-detecta si `waybar/`, `wofi/` e `ignis/` están junto a Hypr (monolítico) o en la carpeta padre (split).
+
+Si trabajas en un clone local distinto (p. ej. `~/hyprland`), al final sincroniza automáticamente con el repo GitHub en `~/Games/configurations` (detectado por remote `github` en origin).
+
+El script:
+
+1. Copia `waybar/`, `wofi/`, `hyperland/`, `ignis/` a `~/.config/`
+2. Copia `themes/palettes.json` → `~/.config/ignis/themes/`
+3. Ejecuta `apply-theme.sh` con el tema activo
+4. Recarga Hyprland y reinicia Ignis
+
+## Temas unificados
+
+Definidos en `hyperland/themes/palettes.json`. Un solo comando aplica colores a Hypr, Waybar y Wofi:
+
+```bash
+~/configurations/hyperland/scripts/apply-theme.sh [theme_id]
+```
+
+Sin argumento usa el tema guardado en `~/.config/ignis/user_options.json`.
+
+## Waybar – módulos nuevos
+
+| Módulo | Función |
+|--------|---------|
+| `custom/launcher` | Icono de distro; clic → Wofi drun |
+| `custom/bar-position` | Flecha ↑/↓; alterna barra top/bottom |
+
+Ver `waybar/README.md`, `wofi/README.md`, `ignis/README.md` y `hyperland/README.md` para detalle por componente.
+
+## Otras configuraciones
+
+- `session/` – scripts de sesión y utilidades
+- `copyq/` – portapapeles
+- `i3-wm/`, `dwm-full/`, `polybar/` – entornos alternativos
+
+# Si neceitas un componente en especifico navega a el y luego pega la ruta en [DownGit](https://downgit.github.io/#/home)

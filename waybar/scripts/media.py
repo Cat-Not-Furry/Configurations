@@ -47,6 +47,14 @@ def get_metadata(player=None):
         return artist, title
     return "", ""
 
+def truncate(text: str, max_len: int) -> str:
+    text = (text or "").strip()
+    if len(text) <= max_len:
+        return text
+    if max_len <= 3:
+        return text[:max_len]
+    return text[: max_len - 3] + "..."
+
 def state_icon(status, icons):
     """Return icon for given status."""
     return {
@@ -127,15 +135,16 @@ def main():
     # Widget principal
     artist, title = get_metadata(args.player)
     state_icon_str = state_icon(status, icons)
-    tags = {
-        "artist": artist,
-        "title": title,
-        "state": state_icon_str,
-    }
-    try:
-        text = args.format.format(**tags)
-    except KeyError:
-        text = args.format  # fallback
+    artist_s = truncate(artist, 10)
+    title_s = truncate(title, 10)
+    if artist_s and title_s:
+        text = f"{state_icon_str} {artist_s} - {title_s}"
+    elif artist_s:
+        text = f"{state_icon_str} {artist_s}"
+    elif title_s:
+        text = f"{state_icon_str} {title_s}"
+    else:
+        text = state_icon_str
     tooltip = f"{artist} - {title}" if artist or title else status
     class_name = status.lower()  # "playing", "paused", "stopped"
 

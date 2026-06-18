@@ -1,3 +1,5 @@
+@import "waybar-colors.css";
+
 /* ---- ESTILO GLOBAL ---- */
 * {
     font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;
@@ -8,9 +10,9 @@
 
 /* ---- ESTILO DE LA BARRA PRINCIPAL ---- */
 window#waybar {
-    background-color: #161821;
-    color: #FFFFFF;
-    border: 1px solid #84A0C6;
+    background-color: @waybar_bg;
+    color: @waybar_fg;
+    border: 1px solid @waybar_border;
     border-radius: 20px;
     transition-property: background-color;
     transition-duration: .5s;
@@ -19,36 +21,36 @@ window#waybar {
 /* ---- ESTILO DE LOS WORKSPACES ---- */
 #workspaces button {
     padding: 0 5px;
-    color: #FFFFFF;
+    color: @waybar_fg;
     background-color: transparent;
 }
 
 #workspaces button.active {
-    color: #84A0C6;
-    border-bottom: 1px solid #84A0C6;
+    color: @waybar_accent;
+    border-bottom: 1px solid @waybar_accent;
 }
 
 #workspaces button.urgent {
-    background-color: #E27878;
+    background-color: @waybar_urgent;
 }
 
 #battery.charging {
-    color: #84A0C6; /* Azul que ya usas en otros lados */
+    color: @waybar_accent;
 }
 
 #custom-cava {
-    color: #84A0C6;
+    color: @waybar_accent;
     font-family: "Hack Nerd Font", monospace;
     margin: 1px;
     min-width: 80px;
-    background-color: rgba(22, 24, 33, 0.8);
+    background-color: alpha(@waybar_bg, 0.8);
     border-radius: 5px;
     padding: 0 5px;
 }
 
 #custom-cava:hover {
-    background-color: #1e2130;
-    color: #a2b9d6;
+    background-color: @waybar_bg;
+    color: @waybar_accent_light;
 }
 
 /* ---- ESTILO PARA TODOS LOS MÓDULOS ---- */
@@ -58,25 +60,36 @@ window#waybar {
 #disk,
 #pulseaudio,
 #backlight,
-#battery,
-#custom-keyboard-toggle,
 #custom-hostname,
 #custom-date,
 #tray,
 #hyprland-window,
-#custom-cmus {
+#custom-cmus,
+#custom-launcher,
+#custom-bar-position {
     padding: 0 7px;
     margin: 0 3px;
 }
-#custom-cava
+
+#custom-launcher,
+#custom-bar-position {
+    color: @waybar_accent;
+    font-size: 1.05em;
+    min-width: 1.1em;
+}
+
+#custom-launcher:hover,
+#custom-bar-position:hover {
+    color: @waybar_accent_light;
+}
 
 /* ---- COLORES DINÁMICOS PARA ESTADOS ---- */
 #battery.warning, #memory.warning, #cpu.warning, #disk.warning, #custom-temp.warning {
-    color: #fba922;
+    color: @waybar_warning;
 }
 
 #battery.critical, #memory.critical, #cpu.critical, #disk.critical, #custom-temp.critical {
-    color: #ff5555;
+    color: @waybar_critical;
 }
 
 #custom-media-prev,
@@ -88,29 +101,13 @@ window#waybar {
     padding: 0 8px;
 }
 #custom-media-main.playing {
-    color: #a6e3a1; /* verde cuando suena */
+    color: @waybar_media_playing;
 }
 #custom-media-main.paused {
-    color: #f9e2af;
+    color: @waybar_media_paused;
 }
 
-#custom-keyboard {
-    padding: 0 8px;
-    border-radius: 8px;
-}
-
-#custom-keyboard.on {
-    color: #84A0C6;
-    background-color: rgba(132, 160, 198, 0.2);
-}
-
-#custom-keyboard.off {
-    color: #ff5555;
-    background-color: rgba(255, 85, 85, 0.2);
-}
-
-/* Busca la sección #tray o crea una si no existe */
 #tray menu {
-    border-radius: 10px; /* O un valor bajo como 5px */
-    border: 5px solid #161821; /* Puedes ajustar el borde a tu gusto */
+    border-radius: 10px;
+    border: 5px solid @waybar_bg;
 }

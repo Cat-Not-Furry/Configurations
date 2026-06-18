@@ -1,0 +1,17 @@
+# --- Archivo: ~/.config/wofi/config ---
+
+# Modo DRUN: Indispensable para que lea los .desktop y encuentre los iconos
+mode=drun
+
+# Permitir imágenes: La opción clave para que los iconos se rendericen
+allow_images=true
+
+# Paleta generada por scripts/apply-theme.sh (hex por línea → --wofi-colorN)
+color=colors
+style=style.css
+
+# --- Opciones adicionales recomendadas ---
+prompt=Buscar...
+width=30%
+height=20%
+border_radius=10

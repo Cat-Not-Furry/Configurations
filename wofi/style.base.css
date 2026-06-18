@@ -1,0 +1,99 @@
+/* Base Wofi — apply-theme.sh genera style.css con colores del tema activo */
+
+* {
+    font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;
+    font-size: 10pt;
+    border: none;
+    border-radius: 10px;
+}
+
+window {
+    background-color: {{WOFI_BG}};
+    color: {{WOFI_FG}};
+    border: 1px solid {{WOFI_BORDER}};
+    border-radius: 15px;
+    padding: 10px;
+}
+
+#outer-box {
+    background-color: {{WOFI_BG}};
+    color: {{WOFI_FG}};
+    border: none;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+#inner-box {
+    background-color: {{WOFI_BG}};
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+#scroll {
+    background-color: {{WOFI_BG}};
+    border: none;
+    border-radius: 10px;
+}
+
+#input {
+    background-color: {{WOFI_SURFACE}};
+    color: {{WOFI_FG}};
+    border: 1px solid {{WOFI_BORDER}};
+    border-radius: 10px;
+    padding: 8px;
+    margin: 5px;
+    box-shadow: none;
+}
+
+#entry {
+    background-color: transparent;
+    color: {{WOFI_FG}};
+    border: none;
+    border-radius: 8px;
+    padding: 6px;
+    margin: 2px 0;
+}
+
+#entry:selected {
+    background-color: {{WOFI_ACCENT}};
+    color: {{WOFI_SELECTED_FG}};
+    border: none;
+    border-radius: 8px;
+}
+
+#text {
+    background-color: transparent;
+    color: {{WOFI_FG}};
+}
+
+#text:selected {
+    color: {{WOFI_SELECTED_FG}};
+    font-weight: bold;
+}
+
+#img {
+    background-color: transparent;
+    padding: 0 5px 0 0;
+}
+
+#input:focus {
+    border: 1px solid {{WOFI_ACCENT}};
+}
+
+#input::placeholder {
+    color: {{WOFI_ACCENT}};
+    opacity: 0.7;
+}
+
+#entry:active {
+    background-color: {{WOFI_ACCENT_LIGHT}};
+}
+
+#entry:hover {
+    background-color: {{WOFI_HOVER}};
+}
+
+#entry:selected:hover {
+    background-color: {{WOFI_ACCENT_LIGHT}};
+}

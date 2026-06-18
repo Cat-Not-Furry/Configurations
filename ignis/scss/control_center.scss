@@ -1,0 +1,343 @@
+.control-center {
+    @include window;
+    min-width: 28rem;
+    padding: 0;
+
+    .control-center-widget {
+        padding: 1rem;
+    }
+    
+    .qs-main-box {
+        margin-top: 0.5rem;
+    }
+    
+    .user {
+        margin-top: 1rem;
+    }
+
+    .user-settings-menu-item,
+    .user-settings-menu-red {
+        @include hover($surfaceContainerHighest);
+        color: $onSurface;
+        border-radius: 1rem;
+        padding: 0.65rem 0.9rem;
+        transition: 0.3s;
+        margin-bottom: 0.5rem;
+    }
+
+    .user-settings-menu-red {
+        @include hover($error);
+        background-color: $error;
+        color: $onError;
+    }
+
+    .user-settings-menu-label {
+        margin-left: 0.75rem;
+    }
+
+    .qs-button {
+        @include hover($surfaceContainerHigh);
+        color: $onSurface;
+        min-height: 2.4rem;
+        border-radius: 1.2rem;
+        transition: 0.3s;
+        padding: 0.3rem 0.8rem;
+    
+        &.active {
+            @include hover($primary);
+            color: $surface;
+        }
+
+        &.recording {
+            @include hover($error);
+            background-color: $error;
+            color: $onError;
+        }
+    
+    }
+    
+    .qs-button-label {
+        margin-left: 0.5rem;
+    }
+    
+    .control-center-menu {
+        background-color: $surfaceContainerHigh;
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+        min-width: 12rem;
+        // ...
+    
+        separator {
+            margin: 0.5rem 0;
+        }
+
+    }
+    .control-center-menu-last-row {
+        margin-bottom: 0;
+    }
+    
+    .record-icon {
+        color: $error;
+    }
+    
+    .record-dropdown {
+        button {
+            all: unset;
+            color: $onSurfaceVariant;
+            font-size: 0.9rem;
+        }
+    }
+    
+    .record-cancel-button,
+    .record-start-button {
+        color: $surface;
+        border-radius: 1rem;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.95rem;
+        transition: 0.3s;
+    }
+    
+    .record-cancel-button {
+        @include hover($surfaceContainerHigh);
+        color: $onSurface;
+        border: 1px solid $primary;
+    }
+    
+    .record-start-button {
+        @include hover($primary);
+    }
+    
+    .volume-entry {
+        @include hover($surfaceContainerHigh);
+        transition: 0.3s;
+        border-radius: 1rem;
+        padding: 0.5rem 0.5rem;
+    }
+    
+    .volume-entry-list-header-label {
+        font-size: 1.35rem;
+        margin-left: 0.5rem;
+    }
+    
+    .volume-entry-list-header-box {
+        margin-bottom: 0.75rem;
+    }
+    
+    .user-name-box {
+        margin-left: 0.5rem;
+    }
+    
+    .user-name {
+        font-size: 1.2rem;
+    }
+    
+    .user-name-secondary {
+        color: $onSurfaceVariant;
+        font-size: 0.9rem;
+    }
+    
+    .user-settings {
+        @include hover($surfaceContainerHighest);
+        color: $onSurface;
+        border-radius: 2rem;
+        min-width: 2.35rem;
+        margin: 0.4rem 0rem;
+        margin-right: 0.5rem;
+        transition: 0.3s;
+    }
+
+    /* Ensure menu buttons have consistent horizontal spacing */
+    .control-center-menu .user-settings-menu-item {
+        margin-right: 0.5rem;
+    }
+
+    .user-settings-red {
+        @include hover($error);
+        background-color: $error;
+        color: $onError;
+        border-radius: 2rem;
+        min-width: 2.35rem;
+        margin: 0.4rem 0rem;
+        margin-right: 0.5rem;
+        transition: 0.3s;
+    }
+
+    .theme-hint-label {
+        background-color: $surfaceContainerHigh;
+        color: $onSurface;
+        padding: 0.35rem 0.65rem;
+        border-radius: 0.75rem;
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .theme-hint-popover-label {
+        background-color: $surfaceContainerHigh;
+        color: $onSurface;
+        font-size: 0.9rem;
+    }
+
+    popover.theme-hint-popover {
+        background-color: $surfaceContainerHigh;
+        border-radius: 0.75rem;
+        padding: 0.25rem;
+    }
+
+    .user-icon-glyph {
+        font-family: "Hack Nerd Font", "Symbols Nerd Font", sans-serif;
+        font-size: 1.15rem;
+        min-width: 1.15rem;
+    }
+
+    .theme-cycle-btn .qs-button-label {
+        margin-left: 0;
+    }
+
+    .user-button-group {
+        margin: 0;
+
+        .qs-button,
+        .user-power,
+        .user-night-wrap,
+        .theme-cycle-box {
+            margin: 0;
+        }
+    }
+
+    .user-night-wrap {
+        margin: 0;
+    }
+
+    .user-night-box {
+        border-radius: 1.2rem;
+        transition: 0.3s;
+
+        &.expanded {
+            background-color: $surfaceContainerHigh;
+            padding: 0 0.15rem;
+        }
+    }
+
+    .user-night-btn {
+        min-width: 2.35rem;
+        padding: 0.3rem 0.55rem;
+
+        &.active {
+            @include hover($primary);
+            color: $surface;
+        }
+    }
+
+    .user-night-arrow {
+        @include hover($surfaceContainerHighest);
+        color: $onSurfaceVariant;
+        border-radius: 1rem;
+        min-width: 1.5rem;
+        min-height: 1.5rem;
+        margin-right: 0.15rem;
+        transition: 0.3s;
+
+        &.active {
+            color: $primary;
+        }
+    }
+
+    .user-night-slider-box {
+        margin-bottom: 0.35rem;
+        padding: 0 0.15rem;
+        min-width: 10rem;
+    }
+
+    .user-night-temp-icon {
+        font-family: "Hack Nerd Font", "Symbols Nerd Font", sans-serif;
+        font-size: 1rem;
+        min-width: 1.25rem;
+        padding: 0 0.25rem;
+    }
+
+    .user-night-cold {
+        color: $secondary;
+    }
+
+    .user-night-warm {
+        color: $tertiary;
+    }
+
+    .user-night-scale {
+        margin: 0 0.15rem;
+    }
+
+    .user-power {
+        @include hover($primary);
+        color: $surface;
+        border-radius: 1.5rem;
+        min-width: 2.35rem;
+        min-height: 2.4rem;
+        margin: 0;
+        transition: 0.3s;
+    }
+    
+    .network-header-box {
+        margin-bottom: 0.5rem;
+    }
+    
+    .network-header-label {
+        font-size: 1.35rem;
+        margin-left: 0.75rem;
+    }
+    
+    .network-item {
+        @include hover($surfaceContainerHigh);
+        transition: 0.3s;
+        border-radius: 1rem;
+        padding: 0.5rem 0.5rem;
+
+        label {
+            margin-left: 0.5rem;
+        }
+
+        .connect-label {
+            font-size: 1rem;
+            color: $onSurfaceVariant;
+        }
+    }
+    
+    .volume-entry-label {
+        margin-left: 0.5rem;
+        margin-right: 1rem;
+    }
+
+    .volume-entry-sublabel {
+        margin-left: 0.5rem;
+        margin-right: 1rem;
+        color: $onSurfaceVariant;
+        font-size: 0.85rem;
+    }
+
+    .volume-entry-port {
+        margin-left: 1.5rem;
+        margin-top: 0.15rem;
+    }
+
+    .volume-entry-unavailable {
+        opacity: 0.55;
+    }
+
+    .volume-mainbox-speaker {
+        margin-top: 1rem;
+    }
+
+    .volume-mainbox-microphone {
+        margin-top: 0.25rem;
+    }
+
+    .volume-menubox-speaker {
+        margin-bottom: 0.75rem;
+    }
+}
+
+

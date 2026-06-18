@@ -1,0 +1,32 @@
+{
+  "_readme": "Copia este archivo a palettes.json y rellena los bloques. Cada tema necesita label, ignis (variables SCSS), waybar (@define-color) e hypr (bordes).",
+  "order": ["blue", "green", "red", "classic", "tokyo_night", "nord", "dracula", "catppuccin_mocha"],
+  "default": "blue",
+  "hover_hint_ms": 1000,
+  "themes": {
+    "blue": {
+      "label": "Nombre visible en el popover",
+      "ignis": {},
+      "waybar": {},
+      "hypr": {
+        "active_border": "rgba(84a0c6ee) rgba(a2b9d6ee) 45deg",
+        "inactive_border": "rgba(555555aa)"
+      }
+    },
+    "my_theme": {
+      "label": "Mi tema personalizado",
+      "ignis": {
+        "primary": "#000000",
+        "background": "#000000"
+      },
+      "waybar": {
+        "background": "#000000",
+        "accent": "#ffffff"
+      },
+      "hypr": {
+        "active_border": "rgba(255,255,255,ee) rgba(200,200,200,ee) 45deg",
+        "inactive_border": "rgba(85,85,85,aa)"
+      }
+    }
+  }
+}

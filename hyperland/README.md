@@ -124,11 +124,24 @@ cp -r ~/.config/hypr ~/.config/hypr.bak
 
 ### 4. Copiar los archivos
 
-bash
+Opción recomendada (despliega Hyprland + Waybar + Ignis + Wofi):
 
+```bash
+/path/al/repo/hyperland/scripts/deploy-configs.sh
 ```
+
+El script detecta rutas relativas a su ubicación (layout monolítico o split). No importa dónde clones el repo.
+
+Opción manual:
+
+```bash
 cp -r conf.d/ hyprland.conf hypridle.conf hyprlock.conf scripts/ ~/.config/hypr/
 chmod +x ~/.config/hypr/scripts/*.sh
+cp -r ../waybar ~/.config/
+cp -r ../wofi ~/.config/
+cp -r ../ignis ~/.config/
+cp themes/palettes.json ~/.config/ignis/themes/
+~/.config/hypr/scripts/apply-theme.sh blue
 ```
 
 
@@ -166,9 +179,31 @@ En `conf.d/gestures.conf`:
 
 ### Temas y colores
 
-- Los colores de bordes están en `general.conf`.
-- El desenfoque y animaciones en `decoration.conf`.
-- La barra de estado (waybar) se configura aparte. No está incluida en este repositorio, pero puedes usar la configuración de [mi repositorio de waybar](https://github.com/tu-usuario/waybar-config) o crear la tuya.
+Los temas están en `themes/palettes.json` (13 variantes: blue, green, red, classic, Tokyo Night, Nord, Dracula, etc.).
+
+```bash
+# Aplicar un tema concreto (ruta relativa al clone)
+/path/al/repo/hyperland/scripts/apply-theme.sh tokyo_night
+
+# Ciclar desde Ignis: botón Tema en el centro de control
+```
+
+`apply-theme.sh` actualiza bordes Hypr, colores Waybar y estilos Wofi. Notificación indica tema activo y siguiente.
+
+### Posición de Waybar
+
+Módulo `custom/bar-position` en Waybar (flecha ↑/↓). Estado en `~/.cache/hypr/waybar-position.json`. Ignis alinea el centro de control al borde opuesto automáticamente.
+
+### Scripts auxiliares nuevos
+
+| Script | Función |
+|--------|---------|
+| `waybar-launcher-icon.sh` | Glifo de distro para Waybar |
+| `waybar-position-icon.sh` | Flecha según posición barra |
+| `toggle-waybar-position.sh` | Alterna top/bottom y reinicia Waybar |
+| `wofi-launch.sh` | Wofi drun con config y estilo del tema |
+| `apply-theme.sh` | Aplica tema a Hypr + Waybar + Wofi |
+| `deploy-configs.sh` | Despliega todo el stack a `~/.config/` |
 
 ### Cambiar entre barras de notificaciones
 
