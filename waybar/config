@@ -1,11 +1,10 @@
 {
   "layer": "top",
-  "position": "bottom",
+  "position": "top",
   "height": 26,
   "spacing": 2,
   "modules-left": [
     "custom/launcher",
-    "custom/bar-position",
     "hyprland/workspaces",
     "hyprland/window"
   ],
@@ -27,6 +26,7 @@
     "battery",
     "custom/hostname",
     "custom/date",
+    "custom/bar-position",
     "tray"
   ],
   // --- MÓDULOS DE LA IZQUIERDA ---
@@ -52,7 +52,7 @@
   },
   "hyprland/window": {
     "format": " {} ",
-    "max-length": 20
+    "max-length": 30
   },
   // --- MÓDULO CENTRAL ---
   "custom/cmus": {

@@ -1,11 +1,11 @@
 /* Generado por scripts/apply-theme.sh — no editar a mano */
-@define-color waybar_bg #141812;
-@define-color waybar_fg #EEF2E8;
-@define-color waybar_accent #8FA86A;
-@define-color waybar_accent_light #A8C088;
-@define-color waybar_border #8FA86A;
-@define-color waybar_urgent #C4B86A;
-@define-color waybar_warning #e8c060;
-@define-color waybar_critical #d87878;
-@define-color waybar_media_playing #a8c088;
-@define-color waybar_media_paused #c4b86a;
+@define-color waybar_bg #161821;
+@define-color waybar_fg #FFFFFF;
+@define-color waybar_accent #84A0C6;
+@define-color waybar_accent_light #A2B9D6;
+@define-color waybar_border #84A0C6;
+@define-color waybar_urgent #E27878;
+@define-color waybar_warning #fba922;
+@define-color waybar_critical #ff5555;
+@define-color waybar_media_playing #a6e3a1;
+@define-color waybar_media_paused #f9e2af;

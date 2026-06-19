@@ -1,227 +1,163 @@
-# Hyprland – Configuración modular de mi escritorio Wayland
+# Hyprland – Configuración modular (Wayland)
 
-Esta es mi configuración personal de **Hyprland**, organizada en módulos para facilitar el mantenimiento y la personalización. Incluye atajos de teclado, gestos táctiles, integración con waybar, wofi, swww, mpvpaper, y scripts útiles.
+Configuración personal de **Hyprland** en módulos: keybinds, gestos, Waybar, Wofi, Ignis, swaync, temas unificados.
 
-## Estructura modular
+## Estructura en el repo
 
-La configuración está dividida en pequeños archivos dentro de `conf.d/` que se incluyen en el orden correcto desde el archivo principal `hyprland.conf`.
-
-~/.config/hypr/
-├── hyprland.conf                 # Archivo principal con sources
-├── conf.d/
-│   ├── vars.conf                 # Variables globales ($mainMod)
-│   ├── monitors.conf             # Monitores y variables de entorno
-│   ├── exec.conf                 # Aplicaciones que se inician (exec-once, exec)
-│   ├── input.conf                # Configuración de teclado, touchpad, sensibilidad
-│   ├── general.conf              # Gaps, bordes, layout, colores
-│   ├── decoration.conf           # Redondeo, blur, animaciones
-│   ├── workspaces.conf           # Workspaces: nombres y binds para cambiar/mover
-│   ├── keybinds.conf             # Todos los atajos de teclado (incluye multimedia, submapas)
-│   └── gestures.conf             # Gestos táctiles (touchpad)
-└── scripts/                      # Scripts auxiliares (ya existentes)
-    ├── move_focus.sh    \# Script auxiliar para gestos de foco
-    ├── wofi-script.sh    \# Menú de control (salir, suspender, etc.)
-    ├── wofi-script1.sh    Lanzador de aplicaciones/juegos/útiles
-    └── wofi_wallpaper.sh    \# Gestor de fondos de pantalla (estáticos/videos)
-
-## 🚀 Instalación
-
-### 1. Requisitos previos (dependencias)
-
-Asegúrate de tener instalados los siguientes paquetes según tu distribución. Los **esenciales** son necesarios para que Hyprland funcione correctamente; los **opcionales** habilitan funciones extra.
-
-#### Esenciales
-- `hyprland` (el propio compositor)
-- `waybar` (barra de estado)
-- `wofi` (lanzador de aplicaciones, similar a dmenu)
-- `swww` (gestor de fondos de pantalla estáticos)
-- `mpvpaper` (fondos de pantalla con vídeo)
-- `dunst` o `mako` (notificaciones; aquí uso `swaync`)
-- `polkit-kde-agent` (para permisos)
-- `brightnessctl` (control de brillo)
-- `pamixer` (control de volumen)
-- `libinput-gestures` (gestos táctiles)
-- `setxkbmap` (distribución de teclado)
-- `xdg-desktop-portal` y `xdg-desktop-portal-gtk`
-- `network-manager-applet` y `blueman` (opcionales pero comunes)
-
-#### Opcionales
-- `flameshot` (capturas de pantalla)
-- `copyq` (gestor del portapapeles)
-- `hyprsunset` (control de temperatura de color)
-- `hypridle` (gestión de inactividad)
-- `hyprlock` (pantalla de bloqueo)
-- `rofi` (alternativa a wofi)
-- `foot` o `alacritty` (terminales)
-- `brave`, `thunar`, `krita`, `libreoffice`, etc. (para los lanzadores)
-
-#### Comandos de instalación por distribución
-
-<details>
-<summary><b>Arch Linux</b></summary>
-
-```bash
-sudo pacman -S hyprland waybar wofi swww mpvpaper dunst polkit-kde-agent \
-  brightnessctl pamixer libinput-gestures xorg-setxkbmap \
-  xdg-desktop-portal xdg-desktop-portal-gtk network-manager-applet blueman \
-  copyq flameshot hyprsunset hypridle hyprlock foot alacritty
-# Opcionales
-yay -S swaync  # si prefieres swaync en lugar de dunst
+```
+hyperland/
+├── hyprland.conf          # Sources principales
+├── hypridle.conf
+├── hyprlock.conf
+├── conf.d/                # Fragmentos de config
+│   ├── vars.conf
+│   ├── monitors.conf
+│   ├── exec.conf
+│   ├── keybinds.conf
+│   └── ...
+├── scripts/               # Despliegue, temas, utilidades
+│   ├── deploy-configs.sh
+│   ├── apply-theme.sh
+│   ├── wofi-launch.sh
+│   └── lib/
+├── themes/
+│   ├── palettes.json
+│   └── palettes.example.json
+└── swaync/
+    └── config.json
 ```
 
+En el sistema, todo esto vive en `~/.config/hypr/` (y carpetas hermanas en `~/.config/`).
 
-
-<details> <summary><b>Fedora</b></summary>
+## Probar la configuración
 
 ```bash
-sudo dnf install hyprland waybar wofi swww mpvplayer dunst polkit-kde \
-  brightnessctl pamixer libinput-gestures xorg-x11-setxkbmap \
-  xdg-desktop-portal xdg-desktop-portal-gtk NetworkManager-applet blueman \
-  copyq flameshot foot alacritty
-# hyprsunset, hypridle, hyprlock pueden requerir COPR o compilación
+# Clonar (ejemplo — usa tu URL)
+git clone https://github.com/TU_USUARIO/TU_REPO.git dotfiles
+cd dotfiles
+
+# Backup opcional
+[ -d ~/.config/hypr ] && cp -r ~/.config/hypr ~/.config/hypr.bak
+
+# Desplegar stack completo
+./hyperland/scripts/deploy-configs.sh
 ```
 
-<details> <summary><b>openSUSE</b></summary>
+El script resuelve rutas **relativas al clone** (`waybar/`, `wofi/`, `ignis/`, `cava/` como carpetas hermanas de `hyperland/`).
+
+### Despliegue manual (sin script)
+
+Desde la raíz del clone:
 
 ```bash
-sudo zypper install hyprland waybar wofi swww mpv dunst polkit-kde-agent-1 \
-  brightnessctl pamixer libinput-gestures xset \
-  xdg-desktop-portal xdg-desktop-portal-gtk NetworkManager-applet blueman \
-  copyq flameshot foot alacritty
-```
-
-<details> <summary><b>NixOS</b></b></summary>
-
-```bash
-environment.systemPackages = with pkgs; [
-  hyprland waybar wofi swww mpvpaper dunst polkit-kde-agent
-  brightnessctl pamixer libinput-gestures xorg.setxkbmap
-  xdg-desktop-portal xdg-desktop-portal-gtk networkmanagerapplet blueman
-  copyq flameshot foot alacritty
-];
-```
-
-### 2. Clonar el repositorio
-
-bash
-
-```bash
-git clone https://github.com/tu-usuario/tu-repo.git
-cd tu-repo/hyprland   # si está en una subcarpeta
-```
-
-
-
-### 3. Hacer copia de seguridad de tu configuración actual
-
-bash
-
-```bash
-cp -r ~/.config/hypr ~/.config/hypr.bak
-```
-
-
-
-### 4. Copiar los archivos
-
-Opción recomendada (despliega Hyprland + Waybar + Ignis + Wofi):
-
-```bash
-/path/al/repo/hyperland/scripts/deploy-configs.sh
-```
-
-El script detecta rutas relativas a su ubicación (layout monolítico o split). No importa dónde clones el repo.
-
-Opción manual:
-
-```bash
-cp -r conf.d/ hyprland.conf hypridle.conf hyprlock.conf scripts/ ~/.config/hypr/
+cp -r hyperland/conf.d hyperland/hyprland.conf hyperland/hypridle.conf hyperland/hyprlock.conf ~/.config/hypr/
+cp -r hyperland/scripts ~/.config/hypr/
+cp -r hyperland/swaync ~/.config/
 chmod +x ~/.config/hypr/scripts/*.sh
-cp -r ../waybar ~/.config/
-cp -r ../wofi ~/.config/
-cp -r ../ignis ~/.config/
-cp themes/palettes.json ~/.config/ignis/themes/
-~/.config/hypr/scripts/apply-theme.sh blue
-```
 
+cp -r waybar wofi ignis cava ~/.config/
+mkdir -p ~/.config/ignis/themes
+cp hyperland/themes/palettes.json ~/.config/ignis/themes/
 
-
-### 5. Ajustar rutas y monitores
-
-- **Monitores**: Abre `~/.config/hypr/conf.d/monitors.conf` y cambia `eDP-1` y `HDMI-A-2` por los nombres de tus monitores (puedes verlos con `hyprctl monitors`).
-- **Rutas de fondos**: En `hyprlock.conf`, la línea `path = ~/.config/i3/fondos/girlinux.png` debe apuntar a tu imagen de bloqueo. También en `wofi_wallpaper.sh` ajusta `STATIC_WALL_DIR` y `VIDEO_WALL_DIR` si usas carpetas diferentes.
-- **Terminales**: Por defecto se usa `foot`. Si prefieres `alacritty`, cambia el bind `$mainMod, T` en `keybinds.conf`.
-
-### 6. Verificar y recargar
-
-Recarga la configuración sin reiniciar la sesión:
-
-bash
-
-```bash
+./hyperland/scripts/apply-theme.sh blue
 hyprctl reload
 ```
 
-Si no hay errores, los cambios se aplican. Si aparece algún error, revisa los logs con `hyprctl errors` o desde la terminal donde inicias Hyprland.
+## Requisitos
 
+### Esenciales
 
+- `hyprland`, `waybar`, `wofi`, `ignis`
+- `swaync` (notificaciones), `polkit-kde-agent` o similar
+- `brightnessctl`, `playerctl`, `pipewire` / `wireplumber`
+- `xdg-desktop-portal`, `xdg-desktop-portal-hyprland`
+- `hypridle`, `hyprlock` (según `exec.conf`)
 
-## Gestos táctiles
+### Opcionales
 
-En `conf.d/gestures.conf`:
+- `swww` / `awww` — fondos estáticos
+- `mpvpaper` — fondos en video
+- `cava` — visualizador en Waybar
+- `flameshot`, `copyq`, `hyprsunset`
 
-- **4 dedos izquierda/derecha**: cambiar workspace.
-- **3 dedos izquierda/derecha/arriba/abajo**: mover el foco entre ventanas.
-- **4 dedos arriba**: pantalla completa.
-- **4 dedos abajo**: flotante.
-
-## Personalización
-
-### Temas y colores
-
-Los temas están en `themes/palettes.json` (13 variantes: blue, green, red, classic, Tokyo Night, Nord, Dracula, etc.).
+### Arch Linux (ejemplo)
 
 ```bash
-# Aplicar un tema concreto (ruta relativa al clone)
-/path/al/repo/hyperland/scripts/apply-theme.sh tokyo_night
-
-# Ciclar desde Ignis: botón Tema en el centro de control
+sudo pacman -S hyprland waybar wofi brightnessctl playerctl \
+  xdg-desktop-portal xdg-desktop-portal-hyprland polkit-kde-agent \
+  hypridle hyprlock foot
+# swaync, ignis: según repos / AUR de tu instalación
 ```
 
-`apply-theme.sh` actualiza bordes Hypr, colores Waybar y estilos Wofi. Notificación indica tema activo y siguiente.
+## Ajustes tras instalar
 
-### Posición de Waybar
+Edita en **tu** `~/.config/` (valores de ejemplo):
 
-Módulo `custom/bar-position` en Waybar (flecha ↑/↓). Estado en `~/.cache/hypr/waybar-position.json`. Ignis alinea el centro de control al borde opuesto automáticamente.
+| Archivo | Qué cambiar |
+|---------|-------------|
+| `hypr/conf.d/monitors.conf` | Nombres de salida (`eDP-1`, `HDMI-A-1`, …) — `hyprctl monitors` |
+| `hypr/hyprlock.conf` | Ruta de imagen de bloqueo |
+| `hypr/scripts/wofi_wallpaper.sh` | `STATIC_WALL_DIR`, `VIDEO_WALL_DIR` |
+| `hypr/conf.d/keybinds.conf` | Terminal (`foot` → la tuya) |
 
-### Scripts auxiliares nuevos
+## Temas
+
+13 temas en `themes/palettes.json` (blue, green, tokyo_night, catppuccin_mocha, …).
+
+```bash
+# Desde la raíz del clone
+./hyperland/scripts/apply-theme.sh tokyo_night
+```
+
+También: botón **Tema** en Ignis, o `Super+Shift+R` (`hypr-refresh.sh`) para recargar servicios.
+
+`apply-theme.sh` actualiza Hypr, Waybar, Wofi y Cava en `~/.config/` únicamente.
+
+Regenerar assets en el repo (mantenedores):
+
+```bash
+./hyperland/scripts/generate-wofi-wayland.sh
+./hyperland/scripts/generate-cava-wayland.sh
+```
+
+## Atajos útiles
+
+| Atajo | Acción |
+|-------|--------|
+| `Super+D` | Wofi drun |
+| `Super+Shift+S` | Menú apagar / suspender |
+| `Super+Shift+A` | Menú apps / juegos / utilidades |
+| `Super+Shift+R` | Recarga Hypr + servicios |
+
+Ver `conf.d/keybinds.conf` para la lista completa.
+
+## Scripts principales
 
 | Script | Función |
 |--------|---------|
-| `waybar-launcher-icon.sh` | Glifo de distro para Waybar |
-| `waybar-position-icon.sh` | Flecha según posición barra |
-| `toggle-waybar-position.sh` | Alterna top/bottom y reinicia Waybar |
-| `wofi-launch.sh` | Wofi drun con config y estilo del tema |
-| `apply-theme.sh` | Aplica tema a Hypr + Waybar + Wofi |
-| `deploy-configs.sh` | Despliega todo el stack a `~/.config/` |
+| `deploy-configs.sh` | Copia stack → `~/.config/`, aplica tema inicial |
+| `apply-theme.sh` | Tema activo en Hypr / Waybar / Wofi / Cava |
+| `toggle-waybar-position.sh` | Barra arriba / abajo |
+| `wofi-launch.sh` | Wofi con estilo del tema |
+| `hypr-refresh.sh` | Reload + reinicio de servicios |
 
-### Cambiar entre barras de notificaciones
+## Gestos (`conf.d/gestures.conf`)
 
-En `exec.conf`, se inicia `swaync`. Si prefieres `dunst` o `mako`, cambia la línea correspondiente.
+- 4 dedos ←/→: cambiar workspace
+- 3 dedos: mover foco
+- 4 dedos ↑: fullscreen; ↓: flotante
 
-### Agregar nuevos módulos a wofi-script1.sh
-
-El script `wofi-script1.sh` es un lanzador jerárquico. Puedes añadir nuevas opciones editando las funciones `show_apps`, `show_notes`, `show_games`, etc.
+Requiere `libinput-gestures` y usuario en grupo `input`.
 
 ## Solución de problemas
 
-- **Wayland no inicia**: Asegúrate de tener `libinput` y los controladores gráficos correctos. Puedes probar iniciando con `Hyprland` desde una terminal para ver errores.
-- **Los gestos no funcionan**: Verifica que `libinput-gestures` esté instalado y que tu usuario esté en el grupo `input`. También asegúrate de que los gestos estén habilitados en `gestures.conf`.
-- **Fondos de vídeo no se muestran**: Comprueba que `mpvpaper` esté instalado y que la ruta del vídeo sea correcta. Si usas más de un monitor, ajusta los binds en `keybinds.conf` con los nombres correctos.
-- **No se ve el cursor**: Instala `xcursor-themes` y asegúrate de tener `XCURSOR_SIZE` y `XCURSOR_THEME` definidos (ya están en `monitors.conf`).
+- **Hyprland no arranca:** ejecuta `Hyprland` en TTY y revisa `hyprctl errors`.
+- **Gestos:** comprueba `libinput-gestures` y permisos.
+- **Servicios duplicados:** usa `./hyperland/scripts/hypr-refresh.sh` o `deploy-configs.sh`.
+- **Waybar sin colores:** ejecuta `apply-theme.sh`.
 
-## Notas finales
+## Notas
 
-- Esta configuración está pensada para ser usada tal cual, pero es fácilmente modificable gracias a su estructura modular.
-- Algunos scripts dependen de programas externos (mame, gzdoom, etc.) que no están incluidos. Si no los usas, comenta o elimina las opciones correspondientes.
-- Si encuentras errores o quieres sugerir mejoras, ¡no dudes en abrir un issue!
+- Estructura modular: edita un archivo en `conf.d/` en lugar del monolito.
+- `wofi-script1.sh` incluye entradas para mame, gzdoom, etc.; comenta lo que no uses.
+- Para sincronizar este clone con otro repo GitHub local: `deploy-configs.sh --github` (opcional, solo mantenimiento).

@@ -1,11 +1,14 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-# Opciones del menú, la misma cadena de texto.
-opcion=$(echo -e " Bloquear\n󰁯 Suspender\n󱋑 Hibernar\n󰈆 Salir\n Reiniciar\n Apagar" | wofi --dmenu --insensitive --prompt "Bienvenido $USER:")
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/wofi-common.sh
+source "$SCRIPT_DIR/lib/wofi-common.sh"
+
+opcion=$(echo -e " Bloquear\n󰁯 Suspender\n󱋑 Hibernar\n󰈆 Salir\n Reiniciar\n Apagar" | wofi_dmenu --prompt "Bienvenido $USER:")
 
 case "$opcion" in
 " Bloquear")
-  hyprlock # o el bloqueador de tu preferencia [cite: 1]
+  hyprlock
   ;;
 "󰈆 Salir")
   killall Hyprland
@@ -23,6 +26,5 @@ case "$opcion" in
   systemctl hibernate
   ;;
 *)
-  # Si se cierra wofi sin seleccionar nada, no hacer nada [cite: 5]
   ;;
 esac

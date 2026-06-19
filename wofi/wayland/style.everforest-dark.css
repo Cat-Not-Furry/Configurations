@@ -1,0 +1,100 @@
+/* Estilo: Everforest Dark (Wayland) — slug: everforest-dark */
+/* Base Wofi — scripts/generate-wofi-wayland.sh genera wofi/wayland/style.{slug}.css */
+
+* {
+    font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;
+    font-size: 10pt;
+    border: none;
+    border-radius: 10px;
+}
+
+window {
+    background-color: #2d353b;
+    color: #d3c6aa;
+    border: 1px solid #7fbbb3;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+#outer-box {
+    background-color: #2d353b;
+    color: #d3c6aa;
+    border: none;
+    border-radius: 15px;
+    padding: 10px;
+}
+
+#inner-box {
+    background-color: #2d353b;
+    border: none;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+#scroll {
+    background-color: #2d353b;
+    border: none;
+    border-radius: 10px;
+}
+
+#input {
+    background-color: #2d353b;
+    color: #d3c6aa;
+    border: 1px solid #7fbbb3;
+    border-radius: 10px;
+    padding: 8px;
+    margin: 5px;
+    box-shadow: none;
+}
+
+#entry {
+    background-color: transparent;
+    color: #d3c6aa;
+    border: none;
+    border-radius: 8px;
+    padding: 6px;
+    margin: 2px 0;
+}
+
+#entry:selected {
+    background-color: #7fbbb3;
+    color: #2d353b;
+    border: none;
+    border-radius: 8px;
+}
+
+#text {
+    background-color: transparent;
+    color: #d3c6aa;
+}
+
+#text:selected {
+    color: #2d353b;
+    font-weight: bold;
+}
+
+#img {
+    background-color: transparent;
+    padding: 0 5px 0 0;
+}
+
+#input:focus {
+    border: 1px solid #7fbbb3;
+}
+
+#input::placeholder {
+    color: #7fbbb3;
+    opacity: 0.7;
+}
+
+#entry:active {
+    background-color: #83c092;
+}
+
+#entry:hover {
+    background-color: #83c092;
+}
+
+#entry:selected:hover {
+    background-color: #83c092;
+}

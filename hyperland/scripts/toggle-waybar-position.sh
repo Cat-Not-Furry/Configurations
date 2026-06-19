@@ -5,6 +5,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/project-paths.sh
 source "$SCRIPT_DIR/lib/project-paths.sh"
 resolve_project_paths "$SCRIPT_DIR"
+# shellcheck source=lib/service-reload.sh
+source "$SCRIPT_DIR/lib/service-reload.sh"
 
 STATE_FILE="$HOME/.cache/hypr/waybar-position.json"
 WAYBAR_CONFIG="$HOME/.config/waybar/config"
@@ -14,12 +16,6 @@ REPO_WAYBAR_CONFIG="$CONFIG_ROOT/waybar/config"
 mkdir -p "$(dirname "$STATE_FILE")"
 
 export REPO_WAYBAR_CONFIG
-
-if find_github_repo_root && [ -n "$GITHUB_REPO_ROOT" ]; then
-  export GITHUB_WAYBAR_CONFIG="$GITHUB_REPO_ROOT/waybar/config"
-else
-  export GITHUB_WAYBAR_CONFIG=""
-fi
 
 python3 <<'PY'
 import json
@@ -31,7 +27,6 @@ state_file = Path.home() / ".cache/hypr/waybar-position.json"
 waybar_config = Path.home() / ".config/waybar/config"
 user_options = Path.home() / ".config/ignis/user_options.json"
 repo_config = Path(os.environ["REPO_WAYBAR_CONFIG"])
-github_config = Path(os.environ.get("GITHUB_WAYBAR_CONFIG") or "")
 
 if state_file.is_file():
     try:
@@ -60,8 +55,6 @@ def patch_config(path: Path) -> None:
 
 patch_config(waybar_config)
 patch_config(repo_config)
-if github_config and str(github_config) != str(repo_config):
-    patch_config(github_config)
 
 if user_options.exists():
     try:
@@ -78,6 +71,5 @@ user_options.write_text(json.dumps(opts, indent=2) + "\n")
 print(new_pos)
 PY
 
-killall waybar 2>/dev/null || true
-sleep 0.4
-waybar &>/dev/null &
+kill_service_once waybar
+ensure_service_running waybar waybar

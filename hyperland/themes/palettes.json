@@ -78,7 +78,9 @@
       "hypr": {
         "active_border": "rgba(84a0c6ee) rgba(a2b9d6ee) 45deg",
         "inactive_border": "rgba(555555aa)"
-      }
+      },
+      "cava": "blue",
+      "wofi": "blue"
     },
     "green": {
       "label": "Verde olivo",
@@ -141,7 +143,9 @@
       "hypr": {
         "active_border": "rgba(8fa86aee) rgba(a8c088ee) 45deg",
         "inactive_border": "rgba(464b41aa)"
-      }
+      },
+      "cava": "green",
+      "wofi": "green"
     },
     "red": {
       "label": "Rojo carmesí",
@@ -204,7 +208,9 @@
       "hypr": {
         "active_border": "rgba(c62828ee) rgba(e53935ee) 45deg",
         "inactive_border": "rgba(503c3caa)"
-      }
+      },
+      "cava": "red",
+      "wofi": "red"
     },
     "classic": {
       "label": "Clásico personal",
@@ -267,7 +273,9 @@
       "hypr": {
         "active_border": "rgba(005818ee) rgba(009e1aee) 45deg",
         "inactive_border": "rgba(555555aa)"
-      }
+      },
+      "cava": "classic",
+      "wofi": "classic"
     },
     "tokyo_night": {
       "label": "Tokyo Night",
@@ -330,7 +338,9 @@
       "hypr": {
         "active_border": "rgba(7aa2f7ee) rgba(73dacaee) 45deg",
         "inactive_border": "rgba(565f89aa)"
-      }
+      },
+      "cava": "tokyo-night",
+      "wofi": "tokyo-night"
     },
     "tokyo_night_moon": {
       "label": "Tokyo Night Moon",
@@ -393,7 +403,9 @@
       "hypr": {
         "active_border": "rgba(82aaffee) rgba(7dcfffee) 45deg",
         "inactive_border": "rgba(444a73aa)"
-      }
+      },
+      "cava": "tokyo-night-moon",
+      "wofi": "tokyo-night-moon"
     },
     "tokyo_night_terminal_dark": {
       "label": "Tokyo Night Terminal",
@@ -456,7 +468,9 @@
       "hypr": {
         "active_border": "rgba(7aa2f7ee) rgba(73dacaee) 45deg",
         "inactive_border": "rgba(565f89aa)"
-      }
+      },
+      "cava": "tokyo-night-terminal-dark",
+      "wofi": "tokyo-night-terminal-dark"
     },
     "tokyo_city_dark": {
       "label": "Tokyo City Dark",
@@ -519,7 +533,9 @@
       "hypr": {
         "active_border": "rgba(34548aee) rgba(3c5e5eee) 45deg",
         "inactive_border": "rgba(4c505eaa)"
-      }
+      },
+      "cava": "tokyo-city-dark",
+      "wofi": "tokyo-city-dark"
     },
     "nord": {
       "label": "Nord",
@@ -582,7 +598,9 @@
       "hypr": {
         "active_border": "rgba(88c0d0ee) rgba(81a1c1ee) 45deg",
         "inactive_border": "rgba(4c566aaa)"
-      }
+      },
+      "cava": "nord",
+      "wofi": "nord"
     },
     "dracula": {
       "label": "Dracula",
@@ -645,7 +663,9 @@
       "hypr": {
         "active_border": "rgba(bd93f9ee) rgba(8be9fdee) 45deg",
         "inactive_border": "rgba(6272a4aa)"
-      }
+      },
+      "cava": "dracula",
+      "wofi": "dracula"
     },
     "one_dark": {
       "label": "One Dark",
@@ -708,7 +728,9 @@
       "hypr": {
         "active_border": "rgba(61afefee) rgba(56b6c2ee) 45deg",
         "inactive_border": "rgba(5c6370aa)"
-      }
+      },
+      "cava": "one-dark",
+      "wofi": "one-dark"
     },
     "catppuccin_mocha": {
       "label": "Catppuccin Mocha",
@@ -771,7 +793,9 @@
       "hypr": {
         "active_border": "rgba(89b4faee) rgba(94e2d5ee) 45deg",
         "inactive_border": "rgba(6c7086aa)"
-      }
+      },
+      "cava": "catppuccin-mocha",
+      "wofi": "catppuccin-mocha"
     },
     "everforest_dark": {
       "label": "Everforest Dark",
@@ -834,7 +858,9 @@
       "hypr": {
         "active_border": "rgba(7fbbb3ee) rgba(83c092ee) 45deg",
         "inactive_border": "rgba(859289aa)"
-      }
+      },
+      "cava": "everforest-dark",
+      "wofi": "everforest-dark"
     }
   }
 }

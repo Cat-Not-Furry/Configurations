@@ -5,6 +5,7 @@ Port from bumblebee-status media.py
 """
 
 import argparse
+import html
 import json
 import subprocess
 import sys
@@ -13,6 +14,8 @@ from collections import defaultdict
 DEFAULT_PLAYER = None
 DEFAULT_VOLUME_STEP = 0.05
 DEFAULT_FORMAT = "{state} {artist} - {title}"
+MAX_ARTIST_LEN = 30
+MAX_TITLE_LEN = 30
 DEFAULT_ICONS = {
     "prev": "⏮",
     "next": "⏭",
@@ -46,6 +49,10 @@ def get_metadata(player=None):
         title = parts[1] if len(parts) > 1 else ""
         return artist, title
     return "", ""
+
+def escape_markup(text: str) -> str:
+    """GTK/Pango trata el label como markup: &, <, > deben escaparse."""
+    return html.escape(text or "", quote=False)
 
 def truncate(text: str, max_len: int) -> str:
     text = (text or "").strip()
@@ -134,9 +141,11 @@ def main():
 
     # Widget principal
     artist, title = get_metadata(args.player)
+    artist = escape_markup(artist)
+    title = escape_markup(title)
     state_icon_str = state_icon(status, icons)
-    artist_s = truncate(artist, 10)
-    title_s = truncate(title, 10)
+    artist_s = truncate(artist, MAX_ARTIST_LEN)
+    title_s = truncate(title, MAX_TITLE_LEN)
     if artist_s and title_s:
         text = f"{state_icon_str} {artist_s} - {title_s}"
     elif artist_s:

@@ -2,14 +2,14 @@
 # wofi-script1.sh - Launcher con wofi para Hyprland
 # Ubicación: ~/.config/hypr/scripts/wofi-script1.sh
 
-# Función para mostrar un submenú y ejecutar una acción
-# Uso de wofi:
-#   --dmenu: modo dmenu
-#   --insensitive: búsqueda sin distinción mayúsculas/minúsculas
-#   --prompt "texto": texto del prompt
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/wofi-common.sh
+source "$SCRIPT_DIR/lib/wofi-common.sh"
+
+# Función para mostrar un submenú y ejecutar una acción (wofi_dmenu = misma estética que Super+D)
 
 show_2k() {
-  selected=$(echo -e "Normal\nPlus\nMagic Plus\n Volver" | wofi --dmenu --insensitive --prompt "Selecciona el KOF 2002")
+  selected=$(echo -e "Normal\nPlus\nMagic Plus\n Volver" | wofi_dmenu --prompt "Selecciona el KOF 2002")
 
   case "$selected" in
   "Normal")
@@ -34,7 +34,7 @@ show_2k() {
 }
 
 show_kof() {
-  selected=$(echo -e "KOF98\nKOF2000\nKOF2002\n Volver" | wofi --dmenu --insensitive --prompt "Seleccione el juego")
+  selected=$(echo -e "KOF98\nKOF2000\nKOF2002\n Volver" | wofi_dmenu --prompt "Seleccione el juego")
 
   case "$selected" in
   "KOF98")
@@ -58,7 +58,7 @@ show_kof() {
 }
 
 show_games() {
-  selected=$(echo -e " KOF\n \n Garou\nProject-Brutality\n Volver" | wofi --dmenu --insensitive --prompt "Seleccione el juego")
+  selected=$(echo -e " KOF\n \n Garou\nProject-Brutality\n Volver" | wofi_dmenu --prompt "Seleccione el juego")
 
   case "$selected" in
   " KOF")
@@ -87,7 +87,7 @@ show_games() {
 }
 
 monitores() {
-  selected=$(echo -e "Solo Portatil\nExtender\nDuplicar\nSolo Externa\n Volver" | wofi --dmenu --insensitive --prompt "¿Que modo?")
+  selected=$(echo -e "Solo Portatil\nExtender\nDuplicar\nSolo Externa\n Volver" | wofi_dmenu --prompt "¿Que modo?")
 
   case "$selected" in
   "Solo Portatil")
@@ -113,7 +113,7 @@ monitores() {
 }
 
 show_fondo() {
-  selected=$(echo -e " Fondo\n󰹑 Monitores\n Volver" | wofi --dmenu --insensitive --prompt "¿Que composicion?")
+  selected=$(echo -e " Fondo\n󰹑 Monitores\n Volver" | wofi_dmenu --prompt "¿Que composicion?")
 
   case "$selected" in
   " Fondo")
@@ -132,7 +132,7 @@ show_fondo() {
 }
 
 show_tools() {
-  selected=$(echo -e " TaskManager\n󰹫 Pantallas\n󱄡 Audio-control\n Volver" | wofi --dmenu --insensitive --prompt "Utilidades")
+  selected=$(echo -e " TaskManager\n󰹫 Pantallas\n󱄡 Audio-control\n Volver" | wofi_dmenu --prompt "Utilidades")
 
   case "$selected" in
   " TaskManager")
@@ -154,7 +154,7 @@ show_tools() {
 }
 
 show_office() {
-  selected=$(echo -e "󰎞 Texto\n Calculo\n󰛺 Presentaciones\n󰯁 Dibujo\n󰨣 Base de datos\n󰿉 Formulas\n Volver" | wofi --dmenu --insensitive --prompt "¿Que hoja deseas utilzar?")
+  selected=$(echo -e "󰎞 Texto\n Calculo\n󰛺 Presentaciones\n󰯁 Dibujo\n󰨣 Base de datos\n󰿉 Formulas\n Volver" | wofi_dmenu --prompt "¿Que hoja deseas utilzar?")
 
   case "$selected" in
   "󰎞 Texto")
@@ -185,7 +185,7 @@ show_office() {
 }
 
 show_notes() {
-  selected=$(echo -e " Krita\n LibreSprite\n Geany\n󰂺 Office\n󱓧 Obsidian\n󰎞 Mousepad\n Volver" | wofi --dmenu --insensitive --prompt "Editores de texto")
+  selected=$(echo -e " Krita\n LibreSprite\n Geany\n󰂺 Office\n󱓧 Obsidian\n󰎞 Mousepad\n Volver" | wofi_dmenu --prompt "Editores de texto")
 
   case "$selected" in
   " Krita")
@@ -216,7 +216,7 @@ show_notes() {
 }
 
 show_apps() {
-  selected=$(echo -e " Brave\n󰎞 Editores\n Strawberry\n Thunar\n Volver" | wofi --dmenu --insensitive --prompt "$1")
+  selected=$(echo -e " Brave\n󰎞 Editores\n Strawberry\n Thunar\n Volver" | wofi_dmenu --prompt "$1")
 
   case $selected in
   " Brave")
@@ -244,7 +244,7 @@ show_apps() {
 }
 
 # Menú principal
-option=$(echo -e "󰀻 Aplicaciones\n Utilidades\n󰊴 Juegos\n󰈆 Salir" | wofi --dmenu --insensitive --prompt "Menú principal")
+option=$(echo -e "󰀻 Aplicaciones\n Utilidades\n󰊴 Juegos\n󰈆 Salir" | wofi_dmenu --prompt "Menú principal")
 
 case $option in
 "󰀻 Aplicaciones")

@@ -1,3 +1,10 @@
+# Estilo: Verde olivo (Wayland)
+# Slug palettes: green
+# Copia manualmente a ~/.config/cava/config cuando quieras activarlo.
+
+# Estilo: Verde retro terminal (X11 — gradiente verde fosforescente)
+# Copia manualmente a ~/.config/cava/config cuando quieras activarlo.
+
 ## Configuration file for CAVA.
 # Remove the ; to change parameters.
 
@@ -216,32 +223,13 @@ synchronized_sync = 1
 
 [color]
 
-# Colors can be one of seven predefined: black, blue, cyan, green, magenta, red, white, yellow.
-# Or defined by hex code '#xxxxxx' (hex code must be within ''). User defined colors requires
-# a terminal that can change color definitions such as Gnome-terminal or rxvt.
-# default is to keep current terminal color
-; background = default
-; foreground = default
-
-# SDL and sdl_glsl only support hex code colors, these are the default:
 background = 'black'
-foreground = 'green'
-
-
-# Gradient mode, only hex defined colors are supported,
-# background must also be defined in hex or remain commented out. 1 = on, 0 = off.
-# You can define as many as 8 different colors. They range from bottom to top of screen
+foreground = '#8FA86A'
 gradient = 1
-gradient_color_1 = '#003b00'
-gradient_color_2 = '#00ff5f'
-gradient_color_3 = '#b6ffb6'
-; gradient_color_4 = '#cccc33'
-; gradient_color_5 = '#cca633'
-; gradient_color_6 = '#cc8033'
-; gradient_color_7 = '#cc5933'
-; gradient_color_8 = '#cc3333'
-
-
+gradient_color_1 = '#8FA86A'
+gradient_color_2 = '#A8C088'
+gradient_color_3 = '#C4B86A'
+gradient_color_4 = '#a8c088'
 
 [smoothing]
 

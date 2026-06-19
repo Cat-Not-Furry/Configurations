@@ -1,57 +1,75 @@
 # Wofi – Lanzador temático para Hyprland
 
-Configuración de **Wofi** sincronizada con el sistema de temas de `hyperland/themes/palettes.json`.
+Configuración de **Wofi** sincronizada con `hyperland/themes/palettes.json`.
 
-## Estructura
+## Estructura en el repo
 
 ```
 wofi/
-├── config          # Opciones de Wofi (drun, imágenes, color/style)
-├── style.base.css  # Plantilla CSS (placeholders {{WOFI_BG}}, etc.)
-├── style.css       # Generado por apply-theme.sh — no editar a mano
-└── colors          # Paleta hex por línea (opcional, referencia)
+├── config              # Opciones globales (drun, imágenes, tamaño)
+├── style.base.css      # Plantilla CSS (placeholders {{WOFI_BG}}, etc.)
+└── wayland/            # Perfiles pregenerados por tema
+    ├── colors.{slug}
+    └── style.{slug}.css
+```
+
+En `~/.config/wofi/` tras aplicar un tema:
+
+```
+~/.config/wofi/
+├── config
+├── style.base.css
+├── wayland/            # Perfiles (copiados en deploy)
+├── colors              # Activo — copia de wayland/colors.{slug}
+└── style.css           # Activo — copia de wayland/style.{slug}.css
 ```
 
 ## Instalación
 
-Se despliega automáticamente con:
+Desde la **raíz del clone**:
 
 ```bash
-~/configurations/hyperland/scripts/deploy-configs.sh
+./hyperland/scripts/deploy-configs.sh
 ```
 
-O manualmente:
+Manual (solo Wofi + tema):
 
 ```bash
-cp -r wofi ~/.config/wofi
-~/configurations/hyperland/scripts/apply-theme.sh blue
+cp wofi/config wofi/style.base.css ~/.config/wofi/
+cp -r wofi/wayland ~/.config/wofi/
+./hyperland/scripts/apply-theme.sh blue
 ```
 
 ## Uso
 
-| Acción | Comando / atajo |
+| Acción | Atajo / comando |
 |--------|-----------------|
-| Lanzador drun | `Super+D` o clic en icono de distro en Waybar |
+| Lanzador drun | `Super+D` |
 | Script dedicado | `~/.config/hypr/scripts/wofi-launch.sh` |
+| Menús personalizados | `Super+Shift+S`, `Super+Shift+A` (misma estética vía `lib/wofi-common.sh`) |
 
-`wofi-launch.sh` fuerza `--conf` y `--style` para cargar siempre el tema activo.
+`wofi-launch.sh` usa `--conf` y `--style` del tema activo.
 
 ## Temas
 
-Los colores se derivan del bloque `waybar` del tema en `palettes.json`. Al cambiar tema (botón Tema en Ignis o `apply-theme.sh`), se regeneran:
+Cada tema en `palettes.json` tiene campos `wofi` y `cava` (slug, p. ej. `catppuccin-mocha`). `apply-theme.sh` copia el perfil correspondiente a `colors` y `style.css` activos.
 
-- `~/.config/wofi/style.css`
-- `~/.config/wofi/colors`
-- Copias en este repo (`wofi/style.css`, `wofi/colors`)
+Para regenerar perfiles tras cambiar colores:
 
-Wofi lee el CSS al abrir; no hace falta reiniciar el proceso.
+```bash
+./hyperland/scripts/generate-wofi-wayland.sh
+```
+
+Wofi lee el CSS al abrir; no hace falta reiniciar un daemon.
 
 ## Personalización
 
-1. Edita `style.base.css` (estructura y selectores GTK).
-2. Ejecuta `apply-theme.sh` para regenerar `style.css` con colores del tema activo.
-3. Vuelve a abrir Wofi para ver cambios.
+1. Edita `style.base.css` (selectores GTK).
+2. Ejecuta `generate-wofi-wayland.sh`.
+3. `apply-theme.sh [theme_id]` o vuelve a abrir Wofi.
+
+Copia de plantilla de temas: `hyperland/themes/palettes.example.json` → `palettes.json`.
 
 ## Nota sobre transparencia
 
-En Hyprland + Wofi el fondo opaco puede verse semitransparente por limitaciones del compositor con capas Wayland. El texto y el campo de búsqueda siguen siendo legibles sobre el wallpaper.
+En Hyprland el fondo de Wofi puede verse semitransparente por limitaciones del compositor con capas Wayland. El texto y el campo de búsqueda siguen siendo legibles.

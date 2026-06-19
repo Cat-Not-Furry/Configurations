@@ -1,11 +1,13 @@
 {
-  "_readme": "Copia este archivo a palettes.json y rellena los bloques. Cada tema necesita label, ignis (variables SCSS), waybar (@define-color) e hypr (bordes).",
+  "_readme": "Copia a palettes.json. Cada tema: label, ignis, waybar, hypr. Campo cava = slug en cava/wayland/config.{slug}; wofi = slug en wofi/wayland/colors.{slug} y style.{slug}.css (por defecto igual que cava). apply-theme activa esos perfiles en ~/.config/. cava/x11/config.bak es solo plantilla para generate-cava-wayland.sh (no runtime).",
   "order": ["blue", "green", "red", "classic", "tokyo_night", "nord", "dracula", "catppuccin_mocha"],
   "default": "blue",
   "hover_hint_ms": 1000,
   "themes": {
     "blue": {
       "label": "Nombre visible en el popover",
+      "cava": "blue",
+      "wofi": "blue",
       "ignis": {},
       "waybar": {},
       "hypr": {
@@ -13,19 +15,15 @@
         "inactive_border": "rgba(555555aa)"
       }
     },
-    "my_theme": {
-      "label": "Mi tema personalizado",
-      "ignis": {
-        "primary": "#000000",
-        "background": "#000000"
-      },
-      "waybar": {
-        "background": "#000000",
-        "accent": "#ffffff"
-      },
+    "catppuccin_mocha": {
+      "label": "Catppuccin Mocha",
+      "cava": "catppuccin-mocha",
+      "wofi": "catppuccin-mocha",
+      "ignis": {},
+      "waybar": {},
       "hypr": {
-        "active_border": "rgba(255,255,255,ee) rgba(200,200,200,ee) 45deg",
-        "inactive_border": "rgba(85,85,85,aa)"
+        "active_border": "rgba(198,160,246,ee) rgba(166,227,161,ee) 45deg",
+        "inactive_border": "rgba(555555aa)"
       }
     }
   }

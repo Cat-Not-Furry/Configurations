@@ -1,4 +1,4 @@
-/* Base Wofi — apply-theme.sh genera style.css con colores del tema activo */
+/* Base Wofi — scripts/generate-wofi-wayland.sh genera wofi/wayland/style.{slug}.css */
 
 * {
     font-family: "Hack Nerd Font", "Font Awesome 6 Free", sans-serif;

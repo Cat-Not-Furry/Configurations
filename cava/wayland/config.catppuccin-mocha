@@ -1,3 +1,10 @@
+# Estilo: Catppuccin Mocha (Wayland)
+# Slug palettes: catppuccin-mocha
+# Copia manualmente a ~/.config/cava/config cuando quieras activarlo.
+
+# Estilo: Verde retro terminal (X11 — gradiente verde fosforescente)
+# Copia manualmente a ~/.config/cava/config cuando quieras activarlo.
+
 ## Configuration file for CAVA.
 # Remove the ; to change parameters.
 
@@ -8,7 +15,7 @@
 ; mode = normal
 
 # Accepts only non-negative values.
-framerate = 75
+framerate = 60
 
 # 'autosens' will attempt to decrease sensitivity if the bars peak. 1 = on, 0 = off
 # new as of 0.6.0 autosens of low values (dynamic range)
@@ -216,32 +223,13 @@ synchronized_sync = 1
 
 [color]
 
-# Colors can be one of seven predefined: black, blue, cyan, green, magenta, red, white, yellow.
-# Or defined by hex code '#xxxxxx' (hex code must be within ''). User defined colors requires
-# a terminal that can change color definitions such as Gnome-terminal or rxvt.
-# default is to keep current terminal color
-; background = default
-; foreground = default
-
-# SDL and sdl_glsl only support hex code colors, these are the default:
 background = 'black'
-foreground = '#7aa2f7'
-
-
-# Gradient mode, only hex defined colors are supported,
-# background must also be defined in hex or remain commented out. 1 = on, 0 = off.
-# You can define as many as 8 different colors. They range from bottom to top of screen
+foreground = '#89b4fa'
 gradient = 1
-gradient_color_1 = '#7aa2f7'
-gradient_color_2 = '#bb9af7'
-gradient_color_3 = '#ff79c6'
-gradient_color_4 = '#ff9364'
-; gradient_color_5 = '#cca633'
-; gradient_color_6 = '#cc8033'
-; gradient_color_7 = '#cc5933'
-; gradient_color_8 = '#cc3333'
-
-
+gradient_color_1 = '#89b4fa'
+gradient_color_2 = '#94e2d5'
+gradient_color_3 = '#f38ba8'
+gradient_color_4 = '#a6e3a1'
 
 [smoothing]
 
@@ -252,7 +240,7 @@ gradient_color_4 = '#ff9364'
 
 # Disables or enables the so-called "Monstercat smoothing" with or without "waves". Set to 0 to disable.
 monstercat = 1
-;  waves = 0
+; waves = 0
 
 # Set gravity percentage for "drop off". Higher values means bars will drop faster.
 # Accepts only non-negative values. 50 means half gravity, 200 means double. Set to 0 to disable "drop off".
@@ -267,7 +255,7 @@ monstercat = 1
 # Noise reduction, int 0 - 100. default 77
 # the raw visualization is very noisy, this factor adjusts the integral and gravity filters to keep the signal smooth
 # 100 will be very slow and smooth, 0 will be fast but noisy.
-noise_reduction = 75
+; noise_reduction = 77
 
 
 [eq]
@@ -279,4 +267,4 @@ noise_reduction = 75
 2 = 1.2
 3 = 1 # midtone
 4 = 0.9
-5 = 1.8 # treble
+5 = 0.8 # treble

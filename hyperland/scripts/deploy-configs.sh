@@ -3,11 +3,29 @@ set -euo pipefail
 
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RSYNC=$(command -v rsync || true)
+SYNC_GITHUB=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --github) SYNC_GITHUB=1 ;;
+    -h | --help)
+      echo "Uso: $(basename "$0") [--github]"
+      echo "  --github  Sincronizar además al repo GitHub mirror"
+      exit 0
+      ;;
+    *)
+      echo "Opción desconocida: $arg" >&2
+      exit 1
+      ;;
+  esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/project-paths.sh
 source "$SCRIPT_DIR/lib/project-paths.sh"
 resolve_project_paths "$SCRIPT_DIR"
+# shellcheck source=lib/service-reload.sh
+source "$SCRIPT_DIR/lib/service-reload.sh"
 
 WAYBAR_SRC="$CONFIG_ROOT/waybar"
 WOFI_SRC="$CONFIG_ROOT/wofi"
@@ -17,12 +35,15 @@ HYPR_CONFD_SRC="$HYPRLAND_ROOT/conf.d"
 HYPR_SCRIPTS_SRC="$HYPRLAND_ROOT/scripts"
 THEMES_SRC="$HYPRLAND_ROOT/themes"
 SWAYNC_SRC="$HYPRLAND_ROOT/swaync/config.json"
+PALETTES_SRC="$THEMES_SRC/palettes.json"
 
 DEST_WAYBAR="$HOME/.config/waybar"
 DEST_HYPRLAND="$HOME/.config/hypr"
 DEST_IGNIS="$HOME/.config/ignis"
 DEST_WOFI="$HOME/.config/wofi"
 DEST_SWAYNC="$HOME/.config/swaync"
+CAVA_SRC="$CONFIG_ROOT/cava"
+DEST_CAVA="$HOME/.config/cava"
 
 copy_dir() {
   local src="$1" dst="$2"
@@ -48,6 +69,60 @@ copy_file() {
   mkdir -p "$(dirname "$dst")"
   cp -a "$src" "$dst"
   echo "Copied file: $src -> $dst"
+}
+
+copy_cava_assets() {
+  local src="$1" dst="$2"
+  if [ ! -d "$src" ]; then
+    echo "Warning: Cava source directory not found: $src"
+    return 0
+  fi
+  mkdir -p "$dst"
+  for item in shaders themes wayland; do
+    if [ -e "$src/$item" ]; then
+      if [ -d "$src/$item" ]; then
+        mkdir -p "$dst/$item"
+        if [ -n "$RSYNC" ]; then
+          rsync -a "$src/$item/" "$dst/$item/"
+        else
+          cp -a "$src/$item/." "$dst/$item/"
+        fi
+      else
+        cp -a "$src/$item" "$dst/$item"
+      fi
+      echo "Copied cava asset: $item"
+    fi
+  done
+  rm -f "$dst/config.base" "$dst/config.txt" "$dst/config.bak" \
+    "$dst/config.hypr" "$dst/config.log"
+  rm -rf "$dst/x11"
+  echo "Cava assets deployed to $dst (config activo preservado)"
+}
+
+copy_wofi_assets() {
+  local src="$1" dst="$2"
+  if [ ! -d "$src" ]; then
+    echo "Warning: Wofi source directory not found: $src"
+    return 0
+  fi
+  mkdir -p "$dst"
+  for item in config style.base.css wayland; do
+    if [ -e "$src/$item" ]; then
+      if [ -d "$src/$item" ]; then
+        mkdir -p "$dst/$item"
+        if [ -n "$RSYNC" ]; then
+          rsync -a "$src/$item/" "$dst/$item/"
+        else
+          cp -a "$src/$item/." "$dst/$item/"
+        fi
+      else
+        cp -a "$src/$item" "$dst/$item"
+      fi
+      echo "Copied wofi asset: $item"
+    fi
+  done
+  rm -f "$dst/style.css.bak"
+  echo "Wofi assets deployed to $dst (colors/style.css activos preservados)"
 }
 
 copy_hypr_scripts() {
@@ -107,6 +182,7 @@ sync_to_github_repo() {
   sync_dir "$CONFIG_ROOT/waybar" "$GITHUB_REPO_ROOT/waybar"
   sync_dir "$CONFIG_ROOT/wofi" "$GITHUB_REPO_ROOT/wofi"
   sync_dir "$CONFIG_ROOT/ignis" "$GITHUB_REPO_ROOT/ignis"
+  sync_dir "$CONFIG_ROOT/cava" "$GITHUB_REPO_ROOT/cava"
 
   mkdir -p "$gh_hypr"
   for f in "${HYPR_FILES[@]}"; do
@@ -128,20 +204,34 @@ sync_to_github_repo() {
   echo "GitHub repo updated at $GITHUB_REPO_ROOT"
 }
 
+resolve_deploy_theme() {
+  python3 - <<PY
+import json
+from pathlib import Path
+p = Path("$PALETTES_SRC")
+if p.is_file():
+    d = json.loads(p.read_text())
+    order = d.get("order") or []
+    if order:
+        print(order[0])
+    else:
+        print(d.get("default", "blue"))
+else:
+    print("blue")
+PY
+}
+
 main() {
   echo "Deploying configs from $CONFIG_ROOT (hypr: $HYPRLAND_ROOT, timestamp: $TIMESTAMP)"
 
   if [ -d "$WAYBAR_SRC" ]; then
     copy_dir "$WAYBAR_SRC" "$DEST_WAYBAR"
+    reset_waybar_position_top "$DEST_WAYBAR/config"
   else
     echo "Warning: Waybar source directory not found: $WAYBAR_SRC"
   fi
 
-  if [ -d "$WOFI_SRC" ]; then
-    copy_dir "$WOFI_SRC" "$DEST_WOFI"
-  else
-    echo "Warning: Wofi source directory not found: $WOFI_SRC"
-  fi
+  copy_wofi_assets "$WOFI_SRC" "$DEST_WOFI"
 
   mkdir -p "$DEST_HYPRLAND"
   for f in "${HYPR_FILES[@]}"; do
@@ -179,42 +269,33 @@ main() {
     echo "Warning: swaync config not found: $SWAYNC_SRC"
   fi
 
+  copy_cava_assets "$CAVA_SRC" "$DEST_CAVA"
+
+  rm -f "$HOME/.cache/ignis/active-theme.json"
+  ACTIVE_THEME="$(resolve_deploy_theme)"
   echo
-  echo "Applying active theme..."
-  ACTIVE_THEME="blue"
-  if [ -f "$HOME/.config/ignis/user_options.json" ]; then
-    ACTIVE_THEME=$(python3 -c "
-import json
-try:
-    d=json.load(open('$HOME/.config/ignis/user_options.json'))
-    print(d.get('theme',{}).get('active','blue'))
-except Exception:
-    print('blue')
-" 2>/dev/null || echo "blue")
-  fi
+  echo "Applying theme: $ACTIVE_THEME (primer tema en palettes.json)..."
+
   if [ -x "$HYPRLAND_ROOT/scripts/apply-theme.sh" ]; then
-    "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || echo "Warning: apply-theme failed"
+    "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+      echo "Warning: apply-theme failed; recarga manual..."
+      deploy_reload_flow
+    }
+  else
+    echo "Warning: apply-theme.sh no encontrado; recarga manual..."
+    deploy_reload_flow
   fi
 
-  sync_to_github_repo
+  ensure_service_running swaync swaync
+  ensure_service_running hypridle hypridle
+
+  if [ "$SYNC_GITHUB" -eq 1 ]; then
+    sync_to_github_repo
+  else
+    echo "Sync GitHub omitido (usa --github para sincronizar)."
+  fi
 
   echo
-  echo "Done deploying configs."
-  echo "Reloading Hyprland..."
-  if command -v hyprctl >/dev/null 2>&1; then
-    hyprctl reload 2>/dev/null || echo "Warning: hyprctl reload failed (Hyprland not running?)"
-    hyprctl configerrors 2>/dev/null || true
-  fi
-
-  echo "Restarting Ignis..."
-  killall ignis 2>/dev/null || true
-  sleep 0.5
-  if pgrep -x ignis >/dev/null 2>&1; then
-    killall -9 ignis 2>/dev/null || true
-    sleep 0.5
-  fi
-  ignis init &
-
   echo "Deploy complete."
 }
 
