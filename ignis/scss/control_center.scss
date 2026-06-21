@@ -21,7 +21,7 @@
         color: $onSurface;
         border-radius: 1rem;
         padding: 0.65rem 0.9rem;
-        transition: 0.3s;
+        transition: 0.1s;
         margin-bottom: 0.5rem;
     }
 
@@ -40,7 +40,7 @@
         color: $onSurface;
         min-height: 2.4rem;
         border-radius: 1.2rem;
-        transition: 0.3s;
+        transition: 0.1s;
         padding: 0.3rem 0.8rem;
     
         &.active {
@@ -98,7 +98,7 @@
         border-radius: 1rem;
         padding: 0.25rem 0.75rem;
         font-size: 0.95rem;
-        transition: 0.3s;
+        transition: 0.1s;
     }
     
     .record-cancel-button {
@@ -113,7 +113,7 @@
     
     .volume-entry {
         @include hover($surfaceContainerHigh);
-        transition: 0.3s;
+        transition: 0.1s;
         border-radius: 1rem;
         padding: 0.5rem 0.5rem;
     }
@@ -147,7 +147,7 @@
         min-width: 2.35rem;
         margin: 0.4rem 0rem;
         margin-right: 0.5rem;
-        transition: 0.3s;
+        transition: 0.1s;
     }
 
     /* Ensure menu buttons have consistent horizontal spacing */
@@ -163,7 +163,7 @@
         min-width: 2.35rem;
         margin: 0.4rem 0rem;
         margin-right: 0.5rem;
-        transition: 0.3s;
+        transition: 0.1s;
     }
 
     .theme-hint-label {
@@ -214,7 +214,7 @@
 
     .user-night-box {
         border-radius: 1.2rem;
-        transition: 0.3s;
+        transition: 0.1s;
 
         &.expanded {
             background-color: $surfaceContainerHigh;
@@ -239,7 +239,7 @@
         min-width: 1.5rem;
         min-height: 1.5rem;
         margin-right: 0.15rem;
-        transition: 0.3s;
+        transition: 0.1s;
 
         &.active {
             color: $primary;
@@ -278,7 +278,7 @@
         min-width: 2.35rem;
         min-height: 2.4rem;
         margin: 0;
-        transition: 0.3s;
+        transition: 0.1s;
     }
     
     .network-header-box {
@@ -292,7 +292,7 @@
     
     .network-item {
         @include hover($surfaceContainerHigh);
-        transition: 0.3s;
+        transition: 0.1s;
         border-radius: 1rem;
         padding: 0.5rem 0.5rem;
 

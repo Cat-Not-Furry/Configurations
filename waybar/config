@@ -9,8 +9,7 @@
     "hyprland/window"
   ],
   "modules-center": [
-    "custom/cmus",
-    "custom/cava"
+    "custom/cmus"
   ],
   "modules-right": [
     "custom/media-prev",

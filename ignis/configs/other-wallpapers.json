@@ -2,6 +2,8 @@
   "ruta": ".config/i3/fondos/other",
   "entries": {
     "Otro-1": "1.jpg",
+    "Otro-2": "2.jpg",
+    "Otro-3": "3.jpg",
     "Otro-5": "5.jpg",
     "Otro-6": "6.jpg",
     "Otro-7": "7.jpg",
@@ -10,11 +12,13 @@
     "Otro-21": "21.jpg",
     "Otro-23": "23.jpg",
     "Otro-29": "29.jpg",
+    "Otro-32": "32.jpg",
     "Otro-33": "33.jpg",
     "Otro-34": "34.jpg",
     "Otro-35": "35.jpg",
     "Otro-36": "36.jpg",
     "Otro-37": "37.jpg",
+    "Otro-44": "44.jpg",
     "fukua_mailobe": "fukua_mailobe.jpg",
     "peakpx": "peakpx.jpg"
   }

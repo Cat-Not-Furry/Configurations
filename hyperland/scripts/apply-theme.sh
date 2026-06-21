@@ -11,12 +11,21 @@ source "$SCRIPT_DIR/lib/service-reload.sh"
 source "$SCRIPT_DIR/lib/cava-theme.sh"
 # shellcheck source=lib/wofi-theme.sh
 source "$SCRIPT_DIR/lib/wofi-theme.sh"
+# shellcheck source=lib/powerline-theme.sh
+source "$SCRIPT_DIR/lib/powerline-theme.sh"
+# shellcheck source=lib/nvim-theme.sh
+source "$SCRIPT_DIR/lib/nvim-theme.sh"
+# shellcheck source=lib/tmux-theme.sh
+source "$SCRIPT_DIR/lib/tmux-theme.sh"
 
 THEME_ID="${1:-}"
 ACTIVE_CACHE="$HOME/.cache/ignis/active-theme.json"
 USER_OPTIONS="$HOME/.config/ignis/user_options.json"
 HYPR_THEME_OUT="$HOME/.config/hypr/conf.d/theme.conf"
 WAYBAR_COLORS_OUT="$HOME/.config/waybar/waybar-colors.css"
+EWW_COLORS_OUT="$HOME/.config/eww/eww-colors.scss"
+EWW_SCSS_OUT="$HOME/.config/eww/eww.scss"
+THEME_NOTIFY_DEFER="${THEME_NOTIFY_DEFER:-0}"
 
 find_palettes() {
   local candidate
@@ -55,18 +64,19 @@ except Exception:
   THEME_ID="${THEME_ID:-blue}"
 fi
 
-export PALETTES HYPR_THEME_OUT WAYBAR_COLORS_OUT THEME_ID
+export PALETTES HYPR_THEME_OUT WAYBAR_COLORS_OUT EWW_COLORS_OUT EWW_SCSS_OUT THEME_ID
 
 python3 <<'PY'
 import json
 import os
-import subprocess
 from pathlib import Path
 
 palettes_path = Path(os.environ["PALETTES"])
 theme_id = os.environ["THEME_ID"]
 hypr_out = Path(os.environ["HYPR_THEME_OUT"])
 waybar_out = Path(os.environ["WAYBAR_COLORS_OUT"])
+eww_out = Path(os.environ["EWW_COLORS_OUT"])
+eww_scss_out = Path(os.environ["EWW_SCSS_OUT"])
 
 with open(palettes_path) as f:
     data = json.load(f)
@@ -79,11 +89,27 @@ theme = themes[theme_id]
 hypr = theme.get("hypr", {})
 waybar = theme.get("waybar", {})
 
-# 1. Ignis
 cache_dir = Path.home() / ".cache" / "ignis"
 cache_dir.mkdir(parents=True, exist_ok=True)
+
+order = data.get("order", list(themes.keys()))
+if theme_id in order:
+    next_id = order[(order.index(theme_id) + 1) % len(order)]
+else:
+    next_id = order[0] if order else theme_id
+
+current_label = theme.get("label", theme_id)
+next_label = themes.get(next_id, {}).get("label", next_id)
+
 (cache_dir / "active-theme.json").write_text(
-    json.dumps({"active": theme_id, "label": theme.get("label", theme_id)})
+    json.dumps(
+        {
+            "active": theme_id,
+            "label": current_label,
+            "next_id": next_id,
+            "next_label": next_label,
+        }
+    )
 )
 
 user_options = Path.home() / ".config" / "ignis" / "user_options.json"
@@ -95,10 +121,10 @@ if user_options.exists():
 else:
     opts = {}
 opts.setdefault("theme", {})["active"] = theme_id
+opts.setdefault("material", {})["colors"] = {}
 user_options.parent.mkdir(parents=True, exist_ok=True)
 user_options.write_text(json.dumps(opts, indent=2) + "\n")
 
-# 2. Waybar
 waybar_out.parent.mkdir(parents=True, exist_ok=True)
 lines = [
     "/* Generado por scripts/apply-theme.sh — no editar a mano */",
@@ -116,7 +142,48 @@ lines = [
 ]
 waybar_out.write_text("\n".join(lines))
 
-# 3. Hyprland
+eww_out.parent.mkdir(parents=True, exist_ok=True)
+eww_out.write_text(
+    "\n".join(
+        [
+            "/* Generado por scripts/apply-theme.sh — no editar a mano */",
+            f"$eww_bg: {waybar.get('background', '#161821')};",
+            f"$eww_fg: {waybar.get('foreground', '#FFFFFF')};",
+            f"$eww_accent: {waybar.get('accent', '#84A0C6')};",
+            f"$eww_accent_light: {waybar.get('accent_light', '#A2B9D6')};",
+            f"$eww_urgent: {waybar.get('urgent', '#E27878')};",
+            f"$eww_today: {waybar.get('media_playing', '#50fa7b')};",
+            "",
+        ]
+    )
+)
+
+eww_vars_block = "\n".join(
+    [
+        "/* eww-theme-vars:start */",
+        f"$eww_bg: {waybar.get('background', '#161821')};",
+        f"$eww_fg: {waybar.get('foreground', '#FFFFFF')};",
+        f"$eww_accent: {waybar.get('accent', '#84A0C6')};",
+        f"$eww_accent_light: {waybar.get('accent_light', '#A2B9D6')};",
+        f"$eww_urgent: {waybar.get('urgent', '#E27878')};",
+        f"$eww_today: {waybar.get('media_playing', '#50fa7b')};",
+        "/* eww-theme-vars:end */",
+    ]
+)
+
+if eww_scss_out.is_file():
+    import re
+
+    scss_text = eww_scss_out.read_text()
+    scss_text = re.sub(
+        r"/\* eww-theme-vars:start \*/.*?/\* eww-theme-vars:end \*/",
+        eww_vars_block,
+        scss_text,
+        count=1,
+        flags=re.DOTALL,
+    )
+    eww_scss_out.write_text(scss_text)
+
 hypr_out.parent.mkdir(parents=True, exist_ok=True)
 hypr_out.write_text(
     "# Generado por scripts/apply-theme.sh — no editar a mano\n\n"
@@ -126,36 +193,21 @@ hypr_out.write_text(
     "}\n"
 )
 
-order = data.get("order", list(themes.keys()))
-if theme_id in order:
-    next_id = order[(order.index(theme_id) + 1) % len(order)]
-else:
-    next_id = order[0] if order else theme_id
-
-current_label = theme.get("label", theme_id)
-next_label = themes.get(next_id, {}).get("label", next_id)
-
-subprocess.run(
-    [
-        "notify-send",
-        "-t",
-        "2500",
-        "-i",
-        "preferences-desktop-theme-symbolic",
-        f"Tema activo: {current_label}",
-        f"Siguiente: {next_label}",
-    ],
-    check=False,
-    timeout=3,
-)
-
 print(f"Tema aplicado: {theme_id} ({current_label})")
 print(f"Siguiente: {next_id} ({next_label})")
 PY
 
 activate_wofi_profile "$THEME_ID" || true
 activate_cava_profile "$THEME_ID" || true
+activate_powerline_profile "$THEME_ID" || true
+restart_powerline_daemon
+activate_nvim_profile "$THEME_ID" || true
+activate_tmux_profile "$THEME_ID" || true
 
 apply_theme_reload_flow
+
+if [ "$THEME_NOTIFY_DEFER" != "1" ]; then
+  send_theme_notification
+fi
 
 echo "apply-theme.sh completado."

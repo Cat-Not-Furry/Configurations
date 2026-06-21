@@ -11,6 +11,10 @@ Repositorio de dotfiles para entornos Linux (Hyprland, Waybar, Ignis, Wofi, Cava
 | `ignis/` | `~/.config/ignis/` | Shell GTK (centro de control, OSD) |
 | `wofi/` | `~/.config/wofi/` | Lanzador temático |
 | `cava/` | `~/.config/cava/` | Visualizador de audio (perfiles por tema) |
+| `bash/` | `~/.config/bash/` + `~/.bashrc` | Shell Hyprland (powerline) o X11 (legacy) |
+| `powerline/` | `~/.config/powerline/` | Prompt bash |
+| `nvim/` | `~/.config/nvim/` | LazyVim + tema Hyprland |
+| `tmux/` | `~/.config/tmux/` | Multiplexor + colores por tema |
 
 > **Nota:** la carpeta se llama `hyperland/` (convención histórica del repo); el destino real es `~/.config/hypr/`.
 
@@ -31,7 +35,7 @@ El script detecta solo la estructura del repo (layout **split**: `hyperland/` + 
 
 ### Qué hace `deploy-configs.sh`
 
-1. Copia `waybar/`, `wofi/`, `ignis/`, `cava/` y `hyperland/` → `~/.config/`
+1. Copia `waybar/`, `wofi/`, `ignis/`, `cava/`, `tmux/`, `bash/`, `nvim/`, `powerline/` y `hyperland/` → `~/.config/`
 2. Copia `hyperland/themes/palettes.json` → `~/.config/ignis/themes/`
 3. Aplica el primer tema de `palettes.json` (`order[0]`) con `apply-theme.sh`
 4. Recarga Hyprland e inicia servicios (Ignis, Waybar, swaync, hypridle)
@@ -46,7 +50,7 @@ Solo sincroniza **desde este clone hacia otro repo local** cuyo `origin` apunte 
 
 ## Temas unificados
 
-Definidos en `hyperland/themes/palettes.json`. Un comando aplica colores a Hypr, Waybar, Wofi y Cava (Wayland):
+Definidos en `hyperland/themes/palettes.json`. Un comando aplica colores a Hypr, Waybar, Wofi, Cava, Tmux, Nvim y Powerline:
 
 ```bash
 # Desde la raíz del clone
@@ -61,16 +65,42 @@ Sin argumento usa el tema guardado en `~/.config/ignis/user_options.json`.
 
 `apply-theme.sh` escribe **solo** en `~/.config/` (no modifica el clone).
 
-## Regenerar perfiles Wofi / Cava (mantenedores)
+## Regenerar perfiles (mantenedores)
 
 Tras editar `palettes.json` o plantillas base:
 
 ```bash
-./hyperland/scripts/generate-wofi-wayland.sh   # → wofi/wayland/colors.{slug}, style.{slug}.css
-./hyperland/scripts/generate-cava-wayland.sh   # → cava/wayland/config.{slug}
+./hyperland/scripts/generate-wofi-wayland.sh
+./hyperland/scripts/generate-cava-wayland.sh
+./hyperland/scripts/generate-tmux-colors.sh
 ```
 
 Luego vuelve a desplegar o ejecuta `apply-theme.sh`.
+
+## Entornos Hyprland vs X11/i3
+
+| Script | Uso |
+|--------|-----|
+| `hyperland/scripts/x11-environment.sh` | Perfil **i3/X11**: bash legacy, env X11, cava X11 |
+| `hyperland/scripts/hypr-environment.sh` | Vuelta a **Hyprland/Wayland** |
+
+```bash
+./hyperland/scripts/x11-environment.sh && source ~/.bashrc
+./hyperland/scripts/hypr-environment.sh && source ~/.bashrc
+```
+
+Estado: `~/.config/hyprland/session-mode`.
+
+## Tmux
+
+Arranque manual en terminal; alias `tm` en bashrc.
+
+```bash
+./hyperland/scripts/tmux-atajos.sh all
+```
+
+- Prefijo **Ctrl+Space**; **Alt+Space** / **Alt+Shift+Space** + flechas
+- Barra: `user@host`, pacman/AUR/flatpak (cache 1 h), hora
 
 ## Waybar – módulos destacados
 
@@ -86,6 +116,7 @@ Luego vuelve a desplegar o ejecuta `apply-theme.sh`.
 - [`waybar/README.md`](waybar/README.md) — Barra y módulos
 - [`wofi/README.md`](wofi/README.md) — Lanzador y perfiles por tema
 - [`ignis/README.md`](ignis/README.md) — Shell GTK
+- `tmux/docs/atajos.md` — Tmux (atajos; script: `hyperland/scripts/tmux-atajos.sh`)
 
 ## Otras configuraciones
 

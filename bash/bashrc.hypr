@@ -1,0 +1,60 @@
+# ~/.config/bash/bashrc.hypr — Hyprland + powerline
+
+[[ $- != *i* ]] && return
+
+complete -cf sudo
+
+if [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi
+
+if [ -f .fzf.bash ]; then
+  source .fzf.bash
+fi
+
+alias ','='cd ..'
+alias '.'='cd'
+alias cl='clear'
+alias ls='exa --icons -lh --color=always'
+alias l='exa --icons --color=always'
+alias grep='grep --color=auto'
+alias ver='bat'
+alias ñ='pwd'
+alias o='nvim'
+alias tm='tmux attach -t main 2>/dev/null || tmux new -s main'
+alias nvim-root='sudo -E nvim -u NONE'
+alias android-emulator='QT_QPA_PLATFORM=xcb emulator'
+alias adb-logcat='adb logcat'
+
+[[ -r "/usr/share/z/z.sh" ]] && source /usr/share/z/z.sh
+
+export ANDROID_HOME=$HOME/Android/Sdk
+export ANDROID_SDK_ROOT=$HOME/Android/Sdk
+export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/build-tools/*/
+export PATH=$PATH:$ANDROID_HOME/tools/bin
+export PATH=$PATH:$HOME/.local/bin
+
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+
+if command -v powerline-daemon >/dev/null 2>&1; then
+  powerline-daemon -q 2>/dev/null
+fi
+POWERLINE_BASH_CONTINUATION=1
+POWERLINE_BASH_SELECT=1
+
+_powerline_bash_binding="/usr/share/powerline/bindings/bash/powerline.sh"
+if [ ! -f "$_powerline_bash_binding" ]; then
+  _powerline_bash_binding="$(python3 -c 'import powerline.bindings, pathlib; print(pathlib.Path(powerline.bindings.__file__).parent / "bash" / "powerline.sh")' 2>/dev/null || true)"
+fi
+if [ -f "$_powerline_bash_binding" ]; then
+  source "$_powerline_bash_binding"
+fi
+unset _powerline_bash_binding
+
+# Entorno Wayland/Hyprland o X11 (scripts/hypr-environment.sh | x11-environment.sh)
+[ -f "${HOME}/.config/bash/env.active.sh" ] && source "${HOME}/.config/bash/env.active.sh"

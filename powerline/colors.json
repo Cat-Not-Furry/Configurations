@@ -1,0 +1,13 @@
+{
+  "colors": {
+    "hypr_bg": [233, "161821"],
+    "hypr_fg": [231, "ffffff"],
+    "hypr_accent": [123, "84a0c6"],
+    "hypr_accent_light": [117, "a2b9d6"],
+    "hypr_urgent": [203, "e27878"],
+    "hypr_critical": [203, "ff5555"],
+    "hypr_warning": [214, "fba922"],
+    "hypr_surface": [236, "222633"]
+  },
+  "gradients": {}
+}

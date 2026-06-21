@@ -1,0 +1,16 @@
+{
+  "common": {
+    "term_truecolor": true,
+    "paths": ["~/.config/powerline"]
+  },
+  "ext": {
+    "shell": {
+      "colorscheme": "hypr",
+      "theme": "default",
+      "local_themes": {
+        "continuation": "continuation",
+        "select": "select"
+      }
+    }
+  }
+}

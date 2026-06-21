@@ -172,11 +172,11 @@ def _apply_wallpaper(video: Path) -> None:
 
 def _apply_image_wallpaper(image: Path) -> None:
     quoted = shlex.quote(str(image))
+    script = Path.home() / ".config/hypr/scripts/awww-wallpaper.sh"
+    if not script.is_file():
+        script = Path(__file__).resolve().parents[3] / "scripts" / "awww-wallpaper.sh"
     asyncio.create_task(
-        utils.exec_sh_async(
-            "killall awww 2>/dev/null; "
-            f"awww img {quoted} --transition-type random &"
-        )
+        utils.exec_sh_async(f'"{script}" {quoted} fade &')
     )
     _close_wallpaper_picker()
 
@@ -296,7 +296,7 @@ class WallpaperPicker(widgets.RevealerWindow):
             transition_type="crossfade",
             reveal_child=True,
             child=self._grid_box,
-            transition_duration=200,
+            transition_duration=100,
         )
 
         super().__init__(

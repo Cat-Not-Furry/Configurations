@@ -61,5 +61,5 @@ tooltip {
 
 .hover-surface {
     @include hover($surface);
-    transition: 0.3s;
+    transition: 0.1s;
 }

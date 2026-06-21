@@ -141,7 +141,7 @@ class PowerMenu(widgets.RevealerWindow):
             transition_type="crossfade",
             reveal_child=True,
             child=menu,
-            transition_duration=200,
+            transition_duration=100,
         )
 
         super().__init__(

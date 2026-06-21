@@ -80,7 +80,8 @@
         "inactive_border": "rgba(555555aa)"
       },
       "cava": "blue",
-      "wofi": "blue"
+      "wofi": "blue",
+      "tmux": "blue"
     },
     "green": {
       "label": "Verde olivo",
@@ -145,7 +146,8 @@
         "inactive_border": "rgba(464b41aa)"
       },
       "cava": "green",
-      "wofi": "green"
+      "wofi": "green",
+      "tmux": "green"
     },
     "red": {
       "label": "Rojo carmesí",
@@ -210,7 +212,8 @@
         "inactive_border": "rgba(503c3caa)"
       },
       "cava": "red",
-      "wofi": "red"
+      "wofi": "red",
+      "tmux": "red"
     },
     "classic": {
       "label": "Clásico personal",
@@ -275,7 +278,8 @@
         "inactive_border": "rgba(555555aa)"
       },
       "cava": "classic",
-      "wofi": "classic"
+      "wofi": "classic",
+      "tmux": "classic"
     },
     "tokyo_night": {
       "label": "Tokyo Night",
@@ -340,7 +344,8 @@
         "inactive_border": "rgba(565f89aa)"
       },
       "cava": "tokyo-night",
-      "wofi": "tokyo-night"
+      "wofi": "tokyo-night",
+      "tmux": "tokyo-night"
     },
     "tokyo_night_moon": {
       "label": "Tokyo Night Moon",
@@ -405,7 +410,8 @@
         "inactive_border": "rgba(444a73aa)"
       },
       "cava": "tokyo-night-moon",
-      "wofi": "tokyo-night-moon"
+      "wofi": "tokyo-night-moon",
+      "tmux": "tokyo-night-moon"
     },
     "tokyo_night_terminal_dark": {
       "label": "Tokyo Night Terminal",
@@ -470,7 +476,8 @@
         "inactive_border": "rgba(565f89aa)"
       },
       "cava": "tokyo-night-terminal-dark",
-      "wofi": "tokyo-night-terminal-dark"
+      "wofi": "tokyo-night-terminal-dark",
+      "tmux": "tokyo-night-terminal-dark"
     },
     "tokyo_city_dark": {
       "label": "Tokyo City Dark",
@@ -535,7 +542,8 @@
         "inactive_border": "rgba(4c505eaa)"
       },
       "cava": "tokyo-city-dark",
-      "wofi": "tokyo-city-dark"
+      "wofi": "tokyo-city-dark",
+      "tmux": "tokyo-city-dark"
     },
     "nord": {
       "label": "Nord",
@@ -600,7 +608,8 @@
         "inactive_border": "rgba(4c566aaa)"
       },
       "cava": "nord",
-      "wofi": "nord"
+      "wofi": "nord",
+      "tmux": "nord"
     },
     "dracula": {
       "label": "Dracula",
@@ -665,7 +674,8 @@
         "inactive_border": "rgba(6272a4aa)"
       },
       "cava": "dracula",
-      "wofi": "dracula"
+      "wofi": "dracula",
+      "tmux": "dracula"
     },
     "one_dark": {
       "label": "One Dark",
@@ -730,7 +740,8 @@
         "inactive_border": "rgba(5c6370aa)"
       },
       "cava": "one-dark",
-      "wofi": "one-dark"
+      "wofi": "one-dark",
+      "tmux": "one-dark"
     },
     "catppuccin_mocha": {
       "label": "Catppuccin Mocha",
@@ -795,7 +806,8 @@
         "inactive_border": "rgba(6c7086aa)"
       },
       "cava": "catppuccin-mocha",
-      "wofi": "catppuccin-mocha"
+      "wofi": "catppuccin-mocha",
+      "tmux": "catppuccin-mocha"
     },
     "everforest_dark": {
       "label": "Everforest Dark",
@@ -860,7 +872,8 @@
         "inactive_border": "rgba(859289aa)"
       },
       "cava": "everforest-dark",
-      "wofi": "everforest-dark"
+      "wofi": "everforest-dark",
+      "tmux": "everforest-dark"
     }
   }
 }

@@ -1,0 +1,56 @@
+{
+  "segments": {
+    "left": [
+      {
+        "function": "powerline.segments.common.env.user",
+        "priority": 30
+      },
+      {
+        "function": "hypr_segments.hostname.hostname",
+        "priority": 20
+      },
+      {
+        "function": "powerline.segments.common.sys.uptime",
+        "priority": 15,
+        "shorten_len": 2
+      },
+      {
+        "function": "hypr_segments.docker.docker",
+        "priority": 12
+      },
+      {
+        "function": "hypr_segments.ssh.ssh",
+        "priority": 10
+      },
+      {
+        "function": "powerline.segments.common.env.virtualenv",
+        "priority": 50
+      },
+      {
+        "function": "powerline.segments.shell.cwd",
+        "priority": 10,
+        "dir_limit_depth": 3,
+        "shorten_home": true
+      },
+      {
+        "function": "powerline.segments.shell.jobnum",
+        "priority": 20
+      }
+    ],
+    "right": [
+      {
+        "function": "powerline.segments.common.vcs.branch",
+        "status_colors": true,
+        "priority": 40
+      },
+      {
+        "function": "powerline.segments.common.vcs.stash",
+        "priority": 50
+      },
+      {
+        "function": "powerline.segments.shell.last_status",
+        "priority": 10
+      }
+    ]
+  }
+}

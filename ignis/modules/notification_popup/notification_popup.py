@@ -17,8 +17,16 @@ class Popup(widgets.Box):
 
         widget = NotificationWidget(notification)
         widget.css_classes = ["notification-popup"]
-        self._inner = widgets.Revealer(transition_type="slide_left", child=widget)
-        self._outer = widgets.Revealer(transition_type="slide_down", child=self._inner)
+        self._inner = widgets.Revealer(
+            transition_type="slide_left",
+            transition_duration=100,
+            child=widget,
+        )
+        self._outer = widgets.Revealer(
+            transition_type="slide_down",
+            transition_duration=100,
+            child=self._inner,
+        )
         super().__init__(child=[self._outer], halign="end")
 
         notification.connect("dismissed", lambda x: self.destroy())

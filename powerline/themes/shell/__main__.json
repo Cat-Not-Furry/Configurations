@@ -1,0 +1,32 @@
+{
+  "segment_data": {
+    "hostname": {
+      "args": {
+        "only_if_ssh": false
+      }
+    },
+    "hypr_segments.hostname.hostname": {
+      "before": ""
+    },
+    "hypr_segments.ssh.ssh": {
+      "before": ""
+    },
+    "hypr_segments.docker.docker": {
+      "before": ""
+    },
+    "powerline.segments.common.sys.uptime": {
+      "before": "\uf017 ",
+      "args": {
+        "shorten_len": 2,
+        "seconds_format": ""
+      },
+      "highlight_groups": ["uptime"]
+    },
+    "cwd": {
+      "args": {
+        "dir_limit_depth": 3,
+        "shorten_home": true
+      }
+    }
+  }
+}

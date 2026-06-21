@@ -10,7 +10,12 @@ notifications = NotificationService.get_default()
 class Popup(widgets.Revealer):
     def __init__(self, notification: Notification, **kwargs):
         widget = NotificationWidget(notification)
-        super().__init__(child=widget, transition_type="slide_down", **kwargs)
+        super().__init__(
+            child=widget,
+            transition_type="slide_down",
+            transition_duration=100,
+            **kwargs,
+        )
 
         notification.connect("closed", lambda x: self.destroy())
 

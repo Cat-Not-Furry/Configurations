@@ -4,13 +4,16 @@ set -euo pipefail
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RSYNC=$(command -v rsync || true)
 SYNC_GITHUB=0
+DEPLOY_ALL=0
 
 for arg in "$@"; do
   case "$arg" in
     --github) SYNC_GITHUB=1 ;;
+    --all) DEPLOY_ALL=1 ;;
     -h | --help)
-      echo "Uso: $(basename "$0") [--github]"
+      echo "Uso: $(basename "$0") [--github] [--all]"
       echo "  --github  Sincronizar además al repo GitHub mirror"
+      echo "  --all     Reinicio completo: reinicia swaync al final (tras ignis)"
       exit 0
       ;;
     *)
@@ -44,6 +47,16 @@ DEST_WOFI="$HOME/.config/wofi"
 DEST_SWAYNC="$HOME/.config/swaync"
 CAVA_SRC="$CONFIG_ROOT/cava"
 DEST_CAVA="$HOME/.config/cava"
+EWW_SRC="$CONFIG_ROOT/eww"
+DEST_EWW="$HOME/.config/eww"
+BASH_SRC="$CONFIG_ROOT/bash"
+POWERLINE_SRC="$CONFIG_ROOT/powerline"
+NVIM_SRC="$CONFIG_ROOT/nvim"
+TMUX_SRC="$CONFIG_ROOT/tmux"
+DEST_BASH="$HOME/.config/bash"
+DEST_POWERLINE="$HOME/.config/powerline"
+DEST_NVIM="$HOME/.config/nvim"
+DEST_TMUX="$HOME/.config/tmux"
 
 copy_dir() {
   local src="$1" dst="$2"
@@ -97,6 +110,25 @@ copy_cava_assets() {
     "$dst/config.hypr" "$dst/config.log"
   rm -rf "$dst/x11"
   echo "Cava assets deployed to $dst (config activo preservado)"
+}
+
+copy_tmux_assets() {
+  local src="$1" dst="$2"
+  if [ ! -d "$src" ]; then
+    echo "Warning: Tmux source directory not found: $src"
+    return 0
+  fi
+  if [ -e "$dst" ] && [ ! -d "$dst" ]; then
+    echo "Error: $dst existe pero no es un directorio (rm manual requerido)." >&2
+    return 1
+  fi
+  copy_dir "$src" "$dst"
+  if [ ! -f "$dst/colors.active.conf" ] && [ -f "$dst/colors/blue.conf" ]; then
+    cp "$dst/colors/blue.conf" "$dst/colors.active.conf"
+    echo "Tmux: colors.active.conf inicial ← blue.conf"
+  fi
+  chmod +x "$dst/scripts/"*.sh 2>/dev/null || true
+  echo "Tmux config deployed to $dst"
 }
 
 copy_wofi_assets() {
@@ -183,6 +215,11 @@ sync_to_github_repo() {
   sync_dir "$CONFIG_ROOT/wofi" "$GITHUB_REPO_ROOT/wofi"
   sync_dir "$CONFIG_ROOT/ignis" "$GITHUB_REPO_ROOT/ignis"
   sync_dir "$CONFIG_ROOT/cava" "$GITHUB_REPO_ROOT/cava"
+  sync_dir "$CONFIG_ROOT/eww" "$GITHUB_REPO_ROOT/eww"
+  sync_dir "$CONFIG_ROOT/bash" "$GITHUB_REPO_ROOT/bash"
+  sync_dir "$CONFIG_ROOT/powerline" "$GITHUB_REPO_ROOT/powerline"
+  sync_dir "$CONFIG_ROOT/nvim" "$GITHUB_REPO_ROOT/nvim"
+  sync_dir "$CONFIG_ROOT/tmux" "$GITHUB_REPO_ROOT/tmux"
 
   mkdir -p "$gh_hypr"
   for f in "${HYPR_FILES[@]}"; do
@@ -271,22 +308,67 @@ main() {
 
   copy_cava_assets "$CAVA_SRC" "$DEST_CAVA"
 
+  if [ -d "$EWW_SRC" ]; then
+    copy_dir "$EWW_SRC" "$DEST_EWW"
+    chmod +x "$DEST_EWW"/scripts/* 2>/dev/null || true
+  else
+    echo "Warning: Eww source directory not found: $EWW_SRC"
+  fi
+
+  if [ -d "$BASH_SRC" ]; then
+    copy_dir "$BASH_SRC" "$DEST_BASH"
+    if [ -f "$DEST_BASH/bashrc.hypr" ]; then
+      cp -a "$DEST_BASH/bashrc.hypr" "$HOME/.bashrc"
+      echo "Bash: bashrc.hypr → ~/.bashrc"
+    fi
+  else
+    echo "Warning: Bash source directory not found: $BASH_SRC"
+  fi
+
+  if [ -d "$POWERLINE_SRC" ]; then
+    copy_dir "$POWERLINE_SRC" "$DEST_POWERLINE"
+    echo "Powerline config deployed to $DEST_POWERLINE"
+  else
+    echo "Warning: Powerline source directory not found: $POWERLINE_SRC"
+  fi
+
+  if [ -d "$NVIM_SRC" ]; then
+    if [ -e "$DEST_NVIM" ] && [ ! -d "$DEST_NVIM" ]; then
+      echo "Error: $DEST_NVIM existe pero no es un directorio (rm manual requerido)." >&2
+      return 1
+    fi
+    copy_dir "$NVIM_SRC" "$DEST_NVIM"
+    echo "Nvim config deployed to $DEST_NVIM"
+  else
+    echo "Warning: Nvim source directory not found: $NVIM_SRC"
+  fi
+
+  copy_tmux_assets "$TMUX_SRC" "$DEST_TMUX" || return 1
+
   rm -f "$HOME/.cache/ignis/active-theme.json"
   ACTIVE_THEME="$(resolve_deploy_theme)"
   echo
   echo "Applying theme: $ACTIVE_THEME (primer tema en palettes.json)..."
 
   if [ -x "$HYPRLAND_ROOT/scripts/apply-theme.sh" ]; then
-    "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
-      echo "Warning: apply-theme failed; recarga manual..."
-      deploy_reload_flow
-    }
+    if [ "$DEPLOY_ALL" -eq 1 ]; then
+      THEME_NOTIFY_DEFER=1 "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+        echo "Warning: apply-theme failed; recarga manual..."
+        deploy_reload_flow
+      }
+      deploy_all_post_flow
+      send_theme_notification
+    else
+      "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+        echo "Warning: apply-theme failed; recarga manual..."
+        deploy_reload_flow
+      }
+    fi
   else
     echo "Warning: apply-theme.sh no encontrado; recarga manual..."
     deploy_reload_flow
   fi
 
-  ensure_service_running swaync swaync
   ensure_service_running hypridle hypridle
 
   if [ "$SYNC_GITHUB" -eq 1 ]; then

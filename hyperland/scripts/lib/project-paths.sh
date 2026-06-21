@@ -3,13 +3,13 @@
 #
 # Layout monolítico (todo junto):
 #   repo/
-#   ├── waybar/ wofi/ ignis/
+#   ├── waybar/ wofi/ ignis/ tmux/
 #   ├── conf.d/ scripts/ themes/
 #
 # Layout split (Hypr en subcarpeta):
 #   repo/
 #   ├── hyperland/  → conf.d/ scripts/ themes/
-#   ├── waybar/ wofi/ ignis/
+#   ├── waybar/ wofi/ ignis/ tmux/
 
 resolve_project_paths() {
   local scripts_dir="${1:?scripts_dir requerido}"

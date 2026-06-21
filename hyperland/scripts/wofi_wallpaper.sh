@@ -29,9 +29,7 @@ case $eleccion in
 
   # Si el usuario seleccionó un archivo, establecerlo como fondo con swww
   if [ -n "$seleccion" ]; then
-    awww img "$seleccion" --transition-type random
-    awww img "$seleccion" --transition-type random --outputs HDMI-A-2
-
+    ~/.config/hypr/scripts/awww-wallpaper.sh "$seleccion" fade
   fi
   ;;
 
@@ -41,9 +39,7 @@ case $eleccion in
 
   # Si se encontró un fondo, establecerlo
   if [ -n "$fondo_aleatorio" ]; then
-    awww img "$fondo_aleatorio" --transition-type random
-    awww img "$fondo_aleatorio" --transition-type random --outputs HDMI-A-2
-
+    ~/.config/hypr/scripts/awww-wallpaper.sh "$fondo_aleatorio" fade
   fi
   ;;
 

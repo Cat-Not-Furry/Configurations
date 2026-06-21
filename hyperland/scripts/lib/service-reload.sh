@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Reinicios sin duplicar: kill una vez → reload → ensure solo si falta instancia.
+# Reinicio ordenado: waybar → hypr reload → ignis (último). swaync solo en deploy --all.
 
 RELOAD_STEP_DELAY="${RELOAD_STEP_DELAY:-2}"
 
@@ -32,6 +32,13 @@ ensure_service_running() {
   fi
 }
 
+restart_service() {
+  local name="$1"
+  shift
+  kill_service_once "$name"
+  ensure_service_running "$name" "$@"
+}
+
 reload_hyprland_config() {
   if ! command -v hyprctl >/dev/null 2>&1; then
     return 0
@@ -41,33 +48,65 @@ reload_hyprland_config() {
   hyprctl configerrors 2>/dev/null || true
 }
 
-# Tras apply-theme: reload (exec.conf mata servicios) → ensure.
+_SERVICE_RELOAD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/ignis-theme.sh
+source "$_SERVICE_RELOAD_DIR/ignis-theme.sh"
+# shellcheck source=lib/powerline-theme.sh
+source "$_SERVICE_RELOAD_DIR/powerline-theme.sh"
+
+# apply-theme / deploy normal: waybar → hypr → ignis. Sin swaync.
 apply_theme_reload_flow() {
+  restart_service waybar waybar
   reload_hyprland_config
   reload_step_sleep
-  ensure_service_running ignis ignis init
   ensure_service_running waybar waybar
+  apply_ignis_theme
+  reload_eww_if_running
   echo "Wofi actualizado (~/.config/wofi/colors, style.css)"
 }
 
-# Tras deploy: reload → ensure todos (sin kill previo; exec.conf mata en reload).
-deploy_reload_flow() {
-  reload_hyprland_config
-  reload_step_sleep
-  ensure_service_running ignis ignis init
-  ensure_service_running waybar waybar
-  ensure_service_running hypridle hypridle
-  ensure_service_running swaync swaync
+# deploy --all: reinicia swaync al final (ignis ya aplicado por apply-theme).
+deploy_all_post_flow() {
+  restart_service swaync swaync
+  echo "Swaync: reiniciado (deploy --all)"
+
+  # Esperar a que el daemon de notificaciones responda (evita colgar notify-send).
+  local i=0
+  while [ "$i" -lt 24 ]; do
+    if dbus-send --session --print-reply \
+      --dest=org.freedesktop.Notifications \
+      /org/freedesktop/Notifications \
+      org.freedesktop.Notifications.GetCapabilities >/dev/null 2>&1; then
+      break
+    fi
+    sleep 0.25
+    i=$((i + 1))
+  done
 }
 
-# Reload manual seguro (keybind): reload + ensure sin kill previo duplicado.
+# Fallback deploy si apply-theme falla.
+deploy_reload_flow() {
+  apply_theme_reload_flow
+  restart_powerline_daemon
+  # shellcheck source=lib/nvim-theme.sh
+  source "$_SERVICE_RELOAD_DIR/nvim-theme.sh"
+  if [ -f "$HOME/.cache/ignis/active-theme.json" ]; then
+    local tid
+    tid="$(python3 -c "import json; print(json.load(open('$HOME/.cache/ignis/active-theme.json')).get('active','blue'))" 2>/dev/null || echo blue)"
+    activate_nvim_profile "$tid" || true
+  fi
+  ensure_service_running hypridle hypridle
+}
+
+# Super+Shift+R: mismo orden; sin swaync.
 hypr_refresh_flow() {
+  restart_service waybar waybar
   reload_hyprland_config
   reload_step_sleep
-  ensure_service_running ignis ignis init
   ensure_service_running waybar waybar
+  apply_ignis_theme
+  reload_eww_if_running
   ensure_service_running hypridle hypridle
-  ensure_service_running swaync swaync
 }
 
 reset_waybar_position_top() {
@@ -99,4 +138,59 @@ path.write_text(json.dumps(opts, indent=2) + "\n")
 PY
   fi
   echo "Waybar: posición por defecto → top"
+}
+
+reload_eww_if_running() {
+  if ! command -v eww >/dev/null 2>&1; then
+    return 0
+  fi
+  if ! pgrep -x eww >/dev/null 2>&1; then
+    return 0
+  fi
+  echo "Recargando Eww..."
+  eww reload 2>/dev/null || true
+}
+
+send_theme_notification() {
+  local cache="$HOME/.cache/ignis/active-theme.json"
+  if [ ! -f "$cache" ] || ! command -v notify-send >/dev/null 2>&1; then
+    return 0
+  fi
+
+  python3 - <<'PY' || true
+import json
+import subprocess
+from pathlib import Path
+
+cache = Path.home() / ".cache" / "ignis" / "active-theme.json"
+try:
+    data = json.loads(cache.read_text())
+except (json.JSONDecodeError, OSError):
+    raise SystemExit(0)
+
+label = data.get("label", data.get("active", "Tema"))
+next_label = data.get("next_label", "")
+next_id = data.get("next_id", "")
+body = f"Siguiente: {next_label}" if next_label else f"Siguiente: {next_id}"
+
+args = [
+    "notify-send",
+    "-t",
+    "2500",
+    "-i",
+    "preferences-desktop-theme-symbolic",
+    f"Tema activo: {label}",
+    body,
+]
+
+try:
+    subprocess.Popen(
+        args,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+except OSError:
+    pass
+PY
 }

@@ -40,7 +40,7 @@ class ControlCenter(widgets.RevealerWindow):
         revealer = widgets.Revealer(
             transition_type="slide_left",
             child=panel_content,
-            transition_duration=300,
+            transition_duration=100,
             reveal_child=True,
         )
 

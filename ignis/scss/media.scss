@@ -78,7 +78,7 @@
     margin: 0 0.35rem;
     border-radius: 1rem;
     color: $onSurface;
-    transition: 0.2s;
+    transition: 0.1s;
 
     &:hover {
         background-color: $surfaceContainerHigh;
@@ -98,7 +98,7 @@
     min-width: 3.25rem;
     min-height: 3.25rem;
     margin: 0 0.75rem;
-    transition: 0.2s;
+    transition: 0.1s;
 
     &:hover {
         background-color: lighten($primary, 5%);

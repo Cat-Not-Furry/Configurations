@@ -7,7 +7,6 @@ from gi.repository import GLib, Gtk  # type: ignore
 
 from ignis import widgets
 from ignis import utils
-from ignis.css_manager import CssManager
 from ignis.services.fetch import FetchService
 from user_options import user_options
 from ..qs_button import QSButton
@@ -26,7 +25,6 @@ from ...theme_loader import (
 )
 
 fetch = FetchService.get_default()
-css_manager = CssManager.get_default()
 
 ICON_MOON = "\uf186"
 ICON_COLD = "\uf2dc"
@@ -108,7 +106,6 @@ class ThemeCycleButton(widgets.Box):
         script = _resolve_apply_theme_script()
         if script.is_file():
             await utils.exec_sh_async(f'"{script}" {next_id}')
-        css_manager.reload_all_css()
         self._hint_label.set_text(get_theme_label(theme_id=next_id))
 
 
@@ -143,6 +140,7 @@ class HyprsunsetControl(widgets.Box):
         self._slider_revealer = widgets.Revealer(
             reveal_child=False,
             transition_type="slide_down",
+            transition_duration=100,
             child=widgets.Box(
                 css_classes=["user-night-slider-box"],
                 child=[

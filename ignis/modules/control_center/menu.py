@@ -24,7 +24,7 @@ class Menu(widgets.Revealer):
 
         super().__init__(
             transition_type=transition_type,
-            transition_duration=300,
+            transition_duration=100,
             reveal_child=opened_menu.bind("value", lambda value: value == self._name),
             child=self._box,
             **kwargs,

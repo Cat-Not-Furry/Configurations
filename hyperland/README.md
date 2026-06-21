@@ -111,14 +111,33 @@ Edita en **tu** `~/.config/` (valores de ejemplo):
 
 También: botón **Tema** en Ignis, o `Super+Shift+R` (`hypr-refresh.sh`) para recargar servicios.
 
-`apply-theme.sh` actualiza Hypr, Waybar, Wofi y Cava en `~/.config/` únicamente.
+`apply-theme.sh` actualiza Hypr, Waybar, Wofi, Cava, Tmux, Nvim y Powerline en `~/.config/` únicamente.
 
 Regenerar assets en el repo (mantenedores):
 
 ```bash
 ./hyperland/scripts/generate-wofi-wayland.sh
 ./hyperland/scripts/generate-cava-wayland.sh
+./hyperland/scripts/generate-tmux-colors.sh
 ```
+
+## Entornos Hyprland vs i3/X11
+
+| Script | Función |
+|--------|---------|
+| `x11-environment.sh` | Bash X11, env GTK/Qt, cava X11 |
+| `hypr-environment.sh` | Bash Hypr + powerline, cava wayland |
+
+```bash
+./hyperland/scripts/x11-environment.sh
+source ~/.bashrc
+```
+
+## Tmux
+
+Manual en foot; alias `tm`. Atajos: `./hyperland/scripts/tmux-atajos.sh`.
+
+Barra: usuario, host, contadores pacman/AUR/flatpak (cache 1 h), hora.
 
 ## Atajos útiles
 
@@ -136,7 +155,10 @@ Ver `conf.d/keybinds.conf` para la lista completa.
 | Script | Función |
 |--------|---------|
 | `deploy-configs.sh` | Copia stack → `~/.config/`, aplica tema inicial |
-| `apply-theme.sh` | Tema activo en Hypr / Waybar / Wofi / Cava |
+| `apply-theme.sh` | Tema activo en Hypr / Waybar / Wofi / Cava / Tmux / Nvim |
+| `x11-environment.sh` | Perfil shell + cava para sesión i3/X11 |
+| `hypr-environment.sh` | Restaurar perfil Wayland |
+| `tmux-atajos.sh` | Referencia de atajos tmux (terminal) |
 | `toggle-waybar-position.sh` | Barra arriba / abajo |
 | `wofi-launch.sh` | Wofi con estilo del tema |
 | `hypr-refresh.sh` | Reload + reinicio de servicios |

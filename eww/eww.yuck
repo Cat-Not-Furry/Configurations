@@ -1,0 +1,94 @@
+;; Widgets de escritorio: sistema, calendario, actualizaciones
+
+(defwidget sys_row [key value]
+  (box :orientation "horizontal" :spacing 8
+    (label :text key :class "sys-key")
+    (label :text value :class "sys-val")))
+
+;; --- Sistema (fastfetch custom) ---
+
+(defpoll sys_os :interval "3600s" `scripts/get-system.sh static os`)
+(defpoll sys_host :interval "3600s" `scripts/get-system.sh static host`)
+(defpoll sys_kernel :interval "3600s" `scripts/get-system.sh static kernel`)
+(defpoll sys_wm :interval "3600s" `scripts/get-system.sh static wm`)
+(defpoll sys_shell :interval "3600s" `scripts/get-system.sh static shell`)
+(defpoll sys_cpu :interval "3600s" `scripts/get-system.sh static cpu`)
+(defpoll sys_terminal :interval "3600s" `scripts/get-system.sh static terminal`)
+(defpoll sys_uptime :interval "60s" `scripts/get-system.sh dynamic uptime`)
+(defpoll sys_ram :interval "30s" `scripts/get-system.sh dynamic ram`)
+(defpoll sys_disk :interval "300s" `scripts/get-system.sh dynamic disk`)
+
+(defwidget system_widget []
+  (box :orientation "horizontal" :space-evenly false :spacing 20 :class "widget-container"
+    (box :class "logo-box"
+      (image :path "./images/arch-logo.png"
+             :image-width 120))
+    (box :orientation "vertical" :spacing 4 :class "sys-grid"
+      (sys_row :key "OS" :value sys_os)
+      (sys_row :key "Host" :value sys_host)
+      (sys_row :key "Kernel" :value sys_kernel)
+      (sys_row :key "WM" :value sys_wm)
+      (sys_row :key "Shell" :value sys_shell)
+      (sys_row :key "CPU" :value sys_cpu)
+      (sys_row :key "Terminal" :value sys_terminal)
+      (sys_row :key "Uptime" :value sys_uptime)
+      (sys_row :key "RAM" :value sys_ram)
+      (sys_row :key "Disco" :value sys_disk))))
+
+(defwindow system_window
+  :monitor 0
+  :geometry (geometry :x "10px" :y "10px" :width "520px" :height "340px")
+  :stacking "overlay"
+  :focusable true
+  :windowtype "normal"
+  (system_widget))
+
+;; --- Calendario ---
+
+(defpoll calendar :interval "3600s" `scripts/get-calendar.sh`)
+
+(defwidget calendar_widget []
+  (box :orientation "vertical" :class "calendar-box"
+    (label :text calendar :markup true)))
+
+(defwindow calendar_window
+  :monitor 0
+  :geometry (geometry :x "-10px"
+                        :y "10px"
+                        :width "210px"
+                        :anchor "top right")
+  :stacking "overlay"
+  :focusable true
+  :windowtype "normal"
+  (calendar_widget))
+
+;; --- Actualizaciones (pacman / aur / flatpak) ---
+
+(defpoll updates_pacman :interval "3600s" `scripts/get-updates.sh pacman`)
+(defpoll updates_aur :interval "3600s" `scripts/get-updates.sh aur`)
+(defpoll updates_flatpak :interval "3600s" `scripts/get-updates.sh flatpak`)
+
+(defwidget updates_widget []
+  (box :orientation "horizontal" :spacing 8 :class "updates-box"
+    (button :class "updates-btn" :onclick "scripts/copy-update-cmd.sh pacman"
+      (box :orientation "vertical" :spacing 2
+        (label :text "pacman" :class "updates-label")
+        (label :text updates_pacman :class "updates-count")))
+    (button :class "updates-btn" :onclick "scripts/copy-update-cmd.sh aur"
+      (box :orientation "vertical" :spacing 2
+        (label :text "aur" :class "updates-label")
+        (label :text updates_aur :class "updates-count")))
+    (button :class "updates-btn" :onclick "scripts/copy-update-cmd.sh flatpak"
+      (box :orientation "vertical" :spacing 2
+        (label :text "flatpak" :class "updates-label")
+        (label :text updates_flatpak :class "updates-count")))))
+
+(defwindow updates_window
+  :monitor 0
+  :geometry (geometry :y "10px"
+                        :width "320px"
+                        :anchor "top center")
+  :stacking "overlay"
+  :focusable true
+  :windowtype "normal"
+  (updates_widget))
