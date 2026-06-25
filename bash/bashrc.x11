@@ -66,6 +66,7 @@ eval "$(pyenv init --path)"
 # sudo hostname Puto-el-que-lo-lea-menos-el-que-lo-escribe
 
 alias tm='tmux attach -t main 2>/dev/null || tmux new -s main'
+alias tmux-help='~/.config/tmux/scripts/atajos.sh'
 
 # Entorno X11/i3 (scripts/x11-environment.sh)
 [ -f "${HOME}/.config/bash/env.active.sh" ] && source "${HOME}/.config/bash/env.active.sh"

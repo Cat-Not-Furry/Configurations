@@ -17,6 +17,8 @@ source "$SCRIPT_DIR/lib/powerline-theme.sh"
 source "$SCRIPT_DIR/lib/nvim-theme.sh"
 # shellcheck source=lib/tmux-theme.sh
 source "$SCRIPT_DIR/lib/tmux-theme.sh"
+# shellcheck source=lib/copyq-theme.sh
+source "$SCRIPT_DIR/lib/copyq-theme.sh"
 
 THEME_ID="${1:-}"
 ACTIVE_CACHE="$HOME/.cache/ignis/active-theme.json"
@@ -203,6 +205,7 @@ activate_powerline_profile "$THEME_ID" || true
 restart_powerline_daemon
 activate_nvim_profile "$THEME_ID" || true
 activate_tmux_profile "$THEME_ID" || true
+activate_copyq_profile "$THEME_ID" || true
 
 apply_theme_reload_flow
 

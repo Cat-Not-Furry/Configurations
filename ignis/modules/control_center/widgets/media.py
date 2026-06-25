@@ -3,8 +3,12 @@ from gi.repository import GLib  # type: ignore
 from ignis import widgets
 from ignis.services.mpris import MprisService, MprisPlayer
 
-ALLOWED_PLAYERS = {"mpv", "strawberry", "parole", "vlc", "cmus", "brave"}
-BLOCKED_PLAYERS = {"firefox", "chromium", "chrome", "spotify"}
+ALLOWED_PLAYERS = {
+    "mpv", "strawberry", "parole", "vlc", "cmus",
+    "brave", "firefox", "chromium", "google-chrome", "chrome",
+    "vivaldi", "microsoft-edge", "opera",
+}
+BLOCKED_PLAYERS = {"spotify"}
 LOOP_STATES = ["None", "Track", "Playlist"]
 
 mpris = MprisService.get_default()
@@ -30,10 +34,28 @@ def get_focused_player() -> MprisPlayer | None:
     allowed = [p for p in mpris.players if is_allowed_player(p)]
     if not allowed:
         return None
-    playing = [p for p in allowed if p.playback_status == "Playing"]
-    if playing:
-        return playing[-1]
+    for status in ("Playing", "Paused", "Stopped"):
+        matches = [p for p in allowed if p.playback_status == status]
+        if matches:
+            return matches[-1]
     return allowed[-1]
+
+
+async def toggle_playback(player: MprisPlayer) -> None:
+    """Pause/Play explícito: PlayPause en navegadores suele ir a Stop y rompe el control."""
+    status = player.playback_status or "Stopped"
+    if status == "Playing":
+        if player.can_pause:
+            await player.pause_async()
+        return
+    if status == "Paused":
+        if player.can_play:
+            await player.play_async()
+        return
+    if player.can_play:
+        await player.play_async()
+        return
+    await raise_player(player)
 
 
 def format_time(seconds: int) -> str:
@@ -167,8 +189,13 @@ def build_media_card(player: MprisPlayer) -> widgets.Box:
                             pixel_size=28,
                         ),
                         css_classes=["media-play-btn"],
-                        on_click=lambda x: asyncio.create_task(player.play_pause_async()),
-                        visible=player.bind("can_play"),
+                        on_click=lambda x: asyncio.create_task(toggle_playback(player)),
+                        visible=player.bind(
+                            "playback_status",
+                            lambda value: value in ("Playing", "Paused")
+                            or player.can_play
+                            or player.can_pause,
+                        ),
                     ),
                     widgets.Button(
                         child=widgets.Icon(

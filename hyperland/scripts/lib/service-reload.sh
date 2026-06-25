@@ -153,15 +153,24 @@ reload_eww_if_running() {
 
 send_theme_notification() {
   local cache="$HOME/.cache/ignis/active-theme.json"
+  local delay="${THEME_NOTIFY_DELAY:-0}"
+  local duration="${THEME_NOTIFY_DURATION:-5000}"
+
   if [ ! -f "$cache" ] || ! command -v notify-send >/dev/null 2>&1; then
     return 0
   fi
 
-  python3 - <<'PY' || true
+  if [ "$delay" -gt 0 ] 2>/dev/null; then
+    sleep "$delay"
+  fi
+
+  THEME_NOTIFY_DURATION="$duration" python3 - <<'PY' || true
 import json
+import os
 import subprocess
 from pathlib import Path
 
+duration = os.environ.get("THEME_NOTIFY_DURATION", "5000")
 cache = Path.home() / ".cache" / "ignis" / "active-theme.json"
 try:
     data = json.loads(cache.read_text())
@@ -176,7 +185,7 @@ body = f"Siguiente: {next_label}" if next_label else f"Siguiente: {next_id}"
 args = [
     "notify-send",
     "-t",
-    "2500",
+    str(duration),
     "-i",
     "preferences-desktop-theme-symbolic",
     f"Tema activo: {label}",

@@ -343,7 +343,9 @@ class User(widgets.Box):
             child=[widgets.Box(child=[user_image, username])],
             css_classes=["user-info-click", "rec-unset"],
             on_click=lambda x: asyncio.create_task(
-                utils.exec_sh_async('foot -e bash -c "fastfetch; read"')
+                utils.exec_sh_async(
+                    'foot -T ignis-fastfetch -e bash -c "fastfetch; read"'
+                )
             ),
         )
 

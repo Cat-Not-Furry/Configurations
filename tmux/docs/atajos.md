@@ -1,25 +1,33 @@
 # Atajos tmux
 
-Referencia interactiva (como `nvim/docs/atajos.sh`):
+Referencia interactiva (desde **cualquier** directorio):
 
 ```bash
-# Desde el repo o tras deploy:
-./scripts/tmux-atajos.sh          # todo
-./scripts/tmux-atajos.sh nav      # Alt+Space / Alt+Shift+Space
-./scripts/tmux-atajos.sh sesiones
+tmux-help                              # alias en bashrc
+~/.config/tmux/scripts/atajos.sh all
+~/.config/hypr/scripts/tmux-atajos.sh nav
 ```
 
-Tras deploy: `~/.config/hypr/scripts/tmux-atajos.sh`
+## Prefijo: **Alt+a** (no Ctrl)
 
-Resumen rápido:
+Evita conflictos con foot, readline y nvim. Tras **Alt+a**, suelta y pulsa la tecla del comando.
 
-| Secuencia | Acción |
-|-----------|--------|
-| **Ctrl+Space** | Prefijo tmux |
-| **Alt+Space** → flecha | Navegar splits |
-| **Alt+Shift+Space** → flecha | Cambiar pestañas |
-| **Ctrl+Space** `r` | Recargar config |
+| Sin prefijo | Acción |
+|-------------|--------|
+| **Alt+Space** → suelta → flecha | Navegar splits (paneles) |
+| **Alt+Shift+Space** → suelta → flecha | Cambiar pestañas tmux |
+| **Alt+\\** | Split horizontal |
+| **Alt+-** | Split vertical |
+| **Alt+x** | Cerrar panel (confirma) |
 
-Barra de estado: `user@host | sesión | pac:N aur:N flat:N | HH:MM` (actualizaciones cada hora).
+| Alt+a luego… | Acción |
+|--------------|--------|
+| `\|` / `-` | Split H / V |
+| `d` | Desconectar sesión |
+| `c` | Nueva ventana |
+| `r` | Recargar config |
+| `?` | Ayuda tmux |
 
-Ver también [README.md](../../README.md) del repo.
+Barra: `sesión | pac/aur/flat | HH:MM`
+
+Sin TPM ni plugins externos — todo está en `tmux.conf`.

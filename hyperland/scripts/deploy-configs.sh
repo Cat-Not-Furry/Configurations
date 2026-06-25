@@ -47,6 +47,8 @@ DEST_WOFI="$HOME/.config/wofi"
 DEST_SWAYNC="$HOME/.config/swaync"
 CAVA_SRC="$CONFIG_ROOT/cava"
 DEST_CAVA="$HOME/.config/cava"
+COPYQ_SRC="$CONFIG_ROOT/copyq"
+DEST_COPYQ="$HOME/.config/copyq"
 EWW_SRC="$CONFIG_ROOT/eww"
 DEST_EWW="$HOME/.config/eww"
 BASH_SRC="$CONFIG_ROOT/bash"
@@ -112,6 +114,38 @@ copy_cava_assets() {
   echo "Cava assets deployed to $dst (config activo preservado)"
 }
 
+copy_copyq_assets() {
+  local src="$1" dst="$2"
+  if [ ! -d "$src" ]; then
+    echo "Warning: CopyQ source directory not found: $src"
+    return 0
+  fi
+  mkdir -p "$dst/themes"
+  for item in copyq.conf copyq-commands.ini; do
+    if [ -f "$src/$item" ]; then
+      copy_file "$src/$item" "$dst/$item"
+    fi
+  done
+  if [ -d "$src/themes" ]; then
+    if [ -n "$RSYNC" ]; then
+      rsync -a --delete "$src/themes/" "$dst/themes/"
+    else
+      mkdir -p "$dst/themes"
+      find "$dst/themes" -mindepth 1 -maxdepth 1 -name '*.ini' -delete
+      cp -a "$src/themes/." "$dst/themes/"
+    fi
+    echo "Copied copyq themes (stale .ini removed)"
+  fi
+  echo "CopyQ assets deployed to $dst (tabs/geometría preservados)"
+  local owner
+  owner="$(id -un 2>/dev/null || echo "${USER:-}")"
+  if [ -n "$owner" ] && [ "$owner" != "root" ] && [ -d "$dst" ]; then
+    if [ "$(stat -c '%U' "$dst" 2>/dev/null)" = "root" ]; then
+      chown -R "$owner:$owner" "$dst" 2>/dev/null && echo "CopyQ: permisos corregidos → $owner"
+    fi
+  fi
+}
+
 copy_tmux_assets() {
   local src="$1" dst="$2"
   if [ ! -d "$src" ]; then
@@ -123,11 +157,21 @@ copy_tmux_assets() {
     return 1
   fi
   copy_dir "$src" "$dst"
-  if [ ! -f "$dst/colors.active.conf" ] && [ -f "$dst/colors/blue.conf" ]; then
-    cp "$dst/colors/blue.conf" "$dst/colors.active.conf"
-    echo "Tmux: colors.active.conf inicial ← blue.conf"
+  if [ ! -f "$dst/colors.active.conf" ]; then
+    for fallback in "$dst/colors/blue.conf" "$dst/colors/"*.conf; do
+      if [ -f "$fallback" ]; then
+        cp "$fallback" "$dst/colors.active.conf"
+        echo "Tmux: colors.active.conf ← $(basename "$fallback")"
+        break
+      fi
+    done
+  fi
+  if [ -f "$HYPR_SCRIPTS_SRC/tmux-atajos.sh" ]; then
+    cp "$HYPR_SCRIPTS_SRC/tmux-atajos.sh" "$dst/scripts/atajos.sh"
+    chmod +x "$dst/scripts/atajos.sh"
   fi
   chmod +x "$dst/scripts/"*.sh 2>/dev/null || true
+  rm -rf "$dst/tpm" "$dst/plugins" 2>/dev/null || true
   echo "Tmux config deployed to $dst"
 }
 
@@ -215,6 +259,7 @@ sync_to_github_repo() {
   sync_dir "$CONFIG_ROOT/wofi" "$GITHUB_REPO_ROOT/wofi"
   sync_dir "$CONFIG_ROOT/ignis" "$GITHUB_REPO_ROOT/ignis"
   sync_dir "$CONFIG_ROOT/cava" "$GITHUB_REPO_ROOT/cava"
+  sync_dir "$CONFIG_ROOT/copyq" "$GITHUB_REPO_ROOT/copyq"
   sync_dir "$CONFIG_ROOT/eww" "$GITHUB_REPO_ROOT/eww"
   sync_dir "$CONFIG_ROOT/bash" "$GITHUB_REPO_ROOT/bash"
   sync_dir "$CONFIG_ROOT/powerline" "$GITHUB_REPO_ROOT/powerline"
@@ -245,21 +290,51 @@ resolve_deploy_theme() {
   python3 - <<PY
 import json
 from pathlib import Path
+
+def active_from_cache():
+    cache = Path.home() / ".cache" / "ignis" / "active-theme.json"
+    if cache.is_file():
+        try:
+            return json.loads(cache.read_text()).get("active") or ""
+        except json.JSONDecodeError:
+            return ""
+    return ""
+
+def active_from_user_options():
+    opts = Path.home() / ".config" / "ignis" / "user_options.json"
+    if opts.is_file():
+        try:
+            return json.loads(opts.read_text()).get("theme", {}).get("active") or ""
+        except json.JSONDecodeError:
+            return ""
+    return ""
+
 p = Path("$PALETTES_SRC")
+active = active_from_cache() or active_from_user_options()
 if p.is_file():
     d = json.loads(p.read_text())
-    order = d.get("order") or []
-    if order:
-        print(order[0])
+    themes = d.get("themes", {})
+    if active and active in themes:
+        print(active)
+    elif d.get("order"):
+        print(d["order"][0])
     else:
         print(d.get("default", "blue"))
 else:
-    print("blue")
+    print(active or "blue")
 PY
 }
 
 main() {
+  DEPLOY_LOG="${XDG_CACHE_HOME:-$HOME/.cache}/hypr/deploy.log"
+  mkdir -p "$(dirname "$DEPLOY_LOG")"
+  log_deploy() {
+    printf '[%s] %s\n' "$(date -Iseconds)" "$*" | tee -a "$DEPLOY_LOG"
+  }
+
+  log_deploy "Deploy start from $CONFIG_ROOT (hypr: $HYPRLAND_ROOT, timestamp: $TIMESTAMP)"
   echo "Deploying configs from $CONFIG_ROOT (hypr: $HYPRLAND_ROOT, timestamp: $TIMESTAMP)"
+  echo "Log: $DEPLOY_LOG"
 
   if [ -d "$WAYBAR_SRC" ]; then
     copy_dir "$WAYBAR_SRC" "$DEST_WAYBAR"
@@ -307,6 +382,12 @@ main() {
   fi
 
   copy_cava_assets "$CAVA_SRC" "$DEST_CAVA"
+  if [ -x "$SCRIPT_DIR/generate-copyq-themes.sh" ]; then
+    log_deploy "generate-copyq-themes"
+    "$SCRIPT_DIR/generate-copyq-themes.sh" || echo "Warning: generate-copyq-themes.sh falló"
+  fi
+  log_deploy "copy_copyq_assets"
+  copy_copyq_assets "$COPYQ_SRC" "$DEST_COPYQ"
 
   if [ -d "$EWW_SRC" ]; then
     copy_dir "$EWW_SRC" "$DEST_EWW"
@@ -320,6 +401,11 @@ main() {
     if [ -f "$DEST_BASH/bashrc.hypr" ]; then
       cp -a "$DEST_BASH/bashrc.hypr" "$HOME/.bashrc"
       echo "Bash: bashrc.hypr → ~/.bashrc"
+    fi
+    # shellcheck source=lib/session-env.sh
+    source "$SCRIPT_DIR/lib/session-env.sh"
+    if [ ! -f "${HOME}/.config/bash/env.active.sh" ]; then
+      write_hypr_env
     fi
   else
     echo "Warning: Bash source directory not found: $BASH_SRC"
@@ -348,23 +434,28 @@ main() {
   rm -f "$HOME/.cache/ignis/active-theme.json"
   ACTIVE_THEME="$(resolve_deploy_theme)"
   echo
-  echo "Applying theme: $ACTIVE_THEME (primer tema en palettes.json)..."
+  echo "Applying theme: $ACTIVE_THEME (tema activo o fallback)..."
+  export COPYQ_SKIP_RELOAD=1
+  log_deploy "apply-theme start theme=${ACTIVE_THEME} COPYQ_SKIP_RELOAD=1"
 
   if [ -x "$HYPRLAND_ROOT/scripts/apply-theme.sh" ]; then
     if [ "$DEPLOY_ALL" -eq 1 ]; then
       THEME_NOTIFY_DEFER=1 "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+        log_deploy "apply-theme FAILED (deploy --all)"
         echo "Warning: apply-theme failed; recarga manual..."
         deploy_reload_flow
       }
       deploy_all_post_flow
-      send_theme_notification
     else
-      "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+      THEME_NOTIFY_DEFER=1 "$HYPRLAND_ROOT/scripts/apply-theme.sh" "$ACTIVE_THEME" || {
+        log_deploy "apply-theme FAILED"
         echo "Warning: apply-theme failed; recarga manual..."
         deploy_reload_flow
       }
     fi
+    log_deploy "apply-theme done"
   else
+    log_deploy "apply-theme SKIPPED (script missing)"
     echo "Warning: apply-theme.sh no encontrado; recarga manual..."
     deploy_reload_flow
   fi
@@ -377,8 +468,14 @@ main() {
     echo "Sync GitHub omitido (usa --github para sincronizar)."
   fi
 
+  THEME_NOTIFY_DELAY=1 send_theme_notification
+  log_deploy "theme notification sent"
+
   echo
+  log_deploy "Deploy complete"
   echo "Deploy complete."
+  echo "Logs: ${DEPLOY_LOG}"
+  echo "Hyprland: ~/.config/hypr/scripts/hypr-crash-info.sh"
 }
 
 main "$@"

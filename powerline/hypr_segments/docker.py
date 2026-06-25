@@ -65,10 +65,8 @@ def docker(pl, segment_info, show_stopped=False):
 		return None
 
 	count = len([line for line in result.stdout.decode('utf-8', 'replace').splitlines() if line.strip()])
-	if count == 0:
-		return None
 
 	return [{
 		'contents': ICON + ' ' + str(count),
-		'highlight_groups': ['docker'],
+		'highlight_groups': ['docker'] if count else ['docker_idle'],
 	}]

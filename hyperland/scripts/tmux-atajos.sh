@@ -23,19 +23,20 @@ prefix()  { printf '  %s%s%s\n' "$CYAN" "  [$1]" "$RESET"; }
 show_intro() {
   section "Introducción"
   cat <<'EOF'
-  Prefijo tmux: Ctrl+Space (no Ctrl+b).
-  Arranque manual: foot → tm  (alias en bashrc.hypr / bashrc.x11)
+  Prefijo tmux: Alt+a (sin Ctrl — foot/bash/nvim no se pelean).
+  Arranque manual: foot → tm
 
-  Modos sin prefijo:
-    Alt+Space        → modo paneles (luego flechas entre splits)
-    Alt+Shift+Space  → modo ventanas (luego flechas entre pestañas)
+  Navegación (dos pasos — suelta la tecla antes de la flecha):
+    Alt+Space        → modo paneles → flecha entre splits
+    Alt+Shift+Space  → modo ventanas → flecha entre pestañas
+    Alt+\  split horizontal    Alt+-  split vertical    Alt+x  cerrar panel
 EOF
 }
 
 show_nav() {
   section "Navegación rápida"
-  item "Alt+Space → flecha"     "Foco entre paneles (splits)"
-  item "Alt+Shift+Space → flecha" "Cambiar pestaña tmux"
+  item "Alt+Space → suelta → flecha" "Foco entre paneles (splits)"
+  item "Alt+Shift+Space → suelta → flecha" "Cambiar pestaña tmux"
   item "Escape / q (en modo nav)" "Salir del modo navegación"
   note "Up/Left = anterior ventana; Down/Right = siguiente (modo ventanas)"
 }
@@ -46,7 +47,7 @@ show_sesiones() {
   item "tmux new -s nombre"        "Nueva sesión"
   item "tmux attach -t nombre"     "Conectar"
   item "tmux ls"                   "Listar sesiones"
-  prefix "Ctrl+Space"
+  prefix "Alt+a"
   item "d"                         "Desconectar (sesión sigue)"
   item "s"                         "Elegir sesión"
   item "\$"                        "Renombrar sesión"
@@ -55,7 +56,7 @@ show_sesiones() {
 
 show_ventanas() {
   section "Ventanas (pestañas)"
-  prefix "Ctrl+Space"
+  prefix "Alt+a"
   item "c"      "Nueva ventana"
   item "&"      "Cerrar ventana"
   item "n / p"  "Siguiente / anterior"
@@ -67,7 +68,10 @@ show_ventanas() {
 
 show_paneles() {
   section "Paneles (splits)"
-  prefix "Ctrl+Space"
+  item "Alt+\\"   "Split horizontal (sin prefijo)"
+  item "Alt+-"    "Split vertical (sin prefijo)"
+  item "Alt+x"    "Cerrar panel (confirma)"
+  prefix "Alt+a"
   item "|"      "Split horizontal"
   item "-"      "Split vertical"
   item "x"      "Cerrar panel"
@@ -79,7 +83,7 @@ show_paneles() {
 
 show_copia() {
   section "Copiar / scroll"
-  prefix "Ctrl+Space"
+  prefix "Alt+a"
   item "["        "Modo copia"
   item "Space"    "Iniciar selección (en modo copia)"
   item "Enter"    "Copiar"
@@ -89,13 +93,14 @@ show_copia() {
 
 show_config() {
   section "Configuración"
-  prefix "Ctrl+Space"
+  prefix "Alt+a"
   item "r"   "Recargar tmux.conf"
   item "?"   "Ayuda de atajos (tmux)"
   item ":"   "Línea de comandos"
-  note "Barra inferior: user@host | sesión | pac/aur/flat | hora"
+  note "Barra inferior: sesión | pac/aur/flat | hora"
   note "Contadores pacman/AUR/flatpak: cache 1 h (~/.cache/tmux/pkg-updates)"
   note "Tema: apply-theme.sh → colors.active.conf"
+  note "Sin TPM ni plugins externos"
 }
 
 show_comandos() {

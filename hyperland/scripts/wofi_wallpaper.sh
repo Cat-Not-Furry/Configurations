@@ -1,62 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ===================================================================================
-# Script de Wallpapers para Hyprland con Wofi
+# Gestor de fondos para Hyprland (Wofi + temas dinámicos vía wofi-common.sh)
 #
-# Herramientas requeridas:
-# wofi, swww, mpvpaper (del AUR), find, shuf
+# Herramientas: wofi, swww/awww-wallpaper, mpvpaper (AUR), find, shuf
 # ===================================================================================
 
-# --- CONFIGURACIÓN ---
-# Define los directorios donde guardas tus fondos de pantalla.
-# CAMBIA ESTAS RUTAS para que apunten a tus carpetas.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/wofi-common.sh
+source "$SCRIPT_DIR/lib/wofi-common.sh"
+
 STATIC_WALL_DIR="$HOME/.config/i3/fondos/"
 VIDEO_WALL_DIR="$HOME/Videos/"
 
-# --- LÓGICA DEL SCRIPT ---
+opciones=$'Fondo Estático\nFondo Aleatorio\nFondo de Video'
 
-# Opciones del menú principal de Wofi
-opciones=" Fondo Estático\n🎲 Fondo Aleatorio\n🎬 Fondo de Video"
+eleccion=$(echo -e "$opciones" | wofi_dmenu --prompt "Gestor de Fondos")
 
-# Mostrar el menú principal y capturar la elección del usuario
-eleccion=$(echo -e "$opciones" | wofi --dmenu --prompt "Gestor de Fondos")
-
-# Ejecutar la acción basada en la elección
-case $eleccion in
-" Fondo Estático")
-  # Buscar imágenes (png, jpg, jpeg, webp) de forma recursiva en el directorio
-  seleccion=$(find "$STATIC_WALL_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | wofi --dmenu --prompt "Elige un fondo")
-
-  # Si el usuario seleccionó un archivo, establecerlo como fondo con swww
+case "$eleccion" in
+$'Fondo Estático')
+  seleccion=$(
+    find "$STATIC_WALL_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) |
+      wofi_dmenu --prompt "Elige un fondo"
+  )
   if [ -n "$seleccion" ]; then
     ~/.config/hypr/scripts/awww-wallpaper.sh "$seleccion" fade
   fi
   ;;
-
-"🎲 Fondo Aleatorio")
-  # Buscar todas las imágenes y seleccionar una al azar
-  fondo_aleatorio=$(find "$STATIC_WALL_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) | shuf -n 1)
-
-  # Si se encontró un fondo, establecerlo
+$'Fondo Aleatorio')
+  fondo_aleatorio=$(
+    find "$STATIC_WALL_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" -o -iname "*.gif" \) |
+      shuf -n 1
+  )
   if [ -n "$fondo_aleatorio" ]; then
     ~/.config/hypr/scripts/awww-wallpaper.sh "$fondo_aleatorio" fade
   fi
   ;;
-
-"🎬 Fondo de Video")
-  # Buscar videos (mp4, mkv, mov, webm)
-  video_seleccionado=$(find "$VIDEO_WALL_DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.webm" \) | wofi --dmenu --prompt "Elige un video")
-
-  # Si se seleccionó un video...
+$'Fondo de Video')
+  video_seleccionado=$(
+    find "$VIDEO_WALL_DIR" -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.mov" -o -iname "*.webm" \) |
+      wofi_dmenu --prompt "Elige un video"
+  )
   if [ -n "$video_seleccionado" ]; then
-    # Matar cualquier instancia previa de mpvpaper para evitar superposiciones
     killall mpvpaper &>/dev/null
-    sleep 0.5 # Dar un respiro para que el proceso muera
-
-    # Obtener el nombre del monitor activo
+    sleep 0.5
     monitor=$(hyprctl monitors | grep 'Monitor' | awk '{print $2}')
-
-    # Iniciar el nuevo fondo de video
     mpvpaper -p -o "loop" "$monitor" "$video_seleccionado"
   fi
   ;;

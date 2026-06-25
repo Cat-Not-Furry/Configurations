@@ -102,6 +102,7 @@ scheme = {
         "ssh": {"fg": "hypr_bg", "bg": "hypr_urgent", "attrs": ["bold"]},
         "uptime": {"fg": "hypr_fg", "bg": "hypr_surface", "attrs": []},
         "docker": {"fg": "hypr_bg", "bg": "hypr_accent", "attrs": ["bold"]},
+        "docker_idle": {"fg": "hypr_fg", "bg": "hypr_surface", "attrs": []},
         "background": {"fg": "hypr_fg", "bg": "hypr_surface", "attrs": []},
         "background:divider": {"fg": "hypr_accent_light", "bg": "hypr_surface", "attrs": []},
         "information:additional": {"fg": "hypr_accent_light", "bg": "hypr_surface", "attrs": []},

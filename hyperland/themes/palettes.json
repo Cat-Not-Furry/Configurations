@@ -81,7 +81,8 @@
       },
       "cava": "blue",
       "wofi": "blue",
-      "tmux": "blue"
+      "tmux": "blue",
+      "copyq": "blue"
     },
     "green": {
       "label": "Verde olivo",
@@ -147,7 +148,8 @@
       },
       "cava": "green",
       "wofi": "green",
-      "tmux": "green"
+      "tmux": "green",
+      "copyq": "green"
     },
     "red": {
       "label": "Rojo carmesí",
@@ -213,7 +215,8 @@
       },
       "cava": "red",
       "wofi": "red",
-      "tmux": "red"
+      "tmux": "red",
+      "copyq": "red"
     },
     "classic": {
       "label": "Clásico personal",
@@ -279,7 +282,8 @@
       },
       "cava": "classic",
       "wofi": "classic",
-      "tmux": "classic"
+      "tmux": "classic",
+      "copyq": "classic"
     },
     "tokyo_night": {
       "label": "Tokyo Night",
@@ -345,7 +349,8 @@
       },
       "cava": "tokyo-night",
       "wofi": "tokyo-night",
-      "tmux": "tokyo-night"
+      "tmux": "tokyo-night",
+      "copyq": "tokyo-night"
     },
     "tokyo_night_moon": {
       "label": "Tokyo Night Moon",
@@ -411,7 +416,8 @@
       },
       "cava": "tokyo-night-moon",
       "wofi": "tokyo-night-moon",
-      "tmux": "tokyo-night-moon"
+      "tmux": "tokyo-night-moon",
+      "copyq": "tokyo-night-moon"
     },
     "tokyo_night_terminal_dark": {
       "label": "Tokyo Night Terminal",
@@ -477,7 +483,8 @@
       },
       "cava": "tokyo-night-terminal-dark",
       "wofi": "tokyo-night-terminal-dark",
-      "tmux": "tokyo-night-terminal-dark"
+      "tmux": "tokyo-night-terminal-dark",
+      "copyq": "tokyo-night-terminal-dark"
     },
     "tokyo_city_dark": {
       "label": "Tokyo City Dark",
@@ -543,7 +550,8 @@
       },
       "cava": "tokyo-city-dark",
       "wofi": "tokyo-city-dark",
-      "tmux": "tokyo-city-dark"
+      "tmux": "tokyo-city-dark",
+      "copyq": "tokyo-city-dark"
     },
     "nord": {
       "label": "Nord",
@@ -609,7 +617,8 @@
       },
       "cava": "nord",
       "wofi": "nord",
-      "tmux": "nord"
+      "tmux": "nord",
+      "copyq": "nord"
     },
     "dracula": {
       "label": "Dracula",
@@ -675,7 +684,8 @@
       },
       "cava": "dracula",
       "wofi": "dracula",
-      "tmux": "dracula"
+      "tmux": "dracula",
+      "copyq": "dracula"
     },
     "one_dark": {
       "label": "One Dark",
@@ -741,7 +751,8 @@
       },
       "cava": "one-dark",
       "wofi": "one-dark",
-      "tmux": "one-dark"
+      "tmux": "one-dark",
+      "copyq": "one-dark"
     },
     "catppuccin_mocha": {
       "label": "Catppuccin Mocha",
@@ -807,7 +818,8 @@
       },
       "cava": "catppuccin-mocha",
       "wofi": "catppuccin-mocha",
-      "tmux": "catppuccin-mocha"
+      "tmux": "catppuccin-mocha",
+      "copyq": "catppuccin-mocha"
     },
     "everforest_dark": {
       "label": "Everforest Dark",
@@ -873,7 +885,8 @@
       },
       "cava": "everforest-dark",
       "wofi": "everforest-dark",
-      "tmux": "everforest-dark"
+      "tmux": "everforest-dark",
+      "copyq": "everforest-dark"
     }
   }
 }

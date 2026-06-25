@@ -135,9 +135,9 @@ source ~/.bashrc
 
 ## Tmux
 
-Manual en foot; alias `tm`. Atajos: `./hyperland/scripts/tmux-atajos.sh`.
+Manual en foot; alias `tm`. Prefijo **Alt+a**. Atajos: `./hyperland/scripts/tmux-atajos.sh`.
 
-Barra: usuario, host, contadores pacman/AUR/flatpak (cache 1 h), hora.
+Barra: usuario, host, contadores pacman/AUR/flatpak (cache 1 h), hora. Sin TPM.
 
 ## Atajos útiles
 

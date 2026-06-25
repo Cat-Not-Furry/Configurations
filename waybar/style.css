@@ -34,8 +34,38 @@ window#waybar {
     background-color: @waybar_urgent;
 }
 
-#battery.charging {
+#battery.charging,
+#battery.plugged {
     color: @waybar_accent;
+    animation-name: battery-charge;
+    animation-duration: 1.6s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+#battery.charging.warning,
+#battery.charging.critical,
+#battery.charging.good,
+#battery.plugged.warning,
+#battery.plugged.critical,
+#battery.plugged.good {
+    color: @waybar_accent;
+    animation-name: battery-charge;
+    animation-duration: 1.6s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+@keyframes battery-charge {
+    0% {
+        color: @waybar_accent;
+    }
+    50% {
+        color: @waybar_accent_light;
+    }
+    100% {
+        color: @waybar_accent;
+    }
 }
 
 #custom-cava {
@@ -54,10 +84,11 @@ window#waybar {
 }
 
 /* ---- ESTILO PARA TODOS LOS MÓDULOS ---- */
-#cpu,
+#custom-cpu,
 #custom-temp,
 #memory,
 #disk,
+#battery,
 #pulseaudio,
 #backlight,
 #custom-hostname,
@@ -83,12 +114,20 @@ window#waybar {
     color: @waybar_accent_light;
 }
 
-/* ---- COLORES DINÁMICOS PARA ESTADOS ---- */
-#battery.warning, #memory.warning, #cpu.warning, #disk.warning, #custom-temp.warning {
+/* Colores de alerta solo sin cargador (batería) o módulos de sistema */
+#battery.warning:not(.charging):not(.plugged),
+#memory.warning,
+#custom-cpu.warning,
+#custom-temp.warning,
+#disk.warning {
     color: @waybar_warning;
 }
 
-#battery.critical, #memory.critical, #cpu.critical, #disk.critical, #custom-temp.critical {
+#battery.critical:not(.charging):not(.plugged),
+#memory.critical,
+#custom-cpu.critical,
+#custom-temp.critical,
+#disk.critical {
     color: @waybar_critical;
 }
 

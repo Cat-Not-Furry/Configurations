@@ -22,6 +22,7 @@ alias ver='bat'
 alias ñ='pwd'
 alias o='nvim'
 alias tm='tmux attach -t main 2>/dev/null || tmux new -s main'
+alias tmux-help='~/.config/tmux/scripts/atajos.sh'
 alias nvim-root='sudo -E nvim -u NONE'
 alias android-emulator='QT_QPA_PLATFORM=xcb emulator'
 alias adb-logcat='adb logcat'
@@ -42,7 +43,7 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 
 if command -v powerline-daemon >/dev/null 2>&1; then
-  powerline-daemon -q 2>/dev/null
+  powerline-daemon -q 2>/dev/null || true
 fi
 POWERLINE_BASH_CONTINUATION=1
 POWERLINE_BASH_SELECT=1
@@ -57,4 +58,7 @@ fi
 unset _powerline_bash_binding
 
 # Entorno Wayland/Hyprland o X11 (scripts/hypr-environment.sh | x11-environment.sh)
-[ -f "${HOME}/.config/bash/env.active.sh" ] && source "${HOME}/.config/bash/env.active.sh"
+if [ -f "${HOME}/.config/bash/env.active.sh" ]; then
+  # shellcheck disable=SC1091
+  source "${HOME}/.config/bash/env.active.sh"
+fi

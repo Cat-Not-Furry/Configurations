@@ -99,8 +99,8 @@ Arranque manual en terminal; alias `tm` en bashrc.
 ./hyperland/scripts/tmux-atajos.sh all
 ```
 
-- Prefijo **Ctrl+Space**; **Alt+Space** / **Alt+Shift+Space** + flechas
-- Barra: `user@host`, pacman/AUR/flatpak (cache 1 h), hora
+- Prefijo **Alt+a** (sin Ctrl); **Alt+Space** / **Alt+Shift+Space** + flechas
+- **Alt+\\** / **Alt+-** splits; barra pac/AUR/flat (cache 1 h). Sin TPM
 
 ## Waybar – módulos destacados
 

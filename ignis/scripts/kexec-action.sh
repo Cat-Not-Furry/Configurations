@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
+# kexec desde menú Ignis: Enter + sudo en foot (sin --no-prompt).
+# Uso: kexec-action.sh load|exec|full [PKG]
+#   PKG opcional: linux-lts, linux-cnf, linux-zen, … (solo load/full)
 set -uo pipefail
 
 MODE="${1:-}"
-NO_PROMPT=false
-
-if [[ "${2:-}" == "--no-prompt" || "${3:-}" == "--no-prompt" ]]; then
-    NO_PROMPT=true
-fi
+PKG="${2:-}"
 
 usage() {
-    echo "Uso: $0 load|exec|full [--no-prompt]"
+    echo "Uso: $0 load|exec|full [PKG]"
 }
 
 fail() {
@@ -19,7 +18,7 @@ fail() {
     exit 1
 }
 
-confirm_warning() {
+confirm_continue() {
     local action_desc="$1"
     echo "ADVERTENCIA: acción kexec ($action_desc)."
     echo "Se pierde trabajo no guardado."
@@ -36,6 +35,21 @@ pause_end() {
     read -r -p "Pulse Enter para cerrar..."
 }
 
+resolve_pkg() {
+    if [[ -n "$PKG" ]]; then
+        return 0
+    fi
+    local kver
+    kver="$(uname -r)"
+    case "$kver" in
+        *-lts*) PKG=linux-lts ;;
+        *-cnf*) PKG=linux-cnf ;;
+        *-zen*) PKG=linux-zen ;;
+        *-hardened*) PKG=linux-hardened ;;
+        *) PKG=linux ;;
+    esac
+}
+
 if [[ "$MODE" != "load" && "$MODE" != "exec" && "$MODE" != "full" ]]; then
     usage
     exit 1
@@ -45,13 +59,18 @@ if ! command -v kexec >/dev/null 2>&1; then
     fail "kexec no está instalado. Instale kexec-tools: sudo pacman -S kexec-tools"
 fi
 
-KVER="$(uname -r)"
-case "$KVER" in
-    *-lts*) PKG=linux-lts ;;
-    *-zen*) PKG=linux-zen ;;
-    *-hardened*) PKG=linux-hardened ;;
-    *) PKG=linux ;;
-esac
+if [[ "$MODE" == "exec" ]]; then
+    confirm_continue "ejecutar salto al kernel cargado"
+    echo "Ejecutando: sudo systemctl kexec"
+    sudo systemctl kexec || {
+        pause_end
+        exit 1
+    }
+    pause_end
+    exit 0
+fi
+
+resolve_pkg
 
 VMLINUZ="/boot/vmlinuz-${PKG}"
 INITRD="/boot/initramfs-${PKG}.img"
@@ -64,50 +83,29 @@ if [[ ! -f "$INITRD" ]]; then
     fail "No se encontró $INITRD"
 fi
 
-maybe_confirm() {
-    local action_desc="$1"
-    if [[ "$NO_PROMPT" != "true" ]]; then
-        confirm_warning "$action_desc"
-    fi
-}
-
 case "$MODE" in
     load)
-        maybe_confirm "cargar kernel en memoria"
+        confirm_continue "cargar kernel en memoria"
         echo "Ejecutando: sudo kexec -l \"$VMLINUZ\" --initrd=\"$INITRD\" --reuse-cmdline"
         sudo kexec -l "$VMLINUZ" --initrd="$INITRD" --reuse-cmdline || {
             pause_end
             exit 1
         }
-        echo "Kernel cargado. Use «Ejecutar salto (kexec -e)» para reiniciar al instante."
-        if [[ "$NO_PROMPT" != "true" ]]; then
-            pause_end
-        fi
-        ;;
-    exec)
-        maybe_confirm "ejecutar salto al kernel cargado"
-        echo "Ejecutando: sudo kexec -e"
-        sudo kexec -e || {
-            pause_end
-            exit 1
-        }
-        if [[ "$NO_PROMPT" != "true" ]]; then
-            pause_end
-        fi
+        echo "Kernel cargado. Use «Ejecutar salto» (systemctl kexec) para reiniciar al instante."
+        pause_end
         ;;
     full)
-        maybe_confirm "reinicio rápido (cargar y saltar)"
-        echo "Ejecutando: sudo kexec -l ... && sudo kexec -e"
+        confirm_continue "reinicio rápido (cargar y saltar)"
+        echo "Ejecutando: sudo kexec -l ... --reuse-cmdline"
+        echo "          sudo systemctl kexec"
         sudo kexec -l "$VMLINUZ" --initrd="$INITRD" --reuse-cmdline || {
             pause_end
             exit 1
         }
-        sudo kexec -e || {
+        sudo systemctl kexec || {
             pause_end
             exit 1
         }
-        if [[ "$NO_PROMPT" != "true" ]]; then
-            pause_end
-        fi
+        pause_end
         ;;
 esac

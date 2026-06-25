@@ -9,7 +9,6 @@ import html
 import json
 import subprocess
 import sys
-from collections import defaultdict
 
 DEFAULT_PLAYER = None
 DEFAULT_VOLUME_STEP = 0.05
@@ -24,6 +23,17 @@ DEFAULT_ICONS = {
     "stop": "⏹",
 }
 
+IGNORE_PLAYERS = ("spotify",)
+
+
+def player_name(player: str) -> str:
+    return player.lower()
+
+
+def is_ignored_player(player: str) -> bool:
+    name = player_name(player)
+    return any(ignored in name for ignored in IGNORE_PLAYERS)
+
 def execute_playerctl(cmd, player=None):
     """Run a playerctl command and return its output."""
     base = ["playerctl"]
@@ -31,14 +41,69 @@ def execute_playerctl(cmd, player=None):
         base += ["-p", player]
     full_cmd = base + cmd
     try:
-        result = subprocess.run(full_cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(full_cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            return None
         return result.stdout.strip()
-    except (subprocess.CalledProcessError, FileNotFoundError):
+    except FileNotFoundError:
         return None
+
+def list_players():
+    try:
+        result = subprocess.run(
+            ["playerctl", "-l"],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            return []
+        return [p.strip() for p in result.stdout.splitlines() if p.strip()]
+    except FileNotFoundError:
+        return []
 
 def get_status(player=None):
     """Return status string: Playing, Paused, Stopped, or None."""
     return execute_playerctl(["status"], player)
+
+def resolve_player(explicit=None):
+    if explicit:
+        return explicit
+    players = [p for p in list_players() if not is_ignored_player(p)]
+    if not players:
+        return None
+    if len(players) == 1:
+        return players[0]
+    for status in ("Playing", "Paused", "Stopped"):
+        for candidate in players:
+            if get_status(candidate) == status:
+                return candidate
+    return players[0]
+
+
+def run_playerctl(player, cmd):
+    if not player:
+        return False
+    try:
+        result = subprocess.run(
+            ["playerctl", "-p", player] + cmd,
+            capture_output=True,
+            text=True,
+        )
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+
+def toggle_playback(player):
+    """Pause/Play explícito: PlayPause en navegadores puede ir a Stop."""
+    status = get_status(player)
+    if status == "Playing":
+        return run_playerctl(player, ["pause"])
+    if status == "Paused":
+        return run_playerctl(player, ["play"])
+    if status == "Stopped":
+        return run_playerctl(player, ["play"])
+    return False
 
 def get_metadata(player=None):
     """Return (artist, title) tuple, empty strings if missing."""
@@ -91,6 +156,8 @@ def main():
 
     args = parser.parse_args()
 
+    player = resolve_player(args.player)
+
     icons = {
         "prev": args.icon_prev,
         "next": args.icon_next,
@@ -99,25 +166,25 @@ def main():
         "stop": args.icon_stop,
     }
 
-    # Construir comando base de playerctl (con -p si aplica)
-    player_opt = ["-p", args.player] if args.player else []
-    base_cmd = ["playerctl"] + player_opt
-
     # Ejecutar acciones y salir
     if args.prev:
-        subprocess.run(base_cmd + ["previous"])
+        if player:
+            run_playerctl(player, ["previous"])
         return
     if args.next:
-        subprocess.run(base_cmd + ["next"])
+        if player:
+            run_playerctl(player, ["next"])
         return
     if args.play_pause:
-        subprocess.run(base_cmd + ["play-pause"])
+        toggle_playback(player)
         return
     if args.vol_up:
-        subprocess.run(base_cmd + ["volume", f"{args.volume_step}+"])
+        if player:
+            run_playerctl(player, ["volume", f"{args.volume_step}+"])
         return
     if args.vol_down:
-        subprocess.run(base_cmd + ["volume", f"{args.volume_step}-"])
+        if player:
+            run_playerctl(player, ["volume", f"{args.volume_step}-"])
         return
 
     # Si no hay acción, mostrar widget según --widget
@@ -125,7 +192,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    status = get_status(args.player)
+    status = get_status(player)
     if status is None:
         # Sin reproductor activo → widget vacío (se oculta en Waybar)
         if args.widget == "main":
@@ -140,7 +207,7 @@ def main():
         return
 
     # Widget principal
-    artist, title = get_metadata(args.player)
+    artist, title = get_metadata(player)
     artist = escape_markup(artist)
     title = escape_markup(title)
     state_icon_str = state_icon(status, icons)
