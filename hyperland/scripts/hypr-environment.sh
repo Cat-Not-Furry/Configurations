@@ -11,8 +11,7 @@ source "$SCRIPT_DIR/lib/session-env.sh"
 # shellcheck source=lib/cava-theme.sh
 source "$SCRIPT_DIR/lib/cava-theme.sh"
 
-STATE_DIR="${HOME}/.config/hyprland"
-STATE_FILE="${STATE_DIR}/session-mode"
+STATE_FILE="${SESSION_MODE_FILE}"
 BASH_HYPR="${CONFIG_ROOT}/bash/bashrc.hypr"
 
 usage() {
@@ -36,8 +35,9 @@ for arg in "$@"; do
   esac
 done
 
-mkdir -p "$STATE_DIR"
-echo "hyprland" >"$STATE_FILE"
+write_session_mode hyprland
+
+stop_x11_session_processes
 
 if [ ! -f "$BASH_HYPR" ]; then
   echo "Error: no se encontró $BASH_HYPR" >&2
@@ -48,6 +48,7 @@ cp "$BASH_HYPR" "${HOME}/.bashrc"
 echo "Bash: bashrc.hypr → ~/.bashrc"
 
 write_hypr_env
+propagate_env_from_file
 
 THEME_ID=""
 if [ -f "${HOME}/.cache/ignis/active-theme.json" ]; then

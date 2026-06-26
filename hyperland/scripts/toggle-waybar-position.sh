@@ -17,7 +17,7 @@ mkdir -p "$(dirname "$STATE_FILE")"
 
 export REPO_WAYBAR_CONFIG
 
-python3 <<'PY'
+new_pos="$(python3 <<'PY'
 import json
 import os
 import re
@@ -70,6 +70,28 @@ user_options.write_text(json.dumps(opts, indent=2) + "\n")
 
 print(new_pos)
 PY
+)"
+
+# shellcheck source=lib/waybar-autohide.sh
+source "$SCRIPT_DIR/lib/waybar-autohide.sh"
+
+if [ "$(read_autohide_mode)" = "normal" ]; then
+  stop_waybar_autohide_daemon
+  patch_waybar_autohide_config normal
+  write_waybar_autohide_css visible "$new_pos"
+fi
 
 kill_service_once waybar
+if [ "$(read_autohide_mode)" = "autohide" ]; then
+  patch_waybar_autohide_config autohide
+fi
 ensure_service_running waybar waybar
+
+if [ "$(read_autohide_mode)" = "normal" ]; then
+  reload_waybar_surface
+fi
+
+if [ "$(read_autohide_mode)" = "autohide" ]; then
+  stop_waybar_autohide_daemon
+  start_waybar_autohide_daemon "$new_pos"
+fi

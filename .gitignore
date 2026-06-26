@@ -1,4 +1,4 @@
-# Archivos generados por compilación
+# Archivos generados por compilación (C / pacman)
 *.o
 *.tar.gz
 *.pkg.tar.zst
@@ -10,15 +10,55 @@ pacman/
 pkg/
 src/
 body/
+
 # Backups y temporales
 *~
 *.swp
 *.swo
-build.log
-
-# Archivos temporales y de respaldo
 *.bak
+build.log
 
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+# Python
+**/__pycache__/
+**/__pycache__/**
+*.py[cod]
+**/*.cpython-*.pyc
+**/*.pyc
+**/*.pyo
+*$py.class
+
+# Rust / Cargo (artefactos de build)
+**/target/
+
+# Waybar — generados en runtime o por apply-theme (copia activa en ~/.config/)
+waybar/waybar-autohide-state.css
+
+# waybar-auto-hide-cnf/ — fuente Rust aparte (.git anidado); el binario va en waybar/scripts/bin/
+waybar-auto-hide-cnf/
+
+# CopyQ — estado local de la sesión (no versionar)
+copyq/copyq.lock
+copyq/copyq.pub
+copyq/copyq_geometry.ini
+copyq/copyq_tabs.ini
+
+# fondos/other — JPG extraídos localmente (los .7z sí van en el repo)
+fondos/other/*.jpg
+fondos/other/*.jpeg
+fondos/other/*.png
+fondos/other/*.webp
+fondos/other/other-*.7z.xml
+
+# cnf-bin — secretos, local y artefactos
+cnf-bin/config.local.toml
+cnf-bin/secrets/*.env
+!cnf-bin/secrets/*.example
+cnf-bin/cnf-info/target/
+cnf-bin/apps/**/logs/
+cnf-bin/backups/
+# Binarios compilados (install manual → /usr/local/bin)
+cnf-bin/bin/cnf-info

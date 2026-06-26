@@ -1,0 +1,16 @@
+# Copiar a config.local.toml y ajustar por máquina.
+# deploy-configs.sh NO debe sobrescribir config.local.toml si ya existe.
+
+[paths]
+# repo_root = "/home/otro/usuario/proyectos/hyprland"
+# utilidades = "/home/otro/usuario/proyectos/hyprland/utilidades"
+
+[brillo]
+# device = "intel_backlight"
+
+[kbdlight]
+# Otro portátil / teclado externo:
+# device = "tpacpi::kbd_backlight"
+
+# Credenciales: copiar secrets/*.example → secrets/*.env (gitignored)
+# Ejemplo: secrets/web-manager.env para MySQL en web-manager

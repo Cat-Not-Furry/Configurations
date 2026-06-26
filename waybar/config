@@ -2,6 +2,10 @@
   "layer": "top",
   "position": "top",
   "height": 26,
+  "exclusive": true,
+  "start_hidden": false,
+  "on-sigusr1": "hide",
+  "on-sigusr2": "show",
   "spacing": 2,
   "modules-left": [
     "custom/launcher",
@@ -26,6 +30,7 @@
     "custom/hostname",
     "custom/date",
     "custom/bar-position",
+    "custom/bar-autohide",
     "tray"
   ],
   // --- MÓDULOS DE LA IZQUIERDA ---
@@ -35,6 +40,13 @@
     "interval": 1,
     "on-click": "~/.config/hypr/scripts/toggle-waybar-position.sh",
     "tooltip-format": "Mover barra"
+  },
+  "custom/bar-autohide": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-autohide-icon.sh",
+    "interval": 1,
+    "on-click": "~/.config/hypr/scripts/toggle-waybar-autohide.sh",
+    "tooltip-format": "Autohide barra (- normal, ^/v ocultar)"
   },
   "hyprland/workspaces": {
     "format": "{icon}",
@@ -139,7 +151,7 @@
   },
   "custom/kblight": {
     "format": "{}",
-    "exec": "~/.config/waybar/scripts/kblight.sh",
+    "exec": "cnf-info --kbdlight",
     "interval": 3,
     "tooltip": true
   },
@@ -202,6 +214,7 @@
   },
   "tray": {
     "icon-size": 16,
-    "spacing": 5
+    "spacing": 5,
+    "show-passive-items": true
   }
 }

@@ -20,7 +20,16 @@ start_i3() {
 }
 
 start_hyprland() {
-  exec Hyprland
+  local start_hypr
+  if command -v start-hyprland >/dev/null 2>&1; then
+    start_hypr="$(command -v start-hyprland)"
+  elif [ -x /usr/bin/start-hyprland ]; then
+    start_hypr=/usr/bin/start-hyprland
+  else
+    echo "Error: start-hyprland no encontrado (paquete hyprland)." >&2
+    exit 1
+  fi
+  exec "$start_hypr"
 }
 
 case "$opcion" in

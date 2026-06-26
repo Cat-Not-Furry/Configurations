@@ -15,6 +15,8 @@ Repositorio de dotfiles para entornos Linux (Hyprland, Waybar, Ignis, Wofi, Cava
 | `powerline/` | `~/.config/powerline/` | Prompt bash |
 | `nvim/` | `~/.config/nvim/` | LazyVim + tema Hyprland |
 | `tmux/` | `~/.config/tmux/` | Multiplexor + colores por tema |
+| `cnf-bin/` | `~/.config/cnf-bin/` (solo config) + `/usr/local/bin` (binarios, manual) | `cnf-info`, scripts, config maestra |
+| `utilidades/` | *(solo repo)* | Monitor, cpu-mode, etc. (PATH al clone) |
 
 > **Nota:** la carpeta se llama `hyperland/` (convención histórica del repo); el destino real es `~/.config/hypr/`.
 
@@ -28,25 +30,26 @@ cd dotfiles
 # 2. Despliega todo el stack Hyprland
 ./hyperland/scripts/deploy-configs.sh
 
-# 3. Inicia sesión con Hyprland (según tu gestor de display / SDM)
+# 3. Inicia sesión con Hyprland (SDM en consola, greetd, startx manual, etc.)
 ```
 
-El script detecta solo la estructura del repo (layout **split**: `hyperland/` + carpetas hermanas, o layout **monolítico** con todo en la raíz). No hace falta editar rutas absolutas en los scripts.
+El script detecta la estructura **split** del repo (`hyperland/` + carpetas hermanas). No hace falta editar rutas absolutas.
 
 ### Qué hace `deploy-configs.sh`
 
-1. Copia `waybar/`, `wofi/`, `ignis/`, `cava/`, `tmux/`, `bash/`, `nvim/`, `powerline/` y `hyperland/` → `~/.config/`
-2. Copia `hyperland/themes/palettes.json` → `~/.config/ignis/themes/`
-3. Aplica el primer tema de `palettes.json` (`order[0]`) con `apply-theme.sh`
-4. Recarga Hyprland e inicia servicios (Ignis, Waybar, swaync, hypridle)
-
-Opcional para quien mantenga un mirror en GitHub:
+1. Copia el stack Hyprland → `~/.config/` (**sin** `README.md`, `docs/` ni otros `.md`)
+2. Por defecto, copia el mismo contenido → `$HOME/Games/configurations` (mirror local; no hace `git push`)
+3. Copia `hyperland/themes/palettes.json` → `~/.config/ignis/themes/`
+4. Aplica el tema activo con `apply-theme.sh` (reinicia waybar, `hyprctl reload`, ignis)
+5. Con `--all`, además reinicia **swaync** al final
 
 ```bash
-./hyperland/scripts/deploy-configs.sh --github
+./hyperland/scripts/deploy-configs.sh              # ~/.config + mirror + apply-theme
+./hyperland/scripts/deploy-configs.sh --config       # solo ~/.config (sin mirror)
+./hyperland/scripts/deploy-configs.sh --all          # completo + reinicio de swaync
 ```
 
-Solo sincroniza **desde este clone hacia otro repo local** cuyo `origin` apunte a GitHub; no es necesario para probar la config.
+> **Documentación:** los `README.md` y carpetas `docs/` **solo** viven en el repo (`~/hyprland` o `~/Games/configurations`). Nunca se copian a `~/.config/`.
 
 ## Temas unificados
 
@@ -89,7 +92,7 @@ Luego vuelve a desplegar o ejecuta `apply-theme.sh`.
 ./hyperland/scripts/hypr-environment.sh && source ~/.bashrc
 ```
 
-Estado: `~/.config/hyprland/session-mode`.
+Estado: `~/.cache/hypr/session-mode`.
 
 ## Tmux
 
@@ -108,11 +111,22 @@ Arranque manual en terminal; alias `tm` en bashrc.
 |--------|---------|
 | `custom/launcher` | Icono de distro; clic → Wofi drun |
 | `custom/bar-position` | Flecha ↑/↓; alterna barra top/bottom |
+| `custom/bar-autohide` | `-` / `^` / `v`; autohide vía binario `wb_autohide` |
+| `custom/kblight` | Luz teclado (`cnf-info --kbdlight`, solo lectura) |
 | `custom/media-*` | Control multimedia vía `playerctl` |
+
+Brillo de pantalla: atajos Hypr → `cnf-info --brillo +/-`. Ver [`cnf-bin/README.md`](cnf-bin/README.md).
+
+## cnf-bin y utilidades
+
+- [`cnf-bin/README.md`](cnf-bin/README.md) — `cnf-info`, managers, deploy, secretos
+- [`utilidades/README.md`](utilidades/README.md) — scripts opcionales (monitor, emuladores); carpeta borrable
 
 ## Documentación por componente
 
+- [`cnf-bin/README.md`](cnf-bin/README.md) — cnf-info y scripts
 - [`hyperland/README.md`](hyperland/README.md) — Hyprland, keybinds, scripts
+- [`i3-wm/README.md`](i3-wm/README.md) — i3/X11, bandeja i3bar, bumblebee-status
 - [`waybar/README.md`](waybar/README.md) — Barra y módulos
 - [`wofi/README.md`](wofi/README.md) — Lanzador y perfiles por tema
 - [`ignis/README.md`](ignis/README.md) — Shell GTK
@@ -120,7 +134,7 @@ Arranque manual en terminal; alias `tm` en bashrc.
 
 ## Otras configuraciones
 
-- `session/` — selector de sesión (SDM)
+- `session/` — selector de sesión en consola (`sdm`; no es un display manager)
 - `copyq/` — portapapeles
 - `i3-wm/`, `dwm-full/`, `polybar/` — entornos alternativos
 

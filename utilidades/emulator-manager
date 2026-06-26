@@ -1,0 +1,105 @@
+#!/bin/bash
+# Archivo: ~/.local/bin/emulator-manager
+# Dar permisos: chmod +x ~/.local/bin/emulator-manager
+
+# Colores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Emuladores disponibles
+EMULATORS=("Pixel" "Pixel_2")
+
+show_menu() {
+  echo -e "${BLUE}=== GESTOR DE EMULADORES ANDROID ===${NC}"
+  echo
+  echo -e "${YELLOW}Emuladores disponibles:${NC}"
+  for i in "${!EMULATORS[@]}"; do
+    echo "  $((i + 1)). ${EMULATORS[$i]}"
+  done
+  echo
+  echo -e "${GREEN}Opciones:${NC}"
+  echo "  l) Listar emuladores en ejecución"
+  echo "  k) Matar todos los emuladores"
+  echo "  q) Salir"
+  echo
+  echo -n "Selecciona un emulador (1-${#EMULATORS[@]}) o opción: "
+}
+
+list_running_emulators() {
+  echo -e "${YELLOW}Emuladores en ejecución:${NC}"
+  adb devices | grep "emulator-" | while read line; do
+    echo "  ✅ $line"
+  done
+
+  if ! adb devices | grep -q "emulator-"; then
+    echo "  ❌ No hay emuladores ejecutándose"
+  fi
+}
+
+kill_all_emulators() {
+  echo -e "${RED}Deteniendo todos los emuladores...${NC}"
+  pkill -f emulator
+  adb emu kill 2>/dev/null
+  echo -e "${GREEN}Todos los emuladores han sido detenidos${NC}"
+}
+
+start_emulator() {
+  local avd_name=$1
+  echo -e "${GREEN}Iniciando emulador: $avd_name${NC}"
+
+  # Verificar si ya está ejecutándose
+  if adb devices | grep -q "device" && adb devices | grep -q "emulator"; then
+    echo -e "${YELLOW}⚠️  Ya hay emuladores ejecutándose${NC}"
+    list_running_emulators
+    echo -n "¿Continuar? (s/N): "
+    read -r response
+    if [[ ! $response =~ ^[Ss]$ ]]; then
+      return
+    fi
+  fi
+
+  # Iniciar emulador
+  QT_QPA_PLATFORM=xcb emulator -avd "$avd_name" -no-snapshot >/dev/null 2>&1 &
+
+  echo -e "${GREEN}✅ Emulador $avd_name iniciado en segundo plano${NC}"
+  echo -e "${BLUE}Puedes verlo en Android Studio o usar: adb devices${NC}"
+}
+
+main() {
+  # Verificar que el comando emulator existe
+  if ! command -v emulator &>/dev/null; then
+    echo -e "${RED}Error: No se encuentra el comando 'emulator'${NC}"
+    echo "Asegúrate de tener Android SDK configurado correctamente"
+    exit 1
+  fi
+
+  while true; do
+    show_menu
+    read -r choice
+
+    case $choice in
+    1) start_emulator "${EMULATORS[0]}" ;;
+    2) start_emulator "${EMULATORS[1]}" ;;
+    3) start_emulator "${EMULATORS[2]}" ;;
+    l | L) list_running_emulators ;;
+    k | K) kill_all_emulators ;;
+    q | Q)
+      echo -e "${BLUE}¡Hasta luego! 👋${NC}"
+      exit 0
+      ;;
+    *)
+      echo -e "${RED}Opción no válida: $choice${NC}"
+      ;;
+    esac
+
+    echo
+    echo "Presiona Enter para continuar..."
+    read -r
+    clear
+  done
+}
+
+main "$@"

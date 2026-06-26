@@ -10,8 +10,7 @@ resolve_project_paths "$SCRIPT_DIR"
 # shellcheck source=lib/session-env.sh
 source "$SCRIPT_DIR/lib/session-env.sh"
 
-STATE_DIR="${HOME}/.config/hyprland"
-STATE_FILE="${STATE_DIR}/session-mode"
+STATE_FILE="${SESSION_MODE_FILE}"
 BASH_X11="${CONFIG_ROOT}/bash/bashrc.x11"
 
 usage() {
@@ -38,8 +37,9 @@ for arg in "$@"; do
   esac
 done
 
-mkdir -p "$STATE_DIR"
-echo "x11" >"$STATE_FILE"
+write_session_mode x11
+
+stop_wayland_session_processes
 
 if [ ! -f "$BASH_X11" ]; then
   echo "Error: no se encontró $BASH_X11" >&2
@@ -51,6 +51,7 @@ echo "Bash: bashrc.x11 → ~/.bashrc"
 
 write_x11_env
 activate_cava_x11_profile "" || true
+propagate_env_from_file
 
 # Aplicar en la shell que invoca el script (si es interactiva)
 # shellcheck disable=SC1091

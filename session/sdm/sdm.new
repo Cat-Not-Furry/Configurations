@@ -56,10 +56,30 @@ start_i3() {
     exec startx /usr/bin/i3 -- vt$(fgconsole)
 }
 
+resolve_start_hyprland() {
+    local candidate
+    if command -v start-hyprland >/dev/null 2>&1; then
+        command -v start-hyprland
+        return 0
+    fi
+    for candidate in /usr/bin/start-hyprland /usr/local/bin/start-hyprland; do
+        if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            return 0
+        fi
+    done
+    return 1
+}
+
 start_hyprland() {
     echo -e "${green}Iniciando Hyprland...${reset}"
     save_last_session "hyprland"
-    exec Hyprland
+    local start_hypr
+    if ! start_hypr="$(resolve_start_hyprland)"; then
+        echo -e "${red}Error: start-hyprland no encontrado (paquete hyprland).${reset}" >&2
+        return 1
+    fi
+    exec "$start_hypr"
 }
 
 confirm_action() {

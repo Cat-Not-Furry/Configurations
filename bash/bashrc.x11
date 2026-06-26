@@ -60,6 +60,20 @@ alias android-emulator='QT_QPA_PLATFORM=xcb emulator'
 alias adb-logcat='adb logcat'
 export PATH=$PATH:$HOME/.local/bin
 
+# utilidades (repo). Binarios cnf-bin → /usr/local/bin (install manual).
+_cnf_repo=""
+for _candidate in "${HOME}/Games/configurations" "${HOME}/hyprland"; do
+  if [[ -d "${_candidate}/utilidades" ]]; then
+    _cnf_repo="$_candidate"
+    break
+  fi
+done
+if [[ -n "$_cnf_repo" && -d "${_cnf_repo}/utilidades" ]]; then
+  PATH="${_cnf_repo}/utilidades:${PATH}"
+fi
+unset _cnf_repo _candidate
+export PATH
+
 export PYENV_ROOT="$HOME/.pyenv"
 export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"

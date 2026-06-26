@@ -1,22 +1,32 @@
 # **i3-wm**
 
+> **Migración cnf-bin:** la barra usa [`launch.sh`](../bumblebee-status/launch.sh) y `cnf-info`. **Validar en runtime** cuando vuelvas a sesión i3/X11 — checklist en [`../cnf-bin/PENDING_I3.md`](../cnf-bin/PENDING_I3.md).
+
 ## La configuración de mi escritorio
-~/.config/i3/<br>
-├── config                         # Archivo principal con includes<br>
-├── conf.d/<br>
-│   ├── 00-exec.conf               # Ejecuciones automáticas (nm-applet, blueman, xss-lock, etc.)<br>
-│   ├── 01-binds_media.conf        # Atajos de volumen, brillo, bloqueo<br>
-│   ├── 02-binds_focus_move.conf   # Atajos de terminal, matar, lanzadores, foco, mover, split, layout, flotante<br>
-│   ├── 03-workspaces.conf         # Nombres de workspaces, atajos para cambiar/mover<br>
-│   ├── 04-binds_misc.conf         # Recargar, reiniciar, salir, modo resize<br>
-│   ├── 05-bbar.conf               # Barra (bumblebee-status)<br>
-│   ├── 06-pbar.conf               # Barra (polybar)<br>
-│   ├── 07-gaps_borders.conf       # Gaps, bordes, colores<br>
-│   └── 08-scripts.conf            # Atajos misceláneos (flameshot, eww, fondos animados, setxkbmap)<br>
-└── scripts/                       # Scripts auxiliares (ya existentes)<br>
-    ├── dmenu-script.sh<br>
-    ├── dmenu-script1.sh<br>
-    └── lock.sh<br>
+
+```
+i3-wm/
+├── config                         # Archivo principal con includes
+├── conf.d/
+│   ├── 00-env.conf                # scripts/i3-environment.sh (env X11, portales)
+│   ├── 00-exec.conf               # ensure-tray-services.sh, flameshot, xss-lock, etc.
+│   ├── 01-binds_media.conf        # Atajos de volumen, brillo, bloqueo
+│   ├── 02-binds_focus_move.conf   # Terminal, lanzadores, foco, mover, layout
+│   ├── 03-workspaces.conf         # Workspaces y atajos
+│   ├── 04-binds_misc.conf         # Recargar, reiniciar, salir, resize
+│   ├── 05-bbar.conf               # i3bar + bandeja (bumblebee-status)
+│   ├── 06-pbar.conf               # Polybar (opcional; no incluido en config)
+│   ├── 07-gaps_borders.conf       # Gaps, bordes, colores
+│   └── 08-scripts.conf            # flameshot, eww, copyq, fondos
+└── scripts/
+    ├── i3-environment.sh          # Env X11, limpia Wayland, dunst/portales
+    ├── ensure-tray-services.sh    # nm-applet, blueman, copyq (tras i3bar)
+    ├── lock.sh
+    ├── dmenu-script.sh
+    └── dmenu-script1.sh
+```
+
+> Los archivos de este README **solo viven en el repo** (`i3-wm/`). `deploy-configs.sh` los copia a `~/.config/i3/` en el sistema; la documentación no se despliega.
 
 **(Grita) La procrastinación esta matándome, debería estar programando un proyecto muy importante... pero prefiero explicar las dependencias de mi config**
 
@@ -25,6 +35,50 @@
 **Aun así, si deseas probar la configuración que tengo puedes hacer lo siguiente...**
 
 **Si gustas puedes pasarte por el [sitio oficial](https://i3wm.org/docs/userguide.html) a ver la guía de usuario**
+
+## Variables de entorno (X11)
+
+Al iniciar i3 se aplican las mismas variables que en `hyperland/scripts/x11-environment.sh`:
+
+| Variable | Valor |
+|----------|-------|
+| `XDG_SESSION_TYPE` | `x11` |
+| `GDK_BACKEND` | `x11` |
+| `QT_QPA_PLATFORM` | `xcb` |
+| `QT_QPA_PLATFORMTHEME` | `qt5ct` |
+| `XDG_CURRENT_DESKTOP` | `i3` |
+
+- **`conf.d/00-env.conf`** — al arrancar i3 ejecuta `scripts/i3-environment.sh` (env + cava X11 + `dbus-update-activation-environment`; no toca `~/.bashrc` en cada reload).
+- **`session/binscripts/sdm`** — script de consola (no es un display manager): antes de `startx` ejecuta `x11-environment.sh` (bashrc X11 + env + cava + mata restos Wayland). El equivalente Hyprland ocurre en `hypr-environment.sh` + `hypr-session-init.sh`.
+- Al entrar en i3 se terminan procesos Wayland/Hyprland huérfanos (waybar, ignis, swaync, cava, etc.); Hyprland hace lo propio con restos X11 vía `hypr-session-init.sh`.
+
+Manual:
+
+```bash
+./hyperland/scripts/x11-environment.sh && source ~/.bashrc
+```
+
+Estado de sesión: `~/.cache/hypr/session-mode`.
+
+## Bandeja del sistema (nm-applet, Bluetooth, CopyQ)
+
+Los iconos de red, Bluetooth y portapapeles van en la **bandeja de i3bar** al **extremo derecho** (`tray_output primary` en `conf.d/05-bbar.conf`). Los módulos de bumblebee-status quedan a su izquierda.
+
+| Momento | Qué ocurre |
+|---------|------------|
+| Arranque i3 | `scripts/i3-environment.sh` — env X11, mata restos Wayland, dunst, portales, polkit |
+| ~5 s después | `scripts/ensure-tray-services.sh` — espera `i3bar` y arranca nm-applet, blueman-applet, copyq |
+
+`00-exec.conf` usa `exec_always` con ese script para que también se restauren tras `i3-msg reload` si faltan.
+
+Manual (sesión i3 activa, tras deploy):
+
+```bash
+./hyperland/scripts/deploy-configs.sh --config   # o solo la parte i3
+~/.config/i3/scripts/ensure-tray-services.sh   # ruta en el sistema tras deploy
+```
+
+Si no ves iconos: confirma con `pgrep -xa i3bar`, `pgrep -xa nm-applet`, `pgrep -af blueman-applet` y que `05-bbar.conf` sigue activo (no polybar en paralelo con otra `tray_output`).
 
 ## Dependencias necesarias
 
@@ -195,15 +249,17 @@ sudo nixos-rebuild switch
 ```
 
 ### Scripts personalizados
-Algunos atajos dependen de scripts que debes tener en las rutas indicadas:
-- `~/.config/i3/scripts/lock.sh` – bloqueo de pantalla (usado con `xss-lock`)
-- `~/.config/i3/scripts/dmenu-script.sh` y `dmenu-script1.sh` – lanzadores personalizados
-- `~/.local/bin/toggle-keyboard.sh` – cambiar distribución del teclado
-- `~/.config/eww/launch.sh` – lanzador de eww
-- `life_fondo` y `dead_fondo.sh` – scripts para fondos animados (puedes reemplazarlos o eliminarlos)
-- `touchpad` – script para configurar el touchpad (probablemente un alias o script personal)
 
-Si no usas estas funciones, comenta o borra las líneas correspondientes en el archivo de configuración.
+Atajos que dependen de scripts del repo (rutas tras `deploy-configs.sh`):
+
+- `i3-wm/scripts/lock.sh` — bloqueo (`xss-lock`)
+- `i3-wm/scripts/dmenu-script.sh`, `dmenu-script1.sh` — lanzadores
+- `cnf-bin/bin/toggle-keyboard.sh` o `~/.local/bin/toggle-keyboard.sh` — teclado
+- `eww/launch.sh` — widgets eww
+- `life_fondo`, `dead_fondo.sh` — fondos animados (opcional)
+- `touchpad` — configuración del touchpad (script/alias local)
+
+Si no usas alguna función, comenta la línea en el `conf.d/` correspondiente.
 
 > [!NOTE]
 > 
@@ -212,76 +268,36 @@ Si no usas estas funciones, comenta o borra las líneas correspondientes en el a
 
 - Para que los atajos de volumen y brillo funcionen, verifica que los comandos `pactl` y `brightnessctl` estén instalados y que los nombres de los sinks/dispositivos sean correctos.
 
-## Cómo fusionar la configuración para evitar errores (configuración monolitica avanzada*)
+## Cómo fusionar la configuración (monolítica avanzada)
 
-### En lugar de reemplazar completamente tu archivo `~/.config/i3/config`, lo mejor es **fusionar** las partes personalizadas. Sigue estos pasos:
+En lugar de reemplazar tu `config` de i3 instalado por el del sistema, **fusiona** fragmentos del repo.
 
-### Instrucciones:
+### Instrucciones
 
-1. Copie la configuración de su entorno en un archivo bak
+1. Respalda tu config actual (ruta típica del paquete i3, no del repo):
 
    ```bash
    cp ~/.config/i3/config ~/.config/i3/config.bak
    ```
 
-   Y para recuperarlo:
+2. Abre tu config y los archivos del repo (`i3-wm/config`, `i3-wm/conf.d/`, `i3-wm/scripts/`).
 
-   ```bash
-   cp ~/.config/i3/config.bak ~/.config/i3/config
-   ```
+3. Copia solo lo que necesites (workspaces, binds, `bar { }`, gaps, `exec`).
 
-> [!NOTE]
->
-> Ya probe reemplazar el archivo por el de la instalación y me da errores, por lo mismo lo más recomendable es que copies y pegues las partes que te interesen para que evites conflictos de compatibilidad.
+4. **Bandeja:** no añadas `nm-applet`/`blueman` sueltos en `exec` si usas `ensure-tray-services.sh` + `tray_output primary`.
 
-2. **Abre tu archivo actual** y los archivos del repo (`config`, `conf.d/`, `scripts/`) con un editor de texto.
+5. Prueba: `i3-msg reload` y revisa `i3-msg -t get_version` / errores en el log.
 
-3. **Identifica el punto de inserción**: Por lo general, el archivo generado por i3 tiene una estructura fija. Puedes empezar a copiar después de la línea que define `$mod` (normalmente `set $mod Mod4`). Si quieres conservar la sección de fuentes, comienza después del bloque `font pango: ...`.
+### Despliegue completo (recomendado)
 
-4. **Copia y pega** las partes que te interesen:
+Desde el clone del repo:
 
-   - **Workspaces con nombres** (las líneas que comienzan con `set $ws1 ...` y los binds correspondientes).
-   - **Bindsyms personalizados** (como `bindsym $mod+Shift+t exec ...`).
-   - **La barra** (bloque `bar { ... }`) si usas una diferente.
-   - **Opciones de gaps y bordes** (líneas como `gaps outer 2`, `smart_gaps on`, `for_window ...`).
-   - **Ejecuciones automáticas** (`exec_always` o `exec`) que no tengas ya.
+```bash
+./hyperland/scripts/deploy-configs.sh --config
+i3-msg reload   # si ya estás en sesión i3
+```
 
-   Asegúrate de **no duplicar** binds que ya existan en tu archivo original (por ejemplo, si ya tienes `bindsym $mod+Return exec terminal`, no agregues otro). Si un atajo está definido dos veces, i3 usará el primero, pero puede causar confusión.
-
-5. **Revisa conflictos**: Algunos programas que inicias automáticamente (como `nm-applet`, `blueman-applet`) pueden estar ya en tu archivo. Si ya están, omítelos para evitar duplicados.
-
-6. **Prueba la configuración** sin reiniciar i3:
-
-   ```bash
-   i3-msg reload
-   ```
-
-   Si no hay errores, el cambio se aplica. Si aparece algún error, revisa las líneas que pegaste y el config que te da i3.
-
-7. Si todo funciona, reinicia i3 con $mod+Shift+r para asegurarte de que todo arranca correctamente.
-
-### Ejemplo de fusión
-
-Suponiendo que tu archivo generado actualmente termina después de la definición de `mode "resize"` y la barra básica, podrías añadir después de `bindsym $mod+r mode "resize"` todo lo que viene en mi configuración desde la línea `# Miselaneus` en adelante, pero revisando que no haya duplicados.
-
-Si prefieres un enfoque más automático, puedes usar `sed` para insertar después de una línea específica, pero es más fácil hacerlo manualmente la primera vez.
-
-## Utilizando configuración establecida:
-
-1. Copiar todos los archivos a ~/.config/i3/
-
-   ```bash
-   chmod +x config conf.d/* scripts/*
-   cp -r conf.d/ config scripts/ ~/.config/i3/
-   ```
-
-2. Recarga con:
-
-   ```bash
-   i3-msg reload
-   ```
-
-   Si no hay errores, el cambio se aplica. Si aparece algún error, revisa las líneas que pegaste y el config que te da i3.
+Eso copia `i3-wm/` → `~/.config/i3/` (sin este README).
 
 > [!NOTE]
 >

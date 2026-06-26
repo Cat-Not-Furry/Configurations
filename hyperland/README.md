@@ -27,7 +27,7 @@ hyperland/
     └── config.json
 ```
 
-En el sistema, todo esto vive en `~/.config/hypr/` (y carpetas hermanas en `~/.config/`).
+En el sistema, la config activa vive en `~/.config/hypr/` (sin este README ni otros `.md`).
 
 ## Probar la configuración
 
@@ -39,11 +39,13 @@ cd dotfiles
 # Backup opcional
 [ -d ~/.config/hypr ] && cp -r ~/.config/hypr ~/.config/hypr.bak
 
-# Desplegar stack completo
+# Desplegar stack completo → ~/.config/ + ~/Games/configurations
 ./hyperland/scripts/deploy-configs.sh
 ```
 
 El script resuelve rutas **relativas al clone** (`waybar/`, `wofi/`, `ignis/`, `cava/` como carpetas hermanas de `hyperland/`).
+
+> **Documentación solo en el repo:** `README.md`, `docs/` y demás `.md` **no** se copian a `~/.config/`. Quedan en el clone (`~/hyprland` o `~/Games/configurations`).
 
 ### Despliegue manual (sin script)
 
@@ -89,16 +91,28 @@ sudo pacman -S hyprland waybar wofi brightnessctl playerctl \
 # swaync, ignis: según repos / AUR de tu instalación
 ```
 
+## Bandeja del sistema (nm-applet, Bluetooth, CopyQ)
+
+Los iconos van en el módulo `tray` de Waybar. Se lanzan **después** de waybar (`StatusNotifierWatcher`).
+
+| Momento | Script |
+|---------|--------|
+| Login Hyprland | `scripts/hypr-session-init.sh` — portales, polkit, swaync |
+| ~8 s después | `scripts/ensure-tray-services.sh` — nm-applet, blueman-applet, copyq |
+| Deploy / apply-theme | `scripts/lib/service-reload.sh` — relanza bandeja tras waybar |
+
+Config: `conf.d/exec.conf`, módulo `tray` al **final** de `modules-right` en `waybar/config`.
+
 ## Ajustes tras instalar
 
-Edita en **tu** `~/.config/` (valores de ejemplo):
+Edita en el **repo** (luego `deploy-configs.sh --config`):
 
-| Archivo | Qué cambiar |
-|---------|-------------|
-| `hypr/conf.d/monitors.conf` | Nombres de salida (`eDP-1`, `HDMI-A-1`, …) — `hyprctl monitors` |
-| `hypr/hyprlock.conf` | Ruta de imagen de bloqueo |
-| `hypr/scripts/wofi_wallpaper.sh` | `STATIC_WALL_DIR`, `VIDEO_WALL_DIR` |
-| `hypr/conf.d/keybinds.conf` | Terminal (`foot` → la tuya) |
+| Archivo en el repo | Qué cambiar |
+|--------------------|-------------|
+| `hyperland/conf.d/monitors.conf` | Salidas (`hyprctl monitors`) |
+| `hyperland/hyprlock.conf` | Imagen de bloqueo |
+| `hyperland/scripts/wofi_wallpaper.sh` | `STATIC_WALL_DIR`, `VIDEO_WALL_DIR` |
+| `hyperland/conf.d/keybinds.conf` | Terminal (`foot` → la tuya) |
 
 ## Temas
 
@@ -154,10 +168,11 @@ Ver `conf.d/keybinds.conf` para la lista completa.
 
 | Script | Función |
 |--------|---------|
-| `deploy-configs.sh` | Copia stack → `~/.config/`, aplica tema inicial |
+| `deploy-configs.sh` | Copia stack → `~/.config/` (+ mirror por defecto); `--config` solo config; `--all` + swaync |
 | `apply-theme.sh` | Tema activo en Hypr / Waybar / Wofi / Cava / Tmux / Nvim |
 | `x11-environment.sh` | Perfil shell + cava para sesión i3/X11 |
 | `hypr-environment.sh` | Restaurar perfil Wayland |
+| `ensure-tray-services.sh` | Bandeja nm-applet / blueman / copyq (tras waybar) |
 | `tmux-atajos.sh` | Referencia de atajos tmux (terminal) |
 | `toggle-waybar-position.sh` | Barra arriba / abajo |
 | `wofi-launch.sh` | Wofi con estilo del tema |
@@ -182,4 +197,4 @@ Requiere `libinput-gestures` y usuario en grupo `input`.
 
 - Estructura modular: edita un archivo en `conf.d/` en lugar del monolito.
 - `wofi-script1.sh` incluye entradas para mame, gzdoom, etc.; comenta lo que no uses.
-- Para sincronizar este clone con otro repo GitHub local: `deploy-configs.sh --github` (opcional, solo mantenimiento).
+- El deploy por defecto ya sincroniza `~/hyprland` → `~/Games/configurations` (mirror local). Usa `--config` si solo quieres actualizar `~/.config/`.

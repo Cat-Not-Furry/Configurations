@@ -1,0 +1,45 @@
+# cnf-bin — configuración maestra (versionada en repo).
+# Override local: config.local.toml (no sobrescribir en deploy).
+# Secretos: secrets/*.env (gitignored); ver *.example en repo.
+
+[paths]
+cnf_root = "~/.config/cnf-bin"
+cnf_bin = "/usr/local/bin"
+cnf_apps = "~/.config/cnf-bin/apps"
+repo_root = "~/Games/configurations"
+i3_fondos = "~/.config/i3/fondos"
+utilidades = "~/Games/configurations/utilidades"
+
+[brillo]
+# Dispositivo brightnessctl para pantalla; vacío = auto / default
+device = ""
+
+[kbdlight]
+# Luz de teclado ThinkPad (solo lectura en cnf-info --kbdlight)
+device = "tpacpi::kbd_backlight"
+
+[bumblebee]
+theme = "iceberg"
+# Sin cmus en barra (cmus.py se conserva en repo como reserva)
+modules = "media cpu sensors memory disk battery pipewire brightness keyboard hostname datetime"
+
+[programs.sdm]
+script = "sdm"
+
+[programs.thinkfan]
+script = "thinkfan"
+
+[programs.fondo]
+script = "fondo"
+
+[programs.docker_manager]
+script = "docker-manager"
+
+[programs.web_manager]
+script = "web-manager"
+
+[programs.print_manager]
+script = "print-manager"
+
+[programs.actualizar]
+script = "actualizar"

@@ -3,18 +3,36 @@ set -euo pipefail
 
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RSYNC=$(command -v rsync || true)
-SYNC_GITHUB=0
+SYNC_REPO=1
 DEPLOY_ALL=0
+
+# Excluir documentación al copiar a ~/.config (solo vive en el repo)
+CONFIG_DOC_EXCLUDES=(--exclude='README.md' --exclude='readme.md' --exclude='docs/' --exclude='*.md')
+
+# Artefactos compilados / runtime: no a ~/.config; install manual en /usr/local/bin
+BINARY_ARTIFACT_EXCLUDES=(
+  --exclude='bin/cnf-info'
+  --exclude='scripts/bin/'
+  --exclude='cnf-info/target/'
+  --exclude='backups/'
+)
 
 for arg in "$@"; do
   case "$arg" in
-    --github) SYNC_GITHUB=1 ;;
+    --config | --config-only) SYNC_REPO=0 ;; # --config-only: alias legacy
     --all) DEPLOY_ALL=1 ;;
     -h | --help)
-      echo "Uso: $(basename "$0") [--github] [--all]"
-      echo "  --github  Sincronizar además al repo GitHub mirror"
-      echo "  --all     Reinicio completo: reinicia swaync al final (tras ignis)"
+      echo "Uso: $(basename "$0") [--all] [--config]"
+      echo "  Despliega el stack Hyprland a ~/.config/ y, por defecto, a \$HOME/Games/configurations"
+      echo ""
+      echo "  (sin flags)  ~/.config + mirror local Games/configurations + apply-theme (waybar, hypr reload, ignis)"
+      echo "               cnf-bin/bin no se copia (→ /usr/local/bin manual); wb_autohide sí va a waybar/scripts/bin"
+      echo "  --all        Igual + reinicia swaync al final (notificaciones)"
+      echo "  --config     Solo ~/.config/ (omite sync al mirror; ahorra I/O y CPU)"
       exit 0
+      ;;
+    --github)
+      echo "Aviso: --github está obsoleto (el sync al mirror ya es el comportamiento por defecto)." >&2
       ;;
     *)
       echo "Opción desconocida: $arg" >&2
@@ -59,20 +77,71 @@ DEST_BASH="$HOME/.config/bash"
 DEST_POWERLINE="$HOME/.config/powerline"
 DEST_NVIM="$HOME/.config/nvim"
 DEST_TMUX="$HOME/.config/tmux"
+DEST_I3="$HOME/.config/i3"
+FONDOS_SRC="$CONFIG_ROOT/fondos"
+DEST_I3_FONDOS="$HOME/.config/i3/fondos"
 
-copy_dir() {
+# ~/.config: merge (sobrescribe/añade). Nunca --delete: preserva fondos, scripts
+# locales y archivos que no están en el repo.
+copy_dir_config() {
   local src="$1" dst="$2"
+  shift 2
+  local extra_excludes=("$@")
   if [ ! -e "$src" ]; then
     echo "Source not found: $src"
     return 1
   fi
   mkdir -p "$dst"
   if [ -n "$RSYNC" ]; then
-    rsync -a --delete "$src/" "$dst/"
+    rsync -a "${CONFIG_DOC_EXCLUDES[@]}" "${extra_excludes[@]}" "$src/" "$dst/"
+  else
+    cp -a "$src/." "$dst/"
+    rm -f "$dst/README.md" "$dst/readme.md" 2>/dev/null || true
+    rm -rf "$dst/docs" 2>/dev/null || true
+  fi
+  echo "Copied (config, merge): $src -> $dst"
+}
+
+copy_dir() {
+  copy_dir_config "$@"
+}
+
+copy_dir_repo() {
+  local src="$1" dst="$2"
+  shift 2
+  local extra_excludes=("$@")
+  if [ ! -d "$src" ]; then
+    return 0
+  fi
+  mkdir -p "$dst"
+  if [ -n "$RSYNC" ]; then
+    rsync -a "${extra_excludes[@]}" "$src/" "$dst/"
   else
     cp -a "$src/." "$dst/"
   fi
-  echo "Copied directory: $src -> $dst"
+  echo "Synced (repo): $src -> $dst"
+}
+
+sync_dir() {
+  copy_dir_repo "$@"
+}
+
+sync_cnf_bin_repo() {
+  local src="$CONFIG_ROOT/cnf-bin" dst="$CONFIG_REPO_ROOT/cnf-bin"
+  if [ ! -d "$src" ]; then
+    return 0
+  fi
+  mkdir -p "$dst"
+  if [ -n "$RSYNC" ]; then
+    rsync -a --delete \
+      "${BINARY_ARTIFACT_EXCLUDES[@]}" \
+      "$src/" "$dst/"
+  else
+    copy_dir_repo "$src" "$dst" "${BINARY_ARTIFACT_EXCLUDES[@]}"
+  fi
+  rm -f "$dst/bin/cnf-info" 2>/dev/null || true
+  rm -rf "$dst/cnf-info/target" "$dst/backups" 2>/dev/null || true
+  echo "Synced cnf-bin (scripts en bin/; sin cnf-info compilado ni target/): $src -> $dst"
 }
 
 copy_file() {
@@ -98,7 +167,7 @@ copy_cava_assets() {
       if [ -d "$src/$item" ]; then
         mkdir -p "$dst/$item"
         if [ -n "$RSYNC" ]; then
-          rsync -a "$src/$item/" "$dst/$item/"
+          rsync -a "${CONFIG_DOC_EXCLUDES[@]}" "$src/$item/" "$dst/$item/"
         else
           cp -a "$src/$item/." "$dst/$item/"
         fi
@@ -156,7 +225,7 @@ copy_tmux_assets() {
     echo "Error: $dst existe pero no es un directorio (rm manual requerido)." >&2
     return 1
   fi
-  copy_dir "$src" "$dst"
+  copy_dir_config "$src" "$dst" --exclude='tpm/' --exclude='plugins/'
   if [ ! -f "$dst/colors.active.conf" ]; then
     for fallback in "$dst/colors/blue.conf" "$dst/colors/"*.conf; do
       if [ -f "$fallback" ]; then
@@ -187,7 +256,7 @@ copy_wofi_assets() {
       if [ -d "$src/$item" ]; then
         mkdir -p "$dst/$item"
         if [ -n "$RSYNC" ]; then
-          rsync -a "$src/$item/" "$dst/$item/"
+          rsync -a "${CONFIG_DOC_EXCLUDES[@]}" "$src/$item/" "$dst/$item/"
         else
           cp -a "$src/$item/." "$dst/$item/"
         fi
@@ -209,62 +278,132 @@ copy_hypr_scripts() {
   fi
   mkdir -p "$dst"
   if [ -n "$RSYNC" ]; then
-    rsync -a --delete --exclude='deploy-configs.sh' "$src/" "$dst/"
+    rsync -a \
+      --exclude='deploy-configs.sh' \
+      --exclude='sync-body-configs.sh' \
+      --exclude='bin/' \
+      "${CONFIG_DOC_EXCLUDES[@]}" \
+      "$src/" "$dst/"
   else
-    find "$dst" -mindepth 1 -maxdepth 1 ! -name 'deploy-configs.sh' -exec rm -rf {} +
     for f in "$src"/*; do
       [ -e "$f" ] || continue
       base="$(basename "$f")"
       [ "$base" = "deploy-configs.sh" ] && continue
+      [ "$base" = "README.md" ] && continue
       cp -a "$f" "$dst/"
     done
   fi
-  echo "Copied Hypr scripts: $src -> $dst"
-  rm -f "$dst/deploy-configs.sh"
+  echo "Copied Hypr scripts (merge): $src -> $dst"
+  rm -f "$dst/deploy-configs.sh" "$dst/README.md"
+  rm -rf "$dst/bin" 2>/dev/null || true
 }
 
-sync_dir() {
-  local src="$1" dst="$2"
+copy_i3_config() {
+  local src="$CONFIG_ROOT/i3-wm"
   if [ ! -d "$src" ]; then
     return 0
   fi
-  mkdir -p "$dst"
-  if [ -n "$RSYNC" ]; then
-    rsync -a "$src/" "$dst/"
-  else
-    mkdir -p "$dst"
-    cp -a "$src/." "$dst/"
-  fi
-  echo "Synced directory: $src -> $dst"
+  # fondos/ vive bajo ~/.config/i3 pero no forma parte de i3-wm/
+  copy_dir_config "$src" "$DEST_I3" --exclude='fondos/'
+  chmod +x "$DEST_I3/scripts/"*.sh 2>/dev/null || true
+  echo "i3 config deployed to $DEST_I3 (fondos/ no tocado)"
 }
 
-sync_to_github_repo() {
-  if ! find_github_repo_root; then
-    echo "No se encontró repo GitHub (remote con 'github'); sync al repo omitido."
+# Fondos i3: solo wallpapers del repo → ~/.config/i3/fondos/ (merge).
+# fondos/other/*.7z NO se despliegan a ~/.config (quedan solo en el repo).
+copy_i3_fondos_assets() {
+  local img
+
+  if [ ! -d "$FONDOS_SRC" ]; then
     return 0
   fi
 
-  if [ "$GITHUB_REPO_ROOT" = "$CONFIG_ROOT" ]; then
-    echo "Ya desplegando desde el repo GitHub ($GITHUB_REPO_ROOT); sync omitido."
+  mkdir -p "$DEST_I3_FONDOS"
+
+  shopt -s nullglob
+  for img in "$FONDOS_SRC"/*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG}; do
+    [ -f "$img" ] || continue
+    cp -a "$img" "$DEST_I3_FONDOS/"
+  done
+  shopt -u nullglob
+
+  echo "i3 fondos: merge en $DEST_I3_FONDOS (other/*.7z solo en repo; imágenes locales preservadas)"
+}
+
+copy_cnf_bin_assets() {
+  local src="$CONFIG_ROOT/cnf-bin"
+  local dest="$HOME/.config/cnf-bin"
+
+  if [ ! -d "$src" ]; then
+    echo "Warning: cnf-bin source not found: $src"
     return 0
   fi
 
-  local gh_hypr
-  gh_hypr="$(github_hypr_root "$GITHUB_REPO_ROOT")"
+  mkdir -p "$dest/secrets" "$dest/apps"
+
+  # Solo config/secrets/apps; binarios → /usr/local/bin (install manual).
+  rm -rf "$dest/bin" 2>/dev/null || true
+
+  if [ -f "$src/config.toml" ]; then
+    copy_file "$src/config.toml" "$dest/config.toml"
+  fi
+
+  if [ ! -f "$dest/config.local.toml" ] && [ -f "$src/config.local.toml.example" ]; then
+    copy_file "$src/config.local.toml.example" "$dest/config.local.toml.example"
+  fi
+
+  local secret_example
+  shopt -s nullglob
+  for secret_example in "$src/secrets/"*.example; do
+    copy_file "$secret_example" "$dest/secrets/$(basename "$secret_example")"
+  done
+  shopt -u nullglob
+
+  mkdir -p "$dest/apps/web-manager" "$dest/apps/docker-manager" "$dest/apps/print-manager"
+  echo "cnf-bin deployed to $dest (config/secrets/apps; sin bin/)"
+}
+
+copy_bumblebee_status() {
+  local src="$CONFIG_ROOT/bumblebee-status"
+  local dest="$HOME/.config/bumblebee-status"
+
+  if [ ! -d "$src" ]; then
+    return 0
+  fi
+
+  copy_dir_config "$src" "$dest" --exclude='images/'
+  chmod +x "$dest/bumblebee-status" "$dest/launch.sh" 2>/dev/null || true
+  rm -rf "$dest/images" 2>/dev/null || true
+  echo "bumblebee-status deployed to $dest (sin images/; solo repo)"
+}
+
+sync_to_config_repo() {
+  if ! find_config_repo_root; then
+    echo "No se encontró repo mirror ($HOME/Games/configurations); sync omitido."
+    return 0
+  fi
+
+  if [ "$CONFIG_REPO_ROOT" = "$CONFIG_ROOT" ]; then
+    echo "Ya desplegando desde el repo mirror ($CONFIG_REPO_ROOT); sync omitido."
+    return 0
+  fi
 
   echo
-  echo "Syncing to GitHub repo: $GITHUB_REPO_ROOT"
+  echo "Syncing to config repo: $CONFIG_REPO_ROOT"
 
-  sync_dir "$CONFIG_ROOT/waybar" "$GITHUB_REPO_ROOT/waybar"
-  sync_dir "$CONFIG_ROOT/wofi" "$GITHUB_REPO_ROOT/wofi"
-  sync_dir "$CONFIG_ROOT/ignis" "$GITHUB_REPO_ROOT/ignis"
-  sync_dir "$CONFIG_ROOT/cava" "$GITHUB_REPO_ROOT/cava"
-  sync_dir "$CONFIG_ROOT/copyq" "$GITHUB_REPO_ROOT/copyq"
-  sync_dir "$CONFIG_ROOT/eww" "$GITHUB_REPO_ROOT/eww"
-  sync_dir "$CONFIG_ROOT/bash" "$GITHUB_REPO_ROOT/bash"
-  sync_dir "$CONFIG_ROOT/powerline" "$GITHUB_REPO_ROOT/powerline"
-  sync_dir "$CONFIG_ROOT/nvim" "$GITHUB_REPO_ROOT/nvim"
-  sync_dir "$CONFIG_ROOT/tmux" "$GITHUB_REPO_ROOT/tmux"
+  local gh_hypr
+  gh_hypr="$(github_hypr_root "$CONFIG_REPO_ROOT")"
+
+  for component in waybar wofi ignis cava copyq eww bash powerline nvim tmux cnf-bin utilidades bumblebee-status; do
+    if [ "$component" = cnf-bin ]; then
+      sync_cnf_bin_repo
+    else
+      sync_dir "$CONFIG_ROOT/$component" "$CONFIG_REPO_ROOT/$component"
+    fi
+  done
+
+  sync_dir "$CONFIG_ROOT/i3-wm" "$CONFIG_REPO_ROOT/i3-wm"
+  sync_dir "$CONFIG_ROOT/session" "$CONFIG_REPO_ROOT/session"
 
   mkdir -p "$gh_hypr"
   for f in "${HYPR_FILES[@]}"; do
@@ -274,7 +413,14 @@ sync_to_github_repo() {
   done
 
   sync_dir "$HYPR_CONFD_SRC" "$gh_hypr/conf.d"
-  sync_dir "$HYPR_SCRIPTS_SRC" "$gh_hypr/scripts"
+  if [ -d "$HYPR_SCRIPTS_SRC" ]; then
+    copy_dir_repo "$HYPR_SCRIPTS_SRC" "$gh_hypr/scripts" \
+      --exclude='deploy-configs.sh' \
+      --exclude='sync-body-configs.sh' \
+      --exclude='bin/' \
+      "${CONFIG_DOC_EXCLUDES[@]}"
+    rm -rf "$gh_hypr/scripts/bin" 2>/dev/null || true
+  fi
   sync_dir "$HYPRLAND_ROOT/themes" "$gh_hypr/themes"
 
   if [ -f "$SWAYNC_SRC" ]; then
@@ -282,8 +428,20 @@ sync_to_github_repo() {
     copy_file "$SWAYNC_SRC" "$gh_hypr/swaync/config.json"
   fi
 
+  # Eliminar carpeta duplicada legacy hyprland/ si existe
+  if [ -d "$CONFIG_REPO_ROOT/hyprland" ] && [ "$gh_hypr" != "$CONFIG_REPO_ROOT/hyprland" ]; then
+    rm -rf "$CONFIG_REPO_ROOT/hyprland"
+    echo "Eliminado duplicado legacy: $CONFIG_REPO_ROOT/hyprland"
+  fi
+
+  rm -f "$CONFIG_REPO_ROOT/waybar/waybar-autohide-state.css"
+  find "$CONFIG_REPO_ROOT" -type d -name '__pycache__' -prune -exec rm -rf {} + 2>/dev/null || true
+
   chmod +x "$gh_hypr/scripts/"*.sh 2>/dev/null || true
-  echo "GitHub repo updated at $GITHUB_REPO_ROOT"
+  if [ -f "$CONFIG_REPO_ROOT/waybar/scripts/bin/wb_autohide" ]; then
+    chmod +x "$CONFIG_REPO_ROOT/waybar/scripts/bin/wb_autohide"
+  fi
+  echo "Config repo updated at $CONFIG_REPO_ROOT (Hypr → $gh_hypr)"
 }
 
 resolve_deploy_theme() {
@@ -334,11 +492,20 @@ main() {
 
   log_deploy "Deploy start from $CONFIG_ROOT (hypr: $HYPRLAND_ROOT, timestamp: $TIMESTAMP)"
   echo "Deploying configs from $CONFIG_ROOT (hypr: $HYPRLAND_ROOT, timestamp: $TIMESTAMP)"
+  echo "Destinos: ~/.config/ + ${CONFIG_REPO_ROOT:-$HOME/Games/configurations}"
   echo "Log: $DEPLOY_LOG"
 
+  # shellcheck source=lib/session-env.sh
+  source "$SCRIPT_DIR/lib/session-env.sh"
+  remove_legacy_config_hyprland_dir
+
   if [ -d "$WAYBAR_SRC" ]; then
-    copy_dir "$WAYBAR_SRC" "$DEST_WAYBAR"
+    copy_dir_config "$WAYBAR_SRC" "$DEST_WAYBAR" --exclude='waybar-autohide-state.css'
+    if [ -f "$DEST_WAYBAR/scripts/bin/wb_autohide" ]; then
+      chmod +x "$DEST_WAYBAR/scripts/bin/wb_autohide"
+    fi
     reset_waybar_position_top "$DEST_WAYBAR/config"
+    reset_waybar_autohide_normal "$DEST_WAYBAR/config"
   else
     echo "Warning: Waybar source directory not found: $WAYBAR_SRC"
   fi
@@ -355,7 +522,7 @@ main() {
   done
 
   if [ -d "$HYPR_CONFD_SRC" ]; then
-    copy_dir "$HYPR_CONFD_SRC" "$DEST_HYPRLAND/conf.d"
+    copy_dir_config "$HYPR_CONFD_SRC" "$DEST_HYPRLAND/conf.d"
   else
     echo "Warning: Hypr conf.d not found: $HYPR_CONFD_SRC"
   fi
@@ -364,7 +531,7 @@ main() {
   chmod +x "$DEST_HYPRLAND/scripts/"*.sh 2>/dev/null || true
 
   if [ -d "$IGNIS_SRC" ]; then
-    copy_dir "$IGNIS_SRC" "$DEST_IGNIS"
+    copy_dir_config "$IGNIS_SRC" "$DEST_IGNIS"
   else
     echo "Warning: Ignis source directory not found: $IGNIS_SRC"
   fi
@@ -390,14 +557,14 @@ main() {
   copy_copyq_assets "$COPYQ_SRC" "$DEST_COPYQ"
 
   if [ -d "$EWW_SRC" ]; then
-    copy_dir "$EWW_SRC" "$DEST_EWW"
+    copy_dir_config "$EWW_SRC" "$DEST_EWW"
     chmod +x "$DEST_EWW"/scripts/* 2>/dev/null || true
   else
     echo "Warning: Eww source directory not found: $EWW_SRC"
   fi
 
   if [ -d "$BASH_SRC" ]; then
-    copy_dir "$BASH_SRC" "$DEST_BASH"
+    copy_dir_config "$BASH_SRC" "$DEST_BASH"
     if [ -f "$DEST_BASH/bashrc.hypr" ]; then
       cp -a "$DEST_BASH/bashrc.hypr" "$HOME/.bashrc"
       echo "Bash: bashrc.hypr → ~/.bashrc"
@@ -412,7 +579,7 @@ main() {
   fi
 
   if [ -d "$POWERLINE_SRC" ]; then
-    copy_dir "$POWERLINE_SRC" "$DEST_POWERLINE"
+    copy_dir_config "$POWERLINE_SRC" "$DEST_POWERLINE"
     echo "Powerline config deployed to $DEST_POWERLINE"
   else
     echo "Warning: Powerline source directory not found: $POWERLINE_SRC"
@@ -423,13 +590,17 @@ main() {
       echo "Error: $DEST_NVIM existe pero no es un directorio (rm manual requerido)." >&2
       return 1
     fi
-    copy_dir "$NVIM_SRC" "$DEST_NVIM"
+    copy_dir_config "$NVIM_SRC" "$DEST_NVIM"
     echo "Nvim config deployed to $DEST_NVIM"
   else
     echo "Warning: Nvim source directory not found: $NVIM_SRC"
   fi
 
   copy_tmux_assets "$TMUX_SRC" "$DEST_TMUX" || return 1
+  copy_cnf_bin_assets
+  copy_bumblebee_status
+  copy_i3_config
+  copy_i3_fondos_assets
 
   rm -f "$HOME/.cache/ignis/active-theme.json"
   ACTIVE_THEME="$(resolve_deploy_theme)"
@@ -462,10 +633,10 @@ main() {
 
   ensure_service_running hypridle hypridle
 
-  if [ "$SYNC_GITHUB" -eq 1 ]; then
-    sync_to_github_repo
+  if [ "$SYNC_REPO" -eq 1 ]; then
+    sync_to_config_repo
   else
-    echo "Sync GitHub omitido (usa --github para sincronizar)."
+    echo "Sync al repo mirror omitido (--config)."
   fi
 
   THEME_NOTIFY_DELAY=1 send_theme_notification

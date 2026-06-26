@@ -1,4 +1,5 @@
 @import "waybar-colors.css";
+@import "waybar-autohide-state.css";
 
 /* ---- ESTILO GLOBAL ---- */
 * {
@@ -97,20 +98,23 @@ window#waybar {
 #hyprland-window,
 #custom-cmus,
 #custom-launcher,
-#custom-bar-position {
+#custom-bar-position,
+#custom-bar-autohide {
     padding: 0 7px;
     margin: 0 3px;
 }
 
 #custom-launcher,
-#custom-bar-position {
+#custom-bar-position,
+#custom-bar-autohide {
     color: @waybar_accent;
     font-size: 1.05em;
     min-width: 1.1em;
 }
 
 #custom-launcher:hover,
-#custom-bar-position:hover {
+#custom-bar-position:hover,
+#custom-bar-autohide:hover {
     color: @waybar_accent_light;
 }
 

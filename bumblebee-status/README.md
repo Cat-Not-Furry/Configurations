@@ -1,169 +1,54 @@
-# Bumblebee-status – Configuración personalizada
+# Bumblebee-status (podado)
 
-![barra](images/barra.png)
+Barra de estado para **i3/X11**. Copia reducida de [bumblebee-status](https://github.com/tobi-wan-kenobi/bumblebee-status) con solo los módulos y temas que uso.
 
-Esta carpeta contiene mi configuración personalizada para [bumblebee-status](https://github.com/tobi-wan-kenobi/bumblebee-status), una barra de estado modular para i3 y otros gestores de ventanas. En lugar de instalar bumblebee-status desde el repositorio de código fuente completo, aquí solo se incluyen los archivos que uso. La instalación completa de bumblebee-status debe realizarse por separado (desde AUR, pip o el repositorio oficial).
+> **Para después (i3):** la barra no se ha validado en sesión i3 tras la migración cnf-bin. Ver [`../cnf-bin/PENDING_I3.md`](../cnf-bin/PENDING_I3.md).
 
-## Instalación de bumblebee-status
+## Deploy
 
-### Opción 1: Desde el gestor de paquetes de tu distribución
+`deploy-configs.sh` copia esta carpeta a `~/.config/bumblebee-status/` **sin** `README.md` ni `images/` (iconos PNG de referencia; solo en el repo).
 
-**Arch Linux / AUR**:
+## Lanzamiento
 
-```bash
-yay -S bumblebee-status
-```
-
-### Desde pip (para cualquier distribución):
+Usar [`launch.sh`](launch.sh) (lee [`../cnf-bin/config.toml`](../cnf-bin/config.toml)):
 
 ```bash
-pip install bumblebee-status
+# En i3-wm/conf.d/05-bbar.conf
+status_command ~/.config/bumblebee-status/launch.sh
 ```
 
-### Opción 2: Clonar el repositorio original (solo si necesitas modificar )
+Módulos en barra (sin `cmus`):
 
-Si planeas modificar los módulos o el código fuente, clona el repositorio oficial y colócalo donde prefieras, por ejemplo:
+```text
+media cpu sensors memory disk battery pipewire brightness keyboard hostname datetime shell:kbd
+```
+
+`shell:kbd` → `cnf-info --kbdlight` (solo lectura).
+
+## Módulos conservados
+
+**core:** `media`, `cpu`, `memory`, `disk`, `datetime`, `keyboard`, `error`
+
+**contrib:** `sensors`, `battery`, `pipewire`, `brightness`, `hostname`, `shell`, `shortcut`, `cmus` (reserva; no en barra)
+
+**temas:** `themes/iceberg.json`, `themes/icons/awesome-fonts.json`
+
+**assets (solo repo):** `images/` — iconos PNG de referencia; no se despliegan a `~/.config/`
+
+## Dependencias
+
+Instalar bumblebee-status (AUR/pip) o usar el binario `bumblebee-status` incluido en esta carpeta.
+
+```text
+playerctl brightnessctl lm_sensors wireplumber python-psutil
+```
+
+`cnf-info` en PATH (`/usr/local/bin`).
+
+## Instalación manual
 
 ```bash
-git clone https://github.com/tobi-wan-kenobi/bumblebee-status.git ~/.config/bumblebee-status
+./hyperland/scripts/deploy-configs.sh --config
+# o copiar bumblebee-status/ → ~/.config/bumblebee-status/
+chmod +x ~/.config/bumblebee-status/launch.sh ~/.config/bumblebee-status/bumblebee-status
 ```
-
-### Configuración personalizada
-
-En este repositorio, los archivos que **debes colocar en tu sistema** son:
-
-- **Script de lanzamiento** (opcional): `launch.sh` – simplifica la llamada a bumblebee-status con los parámetros deseados.
-- **Tema personalizado** (si lo tienes): `themes/iceberg-custom.json` o cualquier tema modificado.
-- **Módulos personalizados** (si los creaste): `modules/contrib/mi_modulo.py` y sus tests.
-
-Luego crea un enlace simbólico o añade la ruta a tu `PATH`. En mi configuración de i3, la barra apunta a `~/.config/bumblebee-status/bumblebee-status`
-
-### Ubicación recomendada
-
-- Si instalaste bumblebee-status mediante paquete, la configuración (temas, scripts) suele ir en `~/.config/bumblebee-status/` (crea la carpeta si no existe).
-- Si usas la instalación desde fuente (clonado), los temas y módulos personalizados deben colocarse dentro de esa misma estructura, respetando las subcarpetas.
-
-Por ejemplo, para añadir un tema personalizado:
-
-```bash
-cp themes/iceberg-custom.json ~/.config/bumblebee-status/themes/
-```
-
-Para añadir un módulo personalizado:
-
-```bash
-cp modules/contrib/mi_modulo.py ~/.config/bumblebee-status/modules/contrib/
-```
-
-Si prefieres mantener todo junto en tu directorio de i3, puedes crear un enlace simbólico:
-
-```bash
-ln -s ~/.config/i3/bumblebee-status ~/.config/bumblebee-status
-```
-
-## Integración con i3 (mi config)
-
-| ![datetime](images/datetime.png) | ![host](images/host.png) | ![custom](images/custom.png) | ![brig](images/brig.png)          | ![vol](images/vol.png) |
-| -------------------------------- | ------------------------ | ---------------------------- | --------------------------------- | ---------------------- |
-| ![batt](images/batt.png)         | ![disk](images/disk.png) | ![mem](images/mem.png)       | ![tem_freq](images/temp_freq.png) | ![cpu](images/cpu.png) |
-
-
-
-En mi configuración modular de i3, el bloque `bar` se encuentra en `conf.d/05-bbar.conf`. Su contenido es:
-
-```bash
-bar {
-    position top
-    tray_output primary
-    status_command ~/.config/bumblebee-status/bumblebee-status\
-    -t iceberg \
-    -m cmus cpu sensors memory disk battery pipewire brightness keyboard hostname datetime
-          colors {
-            # background #222222ff
-            background #222222
-            statusline #eeeeee
-            separator #666666
-            #                    border  bakgr.  text
-            focused_workspace   #005818 #00450b #ffffff
-            active_workspace    #000445 #00450b #ffffff
-            inactive_workspace  #000445 #555555 #888888
-            urgent_workspace    #2f343a #900000 #ffffff
-    }
-}
-```
-
-O utiliza un script de lanzamiento para la barra:
-
-```bash
-#!/bin/bash
-exec ~/.config/bumblebee-status/bumblebee-status \
-    -t iceberg \
-    -m cmus cpu sensors memory disk battery pipewire brightness keyboard hostname datetime
-
-```
-
-Si tu instalación de bumblebee-status está en una ruta diferente, ajusta la línea `exec` con la ruta correcta.
-
-Dale permisos de ejecución y muevelo a donde quieras:
-
-```bash
-chmod +x launch.sh
-mv launch.sh ~/.config/bumblebee-status
-```
-
-Haci quedaría el archivo
-
-```bash
-bar {
-    position top
-    tray_output primary
-    status_command ~/.config/bumblebee-status/launch.sh
-    colors {
-        background #222222
-        statusline #eeeeee
-        separator #666666
-        focused_workspace   #005818 #00450b #ffffff
-        active_workspace    #000445 #00450b #ffffff
-        inactive_workspace  #000445 #555555 #888888
-        urgent_workspace    #2f343a #900000 #ffffff
-    }
-}
-```
-
-
-
-### Módulos utilizados
-
-Los módulos que he habilitado son:
-
-- `cmus` – reproductor de música (necesita `cmus` instalado) ![cmus](images/cmus.png)
-- `cpu` – uso de CPU
-- `sensors` – temperatura del sistema (necesita `lm-sensors`)
-- `memory` – uso de memoria
-- `disk` – uso de disco
-- `battery` – estado de la batería
-- `pipewire` – volumen (si usas PipeWire; si usas PulseAudio, reemplaza por `pulseaudio`)
-- `brightness` – brillo (necesita `brightnessctl`)
-- `keyboard` – script custom revisalo si quieres conservarlo
-- `hostname` – nombre del equipo
-- `datetime` – fecha y hora
-
-Si alguno de estos no te es útil, elimínalo de la lista.
-
-### Personalización adicional
-
-- **Temas**: Puedes modificar el tema `iceberg` o cambiar a otro. Los temas disponibles están en `~/.config/bumblebee-status/themes/` (si instalaste desde paquete) o en la carpeta `themes/` del clon.
-- **Opciones de módulos**: Algunos módulos aceptan parámetros. Por ejemplo, para cambiar el formato de fecha, puedes añadir `-p datetime.format="%H:%M"` en la línea de comando.
-- **Eventos de click**: bumblebee-status permite ejecutar comandos al hacer click en los módulos. Para ello, consulta la [documentación oficial](https://github.com/tobi-wan-kenobi/bumblebee-status/wiki/Module-configuration).
-
-### Notas
-
-- Si después de recargar i3 la barra no aparece, verifica que bumblebee-status esté instalado correctamente con `which bumblebee-status` y que la ruta en `status_command` sea correcta.
-- Si usas `pulseaudio` en lugar de `pipewire`, cambia el módulo en la lista.
-
-
-
-
-
-
-

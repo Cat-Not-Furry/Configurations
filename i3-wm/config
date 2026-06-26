@@ -17,6 +17,7 @@ set $mod Mod4
 # Lo especifica en la primera linea de la funcion bar {}.
 font pango: Hack Nerd Font 8
 
+include conf.d/00-env.conf
 include conf.d/00-exec.conf
 include conf.d/01-binds_media.conf
 include conf.d/02-binds_focus_move.conf

@@ -3,6 +3,12 @@
 
 RELOAD_STEP_DELAY="${RELOAD_STEP_DELAY:-2}"
 
+_WAYBAR_AUTOHIDE_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/waybar-autohide.sh"
+if [ -f "$_WAYBAR_AUTOHIDE_LIB" ]; then
+  # shellcheck source=lib/waybar-autohide.sh
+  source "$_WAYBAR_AUTOHIDE_LIB"
+fi
+
 reload_step_sleep() {
   sleep "${RELOAD_STEP_DELAY}"
 }
@@ -23,6 +29,12 @@ ensure_service_running() {
   local -a start_cmd=("$@")
 
   if pgrep -x "$name" >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [ "$name" = "waybar" ] && declare -F _launch_waybar >/dev/null 2>&1; then
+    _launch_waybar
+    echo "Iniciado: $name (no estaba activo tras reload)"
     return 0
   fi
 
@@ -53,13 +65,23 @@ _SERVICE_RELOAD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_SERVICE_RELOAD_DIR/ignis-theme.sh"
 # shellcheck source=lib/powerline-theme.sh
 source "$_SERVICE_RELOAD_DIR/powerline-theme.sh"
+# shellcheck source=lib/session-env.sh
+source "$_SERVICE_RELOAD_DIR/session-env.sh"
+
+_ensure_tray_after_waybar() {
+  if declare -F ensure_tray_applets >/dev/null 2>&1; then
+    ensure_tray_applets hyprland
+  fi
+}
 
 # apply-theme / deploy normal: waybar → hypr → ignis. Sin swaync.
 apply_theme_reload_flow() {
-  restart_service waybar waybar
+  _restart_waybar_with_autohide
   reload_hyprland_config
   reload_step_sleep
   ensure_service_running waybar waybar
+  ensure_waybar_autohide_daemon
+  _ensure_tray_after_waybar
   apply_ignis_theme
   reload_eww_if_running
   echo "Wofi actualizado (~/.config/wofi/colors, style.css)"
@@ -100,10 +122,12 @@ deploy_reload_flow() {
 
 # Super+Shift+R: mismo orden; sin swaync.
 hypr_refresh_flow() {
-  restart_service waybar waybar
+  _restart_waybar_with_autohide
   reload_hyprland_config
   reload_step_sleep
   ensure_service_running waybar waybar
+  ensure_waybar_autohide_daemon
+  _ensure_tray_after_waybar
   apply_ignis_theme
   reload_eww_if_running
   ensure_service_running hypridle hypridle
@@ -138,6 +162,11 @@ path.write_text(json.dumps(opts, indent=2) + "\n")
 PY
   fi
   echo "Waybar: posición por defecto → top"
+}
+
+_restart_waybar_with_autohide() {
+  restart_service waybar waybar
+  ensure_waybar_autohide_daemon
 }
 
 reload_eww_if_running() {

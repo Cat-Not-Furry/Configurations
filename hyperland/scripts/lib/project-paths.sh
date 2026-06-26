@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 # Resuelve HYPRLAND_ROOT y CONFIG_ROOT relativos al script que invoca.
 #
-# Layout monolítico (todo junto):
+# Layout split (configurations / Games):
 #   repo/
-#   ├── waybar/ wofi/ ignis/ tmux/
-#   ├── conf.d/ scripts/ themes/
+#   ├── hyperland/   → ~/.config/hypr/
+#   ├── waybar/ wofi/ ignis/ …
 #
-# Layout split (Hypr en subcarpeta):
-#   repo/
-#   ├── hyperland/  → conf.d/ scripts/ themes/
-#   ├── waybar/ wofi/ ignis/ tmux/
+# Layout monolítico (legacy): conf.d/ scripts/ themes/ en la raíz del clone.
 
 resolve_project_paths() {
   local scripts_dir="${1:?scripts_dir requerido}"
@@ -30,9 +27,15 @@ resolve_project_paths() {
   export HYPRLAND_ROOT CONFIG_ROOT
 }
 
-# Busca el clone del repo en GitHub (remote origin contiene "github").
-find_github_repo_root() {
-  GITHUB_REPO_ROOT=""
+# Repo mirror local (GitHub clone). Por defecto ~/Games/configurations.
+find_config_repo_root() {
+  CONFIG_REPO_ROOT="${CONFIG_REPO_ROOT:-$HOME/Games/configurations}"
+  if [ -d "$CONFIG_REPO_ROOT/.git" ]; then
+    export CONFIG_REPO_ROOT
+    return 0
+  fi
+
+  CONFIG_REPO_ROOT=""
   local candidate remote gitdir
 
   for candidate in \
@@ -42,8 +45,8 @@ find_github_repo_root() {
     if [ -d "$candidate/.git" ]; then
       remote="$(git -C "$candidate" remote get-url origin 2>/dev/null || true)"
       if [[ "$remote" == *github* ]]; then
-        GITHUB_REPO_ROOT="$candidate"
-        export GITHUB_REPO_ROOT
+        CONFIG_REPO_ROOT="$candidate"
+        export CONFIG_REPO_ROOT
         return 0
       fi
     fi
@@ -58,8 +61,8 @@ find_github_repo_root() {
         continue
       fi
       if [ -d "$candidate/waybar" ] || [ -d "$candidate/hyperland" ] || [ -d "$candidate/ignis" ]; then
-        GITHUB_REPO_ROOT="$candidate"
-        export GITHUB_REPO_ROOT
+        CONFIG_REPO_ROOT="$candidate"
+        export CONFIG_REPO_ROOT
         return 0
       fi
     done < <(find "$base" -maxdepth 4 -name .git -type d -print0 2>/dev/null)
@@ -68,12 +71,13 @@ find_github_repo_root() {
   return 1
 }
 
-# Raíz Hypr dentro del repo GitHub (hyperland/ o la raíz).
+# Alias legacy
+find_github_repo_root() {
+  find_config_repo_root
+}
+
+# Hypr en el mirror: configurations/hyperland/
 github_hypr_root() {
   local gh_root="${1:?github repo root}"
-  if [ -d "$gh_root/hyperland/conf.d" ] || [ -d "$gh_root/hyperland/scripts" ]; then
-    echo "$gh_root/hyperland"
-  else
-    echo "$gh_root"
-  fi
+  echo "$gh_root/hyperland"
 }
