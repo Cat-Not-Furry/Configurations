@@ -1,0 +1,236 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 26,
+  "exclusive": true,
+  "start_hidden": false,
+  "on-sigusr1": "hide",
+  "on-sigusr2": "show",
+  "spacing": 2,
+  "modules-left": [
+    "custom/launcher",
+    "hyprland/workspaces",
+    "hyprland/window"
+  ],
+  "modules-center": [
+  ],
+  "modules-right": [
+    "custom/hw-refresh",
+    "custom/media-refresh",
+    "custom/media-prev",
+    "custom/media-main",
+    "custom/media-next",
+    "custom/cpu",
+    "custom/temp",
+    "memory",
+    "disk",
+    "pulseaudio",
+    "custom/kblight",
+    "backlight",
+    "battery",
+    "custom/hostname",
+    "custom/date",
+    "custom/bar-position",
+    "custom/bar-autohide",
+    "tray"
+  ],
+  // --- MÓDULOS DE LA IZQUIERDA ---
+  "custom/bar-position": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-position-icon.sh",
+    "interval": "once",
+    "on-click": "~/.config/hypr/scripts/toggle-waybar-position.sh",
+    "tooltip-format": "Mover barra"
+  },
+  "custom/bar-autohide": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-autohide-icon.sh",
+    "interval": "once",
+    "on-click": "~/.config/hypr/scripts/toggle-waybar-autohide.sh",
+    "tooltip-format": "Autohide barra (- normal, ^/v ocultar)"
+  },
+  "hyprland/workspaces": {
+    "format": "{icon}",
+    "on-scroll-up": "hyprctl dispatch workspace e+1",
+    "on-scroll-down": "hyprctl dispatch workspace e-1",
+    "format-icons": {
+      "default": "󰊠",
+      "active": "󰮯",
+      "urgent": ""
+    },
+    "persistent_workspaces": {
+      "*": 1 // Muestra al menos 5 workspaces
+    }
+  },
+  "hyprland/window": {
+    "format": " {} ",
+    "max-length": 30
+  },
+  // --- MÓDULO CENTRAL (cmus desactivado; media vía cnf-media) ---
+  //"custom/cmus": {
+  //  "format": " {}",
+  //  "interval": 2,
+  //  "exec": "~/.config/waybar/scripts/cmus_status.sh",
+  //  "on-click-middle": "cmus-remote --pause",
+  //  "on-click-right": "cmus-remote --next",
+  //  "on-click": "cmus-remote --prev"
+  //},
+  //"custom/cava": {
+  //"format": "{}",
+  //"interval": 1,
+  //"exec": "~/.config/waybar/scripts/visualizer.sh",
+  //"escape": false
+  //},
+  // --- MÓDULOS DE LA DERECHA ---
+  "custom/hw-refresh": {
+    "exec": "cnf-info --refresh",
+    "interval": 3,
+    "return-type": "json",
+    "format": "",
+    "tooltip": false
+  },
+  "custom/media-refresh": {
+    "exec": "cnf-media --refresh",
+    "interval": 3,
+    "return-type": "json",
+    "format": "",
+    "tooltip": false
+  },
+  "custom/media-prev": {
+    "exec": "cnf-media --widget prev --cached",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "cnf-media --prev",
+    "tooltip": false
+  },
+  "custom/media-main": {
+    "exec": "cnf-media --widget main --cached",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "cnf-media --play-pause",
+    "on-scroll-up": "cnf-media --vol-up",
+    "on-scroll-down": "cnf-media --vol-down",
+    "tooltip": true
+  },
+  "custom/media-next": {
+    "exec": "cnf-media --widget next --cached",
+    "interval": 1,
+    "return-type": "json",
+    "on-click": "cnf-media --next",
+    "tooltip": false
+  },
+  "custom/cpu": {
+    "exec": "cnf-info --widget cpu --cached --json",
+    "return-type": "json",
+    "interval": 2,
+    "on-click": "foot -T ignis-htop -e htop",
+    "tooltip": true
+  },
+  "custom/temp": {
+    "exec": "cnf-info --widget temp --cached --json",
+    "return-type": "json",
+    "interval": 3,
+    "tooltip": true
+  },
+  "memory": {
+    "format": " {percentage}% {used:0.1f}/{total:0.1f}GB",
+    "tooltip-format": "{used:0.2f}GB / {total:0.2f}GB ({percentage}%)",
+    "interval": 3,
+    "states": {
+      "warning": 70,
+      "critical": 85
+    }
+  },
+  "disk": {
+    "interval": 120,
+    "format": " {percentage_used}% {specific_used:0.1f}/{specific_total:0.1f}GiB",
+    "tooltip-format": "{specific_used:0.2f}GiB / {specific_total:0.2f}GiB ({percentage_used}%)",
+    "unit": "GiB",
+    "path": "/",
+    "states": {
+      "warning": 70,
+      "critical": 85
+    }
+  },
+  "pulseaudio": {
+    "format": "{icon} {volume}%",
+    "max-volume": 200,
+    "format-muted": " Mute",
+    "format-icons": {
+      "default": [
+        "",
+        "",
+        ""
+      ]
+    },
+    "on-click": "pavucontrol"
+  },
+  "custom/kblight": {
+    "format": "{}",
+    "exec": "cnf-info --kbdlight",
+    "interval": 3,
+    "tooltip": true
+  },
+  "backlight": {
+    "device": "intel_backlight",
+    "format": "{icon} {percent}%",
+    "format-icons": [
+      "󰃞",
+      "󰃟",
+      "󰃠"
+    ]
+  },
+  "battery": {
+    "interval": 3,
+    "states": {
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{icon} {capacity}%",
+    "format-charging": [
+      "󰢜 {capacity}%",
+      "󰂆 {capacity}%",
+      "󰂇 {capacity}%",
+      "󰂈 {capacity}%",
+      "󰂉 {capacity}%",
+      "󰂊 {capacity}%",
+      "󰂋 {capacity}%",
+      "󰂅 {capacity}%"
+    ],
+    "format-plugged": "󰚥 {capacity}%",
+    "format-alt": "{time} {icon}",
+    "format-icons": [
+      "",
+      "",
+      "",
+      "",
+      ""
+    ]
+  },
+  "custom/hostname": {
+    "exec": "cat /etc/hostname",
+    "format": " {}",
+    "interval": "once",
+    "on-click": "sleep 0.1 && ignis toggle-window ignis_CONTROL_CENTER",
+    "tooltip": true,
+    "tooltip-format": "Centro de control"
+  },
+  "custom/launcher": {
+    "format": "{}",
+    "exec": "~/.config/hypr/scripts/waybar-launcher-icon.sh",
+    "interval": "once",
+    "on-click": "~/.config/hypr/scripts/wofi-launch.sh",
+    "tooltip-format": "Lanzador"
+  },
+  "custom/date": {
+    "exec": "~/.config/waybar/scripts/waybar_date_icon.sh", // Renombramos el script
+    "format": " {}",
+    "interval": 1,
+    "on-click": "foot -T ignis-cal -e bash -c 'cal -y; read'"
+  },
+  "tray": {
+    "icon-size": 16,
+    "spacing": 5,
+    "show-passive-items": true
+  }
+}

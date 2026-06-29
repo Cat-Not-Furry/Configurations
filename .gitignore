@@ -34,7 +34,8 @@ Thumbs.db
 # Rust / Cargo (artefactos de build)
 **/target/
 
-# Waybar — generados en runtime o por apply-theme (copia activa en ~/.config/)
+# Waybar — generados en runtime (hyprland/waybar)
+hyprland/waybar/waybar-autohide-state.css
 waybar/waybar-autohide-state.css
 
 # waybar-auto-hide-cnf/ — fuente Rust aparte (.git anidado); el binario va en waybar/scripts/bin/
@@ -53,12 +54,21 @@ fondos/other/*.png
 fondos/other/*.webp
 fondos/other/other-*.7z.xml
 
-# cnf-bin — secretos, local y artefactos
+# cnf-bin — secretos, local y artefactos (shared/cnf-bin + legacy cnf-bin/)
+shared/cnf-bin/config.local.toml
 cnf-bin/config.local.toml
+shared/cnf-bin/secrets/*.env
 cnf-bin/secrets/*.env
+!shared/cnf-bin/secrets/*.example
 !cnf-bin/secrets/*.example
+shared/cnf-bin/cnf-info/target/
+shared/cnf-bin/cnf-media/target/
 cnf-bin/cnf-info/target/
+shared/cnf-bin/apps/**/logs/
 cnf-bin/apps/**/logs/
+shared/cnf-bin/backups/
 cnf-bin/backups/
 # Binarios compilados (install manual → /usr/local/bin)
+shared/cnf-bin/bin/cnf-info
+shared/cnf-bin/bin/cnf-media
 cnf-bin/bin/cnf-info

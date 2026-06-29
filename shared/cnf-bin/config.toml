@@ -1,0 +1,67 @@
+# cnf-bin — configuración maestra (versionada en repo).
+# Override local: config.local.toml (no sobrescribir en deploy).
+# Secretos: secrets/*.env (gitignored); ver *.example en repo.
+
+[paths]
+cnf_root = "~/.config/cnf-bin"
+cnf_bin = "/usr/local/bin"
+cnf_apps = "~/.config/cnf-bin/apps"
+repo_root = "~/Games/configurations"
+i3_fondos = "~/.config/i3/fondos"
+utilidades = "~/Games/configurations/shared/utilidades"
+
+[media]
+ignore_players = ["spotify"]
+prefer_players = ["zen-browser", "zen", "brave", "firefox", "strawberry", "mpv"]
+volume_step = 0.05
+max_sink_volume = 200
+
+[brillo]
+# Dispositivo brightnessctl para pantalla; vacío = auto / default
+device = ""
+
+[kbdlight]
+# Luz de teclado ThinkPad (solo lectura en cnf-info --kbdlight)
+device = "tpacpi::kbd_backlight"
+
+[i3]
+theme = "classic"
+
+[bumblebee]
+theme = "iceberg"
+# Sin cmus en barra (cmus.py se conserva en repo como reserva)
+modules = "media cpu sensors memory disk battery pipewire brightness kbdlight keyboard hostname datetime"
+
+[programs.sdm]
+script = "sdm"
+
+[programs.thinkfan]
+script = "thinkfan"
+
+[programs.fondo]
+script = "fondo"
+
+[programs.docker_manager]
+script = "docker-manager"
+
+[programs.web_manager]
+script = "web-manager"
+
+[programs.print_manager]
+script = "print-manager"
+
+[programs.actualizar]
+script = "actualizar"
+
+# Applets de bandeja — entorno para que blueman-manager se muestre al clic (X11 / Wayland).
+[session.x11]
+blueman_gdk_backend = "x11"
+blueman_qt_platform = "xcb"
+blueman_manager = "blueman-manager"
+blueman_dbus_display = "1"
+
+[session.wayland]
+blueman_gdk_backend = "wayland"
+blueman_qt_platform = "wayland"
+blueman_manager = "blueman-manager"
+blueman_dbus_display = "1"

@@ -1,143 +1,209 @@
 # Configuraciones de escritorio
 
-Repositorio de dotfiles para entornos Linux (Hyprland, Waybar, Ignis, Wofi, Cava, i3, DWM, etc.).
+Dotfiles para entornos Linux: **Hyprland** (Wayland), **i3** (X11), **DWM**, herramientas compartidas (`cnf-bin`, tmux, nvim, etc.).
 
-## Stack Hyprland
+Pensado para clonar en `~/Games/configurations` (o `~/hyprland`) y desplegar con scripts incluidos. Los README y scripts **no se copian** a `~/.config/`; solo viven en el repo.
 
-| Carpeta en el repo | Destino al desplegar | Descripción |
-|-------------------|----------------------|-------------|
-| `hyperland/` | `~/.config/hypr/` | Compositor, keybinds, scripts, temas |
-| `waybar/` | `~/.config/waybar/` | Barra de estado |
-| `ignis/` | `~/.config/ignis/` | Shell GTK (centro de control, OSD) |
-| `wofi/` | `~/.config/wofi/` | Lanzador temático |
-| `cava/` | `~/.config/cava/` | Visualizador de audio (perfiles por tema) |
-| `bash/` | `~/.config/bash/` + `~/.bashrc` | Shell Hyprland (powerline) o X11 (legacy) |
-| `powerline/` | `~/.config/powerline/` | Prompt bash |
-| `nvim/` | `~/.config/nvim/` | LazyVim + tema Hyprland |
-| `tmux/` | `~/.config/tmux/` | Multiplexor + colores por tema |
-| `cnf-bin/` | `~/.config/cnf-bin/` (solo config) + `/usr/local/bin` (binarios, manual) | `cnf-info`, scripts, config maestra |
-| `utilidades/` | *(solo repo)* | Monitor, cpu-mode, etc. (PATH al clone) |
+---
 
-> **Nota:** la carpeta se llama `hyperland/` (convención histórica del repo); el destino real es `~/.config/hypr/`.
+## Inicio rápido
 
-## Probar la configuración (desde cero)
+| Objetivo | Comando |
+|----------|---------|
+| **Hyprland** (config + recarga) | `./hyprland/scripts/install-hypr.sh` |
+| **i3** (config + recarga) | `./I3/scripts/install-i3.sh` |
+| **Deploy maestro** | `./deploy-configs.sh [--config-hypr \| --config-i3]` |
+| **Binarios** (`cnf-info`, `thinkfan`, …) | `./shared/install.sh --binaries` |
+| **Compilar Rust + instalar** | `./shared/cnf-bin/build-install.sh` |
+| **Solo cnf-bin config** | `./shared/install.sh --config-only` |
 
-```bash
-# 1. Clona donde quieras (ejemplo)
-git clone https://github.com/TU_USUARIO/TU_REPO.git dotfiles
-cd dotfiles
+Añade `--binaries` a `install-hypr.sh` / `install-i3.sh` para copiar también a `/usr/local/bin`.
 
-# 2. Despliega todo el stack Hyprland
-./hyperland/scripts/deploy-configs.sh
+---
 
-# 3. Inicia sesión con Hyprland (SDM en consola, greetd, startx manual, etc.)
+## Estructura del repositorio
+
+```
+configurations/
+├── README.md
+├── deploy-configs.sh         ← despliegue maestro → ~/.config/
+├── I3/                       ← stack i3 (X11)
+│   ├── i3-wm/
+│   ├── bumblebee-status/
+│   └── scripts/
+│       ├── install-i3.sh     ← despliegue i3
+│       └── deploy-i3.sh
+├── hyprland/                 ← stack Hyprland (Wayland)
+│   ├── hyperland/            → ~/.config/hypr/
+│   ├── waybar/
+│   ├── powerline/
+│   └── scripts/
+│       └── install-hypr.sh   ← despliegue Hyprland
+├── shared/                   ← componentes compartidos entre stacks
+│   ├── cnf-bin/              ← scripts, cnf-info, cnf-media, config.toml
+│   ├── bash/, tmux/, nvim/, polybar/, wofi/, cava/, …
+│   └── install.sh
+├── dwm-full/                 ← fork DWM + st (compilación manual)
+├── btop/                     ← tema btop
+└── waybar-auto-hide-cnf/     ← crate Rust wb_autohide (opcional)
 ```
 
-El script detecta la estructura **split** del repo (`hyperland/` + carpetas hermanas). No hace falta editar rutas absolutas.
+---
 
-### Qué hace `deploy-configs.sh`
+## Requisitos generales
 
-1. Copia el stack Hyprland → `~/.config/` (**sin** `README.md`, `docs/` ni otros `.md`)
-2. Por defecto, copia el mismo contenido → `$HOME/Games/configurations` (mirror local; no hace `git push`)
-3. Copia `hyperland/themes/palettes.json` → `~/.config/ignis/themes/`
-4. Aplica el tema activo con `apply-theme.sh` (reinicia waybar, `hyprctl reload`, ignis)
-5. Con `--all`, además reinicia **swaync** al final
+- **Arch Linux** (o derivado) — los ejemplos usan `pacman`
+- **Rust + cargo** — solo si compilas `cnf-info` / `cnf-media` / `wb_autohide`
+- **sudo** — para instalar en `/usr/local/bin` y escribir en `/proc/acpi/ibm/fan` (`thinkfan`)
+- Clone del repo en una ruta fija; los scripts resuelven rutas relativas al repo
 
-```bash
-./hyperland/scripts/deploy-configs.sh              # ~/.config + mirror + apply-theme
-./hyperland/scripts/deploy-configs.sh --config       # solo ~/.config (sin mirror)
-./hyperland/scripts/deploy-configs.sh --all          # completo + reinicio de swaync
-```
-
-> **Documentación:** los `README.md` y carpetas `docs/` **solo** viven en el repo (`~/hyprland` o `~/Games/configurations`). Nunca se copian a `~/.config/`.
-
-## Temas unificados
-
-Definidos en `hyperland/themes/palettes.json`. Un comando aplica colores a Hypr, Waybar, Wofi, Cava, Tmux, Nvim y Powerline:
+### Paquetes habituales (Hyprland)
 
 ```bash
-# Desde la raíz del clone
-./hyperland/scripts/apply-theme.sh [theme_id]
-
-# Ejemplos
-./hyperland/scripts/apply-theme.sh blue
-./hyperland/scripts/apply-theme.sh catppuccin_mocha
+sudo pacman -S hyprland waybar wofi playerctl brightnessctl wireplumber \
+  lm_sensors polkit-kde-agent xdg-desktop-portal-hyprland hypridle hyprlock
 ```
 
-Sin argumento usa el tema guardado en `~/.config/ignis/user_options.json`.
-
-`apply-theme.sh` escribe **solo** en `~/.config/` (no modifica el clone).
-
-## Regenerar perfiles (mantenedores)
-
-Tras editar `palettes.json` o plantillas base:
+### Paquetes habituales (i3)
 
 ```bash
-./hyperland/scripts/generate-wofi-wayland.sh
-./hyperland/scripts/generate-cava-wayland.sh
-./hyperland/scripts/generate-tmux-colors.sh
+sudo pacman -S i3 i3status xorg-xinit picom playerctl brightnessctl \
+  blueman network-manager-applet copyq
 ```
 
-Luego vuelve a desplegar o ejecuta `apply-theme.sh`.
+Detalle por componente en los README de cada carpeta.
 
-## Entornos Hyprland vs X11/i3
+---
 
-| Script | Uso |
-|--------|-----|
-| `hyperland/scripts/x11-environment.sh` | Perfil **i3/X11**: bash legacy, env X11, cava X11 |
-| `hyperland/scripts/hypr-environment.sh` | Vuelta a **Hyprland/Wayland** |
+## Descargar solo un stack (DownGit)
+
+Si no quieres clonar todo el repo, puedes bajar carpetas concretas con [DownGit](https://downgit.github.io/): pega la URL de la carpeta en GitHub y descarga el ZIP.
+
+Repositorio: `https://github.com/Cat-Not-Furry/Configurations`
+
+| Quieres | Descarga estas carpetas | Notas |
+|---------|-------------------------|-------|
+| **Hyprland** | `hyprland/` + `shared/` | Obligatorio `shared/` (ignis, wofi, cnf-bin, tmux, …) |
+| **i3** | `I3/` + `shared/` + `hyprland/hyperland/scripts/` | Los instaladores usan `deploy-configs.sh` dentro de `hyprland/hyperland/scripts/` |
+| **Solo cnf-bin** | `shared/cnf-bin/` (+ `shared/install.sh` si quieres el script) | O baja `shared/` entero |
+| **DWM** | `dwm-full/` + `shared/cnf-bin/` | Para la barra con `cnf-info` / `cnf-media` |
+| **btop / wb_autohide** | `btop/` o `waybar-auto-hide-cnf/` | Opcionales; no dependen del resto |
+
+Enlaces directos (rama `main`):
+
+- [Hyprland](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/hyprland)
+- [i3](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/I3)
+- [shared](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/shared)
+- [Scripts de deploy](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/hyprland/hyperland/scripts) (necesario para i3)
+- [dwm-full](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/dwm-full)
+
+Tras descomprimir, **mantén la estructura de carpetas** y coloca todo bajo la misma raíz (p. ej. `~/Games/configurations/`):
+
+```
+~/Games/configurations/
+├── I3/              # si usas i3
+├── hyprland/        # si usas Hyprland (incluye hyperland/scripts/)
+└── shared/          # casi siempre necesario
+```
+
+Luego ejecuta el instalador correspondiente desde esa raíz (ver sección siguiente).
+
+---
+
+## Flujos de instalación (VM)
+
+### 1. Hyprland completo
 
 ```bash
-./hyperland/scripts/x11-environment.sh && source ~/.bashrc
-./hyperland/scripts/hypr-environment.sh && source ~/.bashrc
+git clone https://github.com/Cat-Not-Furry/Configurations.git ~/Games/configurations
+cd ~/Games/configurations
+
+# Config → ~/.config/ (hypr, waybar, ignis, wofi, cnf-bin, tmux, …)
+./hyprland/scripts/install-hypr.sh
+
+# Opcional: binarios en /usr/local/bin
+./hyprland/scripts/install-hypr.sh --binaries
+
+# Tema
+./hyprland/hyperland/scripts/apply-theme.sh blue
+
+# Cerrar sesión e iniciar Hyprland (p. ej. con sdm)
 ```
 
-Estado: `~/.cache/hypr/session-mode`.
-
-## Tmux
-
-Arranque manual en terminal; alias `tm` en bashrc.
+### 2. i3 completo
 
 ```bash
-./hyperland/scripts/tmux-atajos.sh all
+git clone https://github.com/Cat-Not-Furry/Configurations.git ~/Games/configurations
+cd ~/Games/configurations
+
+./I3/scripts/install-i3.sh
+./I3/scripts/install-i3.sh --binaries   # opcional
+
+# Tema i3
+~/.config/i3/scripts/apply-i3-theme.sh classic
+
+# Iniciar i3 (p. ej. startx / sdm)
 ```
 
-- Prefijo **Alt+a** (sin Ctrl); **Alt+Space** / **Alt+Shift+Space** + flechas
-- **Alt+\\** / **Alt+-** splits; barra pac/AUR/flat (cache 1 h). Sin TPM
+### 3. Solo binarios y config cnf-bin
 
-## Waybar – módulos destacados
+```bash
+./shared/install.sh              # config.toml → ~/.config/cnf-bin/
+./shared/install.sh --binaries   # + /usr/local/bin
+./shared/cnf-bin/build-install.sh  # compila Rust + instala
+```
 
-| Módulo | Función |
-|--------|---------|
-| `custom/launcher` | Icono de distro; clic → Wofi drun |
-| `custom/bar-position` | Flecha ↑/↓; alterna barra top/bottom |
-| `custom/bar-autohide` | `-` / `^` / `v`; autohide vía binario `wb_autohide` |
-| `custom/kblight` | Luz teclado (`cnf-info --kbdlight`, solo lectura) |
-| `custom/media-*` | Control multimedia vía `playerctl` |
+### 4. DWM (fork propio)
 
-Brillo de pantalla: atajos Hypr → `cnf-info --brillo +/-`. Ver [`cnf-bin/README.md`](cnf-bin/README.md).
+Ver [`dwm-full/README.md`](dwm-full/README.md) y [`dwm-full/install.sh`](dwm-full/install.sh).
 
-## cnf-bin y utilidades
+---
 
-- [`cnf-bin/README.md`](cnf-bin/README.md) — `cnf-info`, managers, deploy, secretos
-- [`utilidades/README.md`](utilidades/README.md) — scripts opcionales (monitor, emuladores); carpeta borrable
+## Scripts centrales
 
-## Documentación por componente
+| Script | Qué hace |
+|--------|----------|
+| [`deploy-configs.sh`](deploy-configs.sh) | Despliegue maestro → `~/.config/` (raíz del repo) |
+| [`hyprland/hyperland/scripts/deploy-configs.sh`](hyprland/hyperland/scripts/deploy-configs.sh) | Implementación (también invocable directamente) |
+| [`hyprland/hyperland/scripts/install-local-binaries.sh`](hyprland/hyperland/scripts/install-local-binaries.sh) | `cnf-bin/bin/*`, utilidades, `wb_autohide` → `/usr/local/bin` |
+| [`shared/cnf-bin/build-install.sh`](shared/cnf-bin/build-install.sh) | Compila `cnf-info` + `cnf-media` e instala |
+| [`I3/scripts/deploy-i3.sh`](I3/scripts/deploy-i3.sh) | Wrapper: `deploy-configs.sh --config-i3` |
 
-- [`cnf-bin/README.md`](cnf-bin/README.md) — cnf-info y scripts
-- [`hyperland/README.md`](hyperland/README.md) — Hyprland, keybinds, scripts
-- [`i3-wm/README.md`](i3-wm/README.md) — i3/X11, bandeja i3bar, bumblebee-status
-- [`waybar/README.md`](waybar/README.md) — Barra y módulos
-- [`wofi/README.md`](wofi/README.md) — Lanzador y perfiles por tema
-- [`ignis/README.md`](ignis/README.md) — Shell GTK
-- `tmux/docs/atajos.md` — Tmux (atajos; script: `hyperland/scripts/tmux-atajos.sh`)
+Opciones de `deploy-configs.sh`:
 
-## Otras configuraciones
+```text
+(sin flags)       Hyprland + i3 + compartidos
+--config-hypr     Solo stack Hyprland
+--config-i3       Solo stack i3
+--config          Sin mirror al repo local
+--all             Reinicia swaync (Hyprland)
+```
 
-- `session/` — selector de sesión en consola (`sdm`; no es un display manager)
-- `copyq/` — portapapeles
-- `i3-wm/`, `dwm-full/`, `polybar/` — entornos alternativos
+---
 
-## Descargar solo una carpeta
+## Documentación por carpeta
 
-Si no quieres clonar todo el repositorio, navega a la carpeta que te interese en GitHub, copia su URL y descárgala con [DownGit](https://downgit.github.io/#/home).
+| Carpeta | README | Instalación |
+|---------|--------|-------------|
+| [I3/](I3/README.md) | Stack i3 | `I3/scripts/install-i3.sh` |
+| [hyprland/](hyprland/README.md) | Stack Hyprland | `hyprland/scripts/install-hypr.sh` |
+| [shared/](shared/README.md) | Componentes compartidos | `shared/install.sh` |
+| [shared/cnf-bin/](shared/cnf-bin/README.md) | cnf-info, cnf-media, thinkfan, managers | `shared/cnf-bin/build-install.sh` |
+| [dwm-full/](dwm-full/README.md) | DWM + st | `dwm-full/install.sh` |
+| [btop/](btop/README.md) | Monitor de recursos | `btop/install.sh` |
+| [waybar-auto-hide-cnf/](waybar-auto-hide-cnf/README.md) | Autohide Waybar | `waybar-auto-hide-cnf/build-and-install.sh` |
+
+---
+
+## Notas importantes
+
+- **`cnf-bin/bin/`** no se despliega a `~/.config/`; instálalo en `/usr/local/bin` con los scripts de arriba.
+- **Documentación (`.md`)** permanece en el clone; `deploy-configs.sh` la excluye de `~/.config/`.
+- **`thinkfan`**: no uses `sudo thinkfan`; el script llama sudo solo para el ventilador. Soporta modo cadena (`-c`/`-C`). Ver [`shared/cnf-bin/README.md`](shared/cnf-bin/README.md).
+- **Rutas legacy**: algunos scripts aceptan el layout antiguo (`hyperland/` en raíz). La fuente canónica es `hyprland/hyperland/`, `shared/`, `I3/`.
+
+---
+
+## Licencia
+
+Ver [`LICENSE`](LICENSE).
