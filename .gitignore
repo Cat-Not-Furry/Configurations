@@ -38,8 +38,8 @@ Thumbs.db
 hyprland/waybar/waybar-autohide-state.css
 waybar/waybar-autohide-state.css
 
-# waybar-auto-hide-cnf/ — fuente Rust aparte (.git anidado); el binario va en waybar/scripts/bin/
-waybar-auto-hide-cnf/
+# i3space/ y waybar-auto-hide-cnf/ son repos git aparte (cada uno con .git/ y .gitignore propio).
+# No versionar su contenido aquí; enlázalos como submódulos o clónalos al lado.
 
 # CopyQ — estado local de la sesión (no versionar)
 copyq/copyq.lock
