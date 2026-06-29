@@ -45,7 +45,8 @@ configurations/
 │   └── install.sh
 ├── dwm-full/                 ← fork DWM + st (compilación manual)
 ├── btop/                     ← tema btop
-└── waybar-auto-hide-cnf/     ← crate Rust wb_autohide (opcional)
+├── waybar-auto-hide-cnf/     ← crate Rust wb_autohide (opcional)
+└── i3space/                  ← overview i3 (repo aparte, opcional)
 ```
 
 ---
@@ -54,6 +55,7 @@ configurations/
 
 - **Arch Linux** (o derivado) — los ejemplos usan `pacman`
 - **Rust + cargo** — solo si compilas `cnf-info` / `cnf-media` / `wb_autohide`
+- **CMake + C++20** — solo si compilas `i3space` (overview i3)
 - **sudo** — para instalar en `/usr/local/bin` y escribir en `/proc/acpi/ibm/fan` (`thinkfan`)
 - Clone del repo en una ruta fija; los scripts resuelven rutas relativas al repo
 
@@ -87,7 +89,7 @@ Repositorio: `https://github.com/Cat-Not-Furry/Configurations`
 | **i3** | `I3/` + `shared/` + `hyprland/hyperland/scripts/` | Los instaladores usan `deploy-configs.sh` dentro de `hyprland/hyperland/scripts/` |
 | **Solo cnf-bin** | `shared/cnf-bin/` (+ `shared/install.sh` si quieres el script) | O baja `shared/` entero |
 | **DWM** | `dwm-full/` + `shared/cnf-bin/` | Para la barra con `cnf-info` / `cnf-media` |
-| **btop / wb_autohide** | `btop/` o `waybar-auto-hide-cnf/` | Opcionales; no dependen del resto |
+| **btop / wb_autohide / i3space** | `btop/`, `waybar-auto-hide-cnf/` o `i3space/` | Opcionales; no dependen del resto |
 
 Enlaces directos (rama `main`):
 
@@ -192,6 +194,7 @@ Opciones de `deploy-configs.sh`:
 | [dwm-full/](dwm-full/README.md) | DWM + st | `dwm-full/install.sh` |
 | [btop/](btop/README.md) | Monitor de recursos | `btop/install.sh` |
 | [waybar-auto-hide-cnf/](waybar-auto-hide-cnf/README.md) | Autohide Waybar | `waybar-auto-hide-cnf/build-and-install.sh` |
+| [i3space/](i3space/README.md) | Overview workspaces i3 | `i3space/build-and-install.sh` |
 
 ---
 
