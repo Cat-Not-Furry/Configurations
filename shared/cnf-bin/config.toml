@@ -7,7 +7,7 @@ cnf_root = "~/.config/cnf-bin"
 cnf_bin = "/usr/local/bin"
 cnf_apps = "~/.config/cnf-bin/apps"
 repo_root = "~/Games/configurations"
-i3_fondos = "~/.config/i3/fondos"
+fondos = "~/.config/fondos"
 utilidades = "~/Games/configurations/shared/utilidades"
 
 [media]
@@ -28,8 +28,7 @@ device = "tpacpi::kbd_backlight"
 theme = "classic"
 
 [bumblebee]
-theme = "iceberg"
-# Sin cmus en barra (cmus.py se conserva en repo como reserva)
+theme = "classic"
 modules = "media cpu sensors memory disk battery pipewire brightness kbdlight keyboard hostname datetime"
 
 [programs.sdm]

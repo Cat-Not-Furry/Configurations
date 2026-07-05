@@ -14,6 +14,8 @@ find_palettes_file() {
   local candidate
   for candidate in \
     "$HOME/.config/ignis/themes/palettes.json" \
+    "${HYPRLAND_ROOT:-}/themes/palettes.json" \
+    "${CONFIG_ROOT:-}/hyprland/hyperland/themes/palettes.json" \
     "${HYPRLAND_ROOT:-$HOME/hyprland}/themes/palettes.json" \
     "${CONFIG_ROOT:-$HOME/hyprland}/themes/palettes.json"; do
     if [ -f "$candidate" ]; then
@@ -25,7 +27,13 @@ find_palettes_file() {
 }
 
 copyq_repo_root() {
-  echo "${CONFIG_ROOT:-${HYPRLAND_ROOT:-$HOME/hyprland}}/copyq"
+  if [ -n "${SHARED_ROOT:-}" ] && [ -d "${SHARED_ROOT}/copyq" ]; then
+    echo "${SHARED_ROOT}/copyq"
+  elif [ -d "${CONFIG_ROOT:-}/shared/copyq" ]; then
+    echo "${CONFIG_ROOT}/shared/copyq"
+  else
+    echo "${CONFIG_ROOT:-${HYPRLAND_ROOT:-$HOME/hyprland}}/copyq"
+  fi
 }
 
 copyq_repo_themes_dir() {

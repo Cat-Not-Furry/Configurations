@@ -12,6 +12,11 @@
 # theme = "classic"
 # theme = "iceberg"
 
+[bumblebee]
+# Sincronizado con [i3] theme al usar apply-i3-theme.sh / menú dmenu
+# theme = "classic"
+# theme = "iceberg"
+
 [media]
 # prefer_players = ["zen-browser", "zen", "brave"]
 # max_sink_volume = 200

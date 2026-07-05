@@ -21,14 +21,14 @@ Activa el perfil X11/i3 en ~/.config/:
   - session-mode → x11
   - ~/.bashrc ← bash/bashrc.x11
   - ~/.config/bash/env.active.sh (GDK/XDG/Qt para X11)
-  - cava → config X11 (config.txt o config.{slug})
+  - cava, tmux y copyq alineados con [i3] theme (vía apply-i3-theme / activate_x11_shared_themes)
 
 Para aplicar en la shell actual tras ejecutar:
   source ~/.bashrc
 
 Cierra sesión Hyprland e inicia i3 para el entorno gráfico completo.
 
-También activa tmux (grises). La barra bumblebee no cambia con el tema i3.
+También aplica tmux (classic|gray), cava y copyq según tema i3 en config.toml.
 EOF
 }
 
@@ -52,9 +52,9 @@ cp "$BASH_X11" "${HOME}/.bashrc"
 echo "Bash: bashrc.x11 → ~/.bashrc"
 
 write_x11_env
-activate_cava_x11_profile "" || true
-activate_tmux_gray_profile || true
-activate_i3_theme_profile || true
+if ! activate_i3_theme_profile; then
+  activate_x11_shared_themes || true
+fi
 propagate_env_from_file
 
 # Aplicar en la shell que invoca el script (si es interactiva)

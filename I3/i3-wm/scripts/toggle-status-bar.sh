@@ -3,6 +3,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=i3-theme-lib.sh
+source "$SCRIPT_DIR/i3-theme-lib.sh"
 I3_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BAR_DIR="$I3_ROOT/conf.d/bar-mode"
 BBAR="$I3_ROOT/conf.d/05-bbar.conf"
@@ -74,11 +76,18 @@ apply_mode() {
       ;;
     bumblebee)
       stop_polybar
+      if [[ -x "$SCRIPT_DIR/apply-i3-theme.sh" ]]; then
+        "$SCRIPT_DIR/apply-i3-theme.sh" --no-reload || true
+      elif [[ -x "${HOME}/.config/i3/scripts/apply-i3-theme.sh" ]]; then
+        "${HOME}/.config/i3/scripts/apply-i3-theme.sh" --no-reload || true
+      fi
       ;;
   esac
 
   if command -v i3-msg >/dev/null 2>&1 && [[ -n "${DISPLAY:-}" ]]; then
-    i3-msg reload >/dev/null 2>&1 || i3-msg restart
+    i3-msg reload >/dev/null 2>&1 || true
+    sleep 0.3
+    ensure_single_i3bar
   fi
 
   if [[ "$mode" = polybar ]] && [[ -x "$POLYBAR_LAUNCH" ]]; then

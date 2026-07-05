@@ -13,6 +13,13 @@ Destino: `~/.config/tmux/` (o enlace según deploy)
 
 ## Temas
 
+| Entorno | Script | Mapeo i3 |
+|---------|--------|----------|
+| **Hyprland** | `apply-theme.sh [theme_id]` | — |
+| **i3 / X11** | `apply-i3-theme.sh` + `activate_x11_shared_themes` | `classic`→`classic`, `iceberg`→`blue` |
+
+En X11, tmux usa `colors/classic.conf` o `colors/gray.conf` según el tema i3 (`config.toml` `[i3] theme`).
+
 Colores por palette en `colors/` y `colors/*.conf`. Regenerar desde Hyprland:
 
 ```bash

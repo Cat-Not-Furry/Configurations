@@ -53,7 +53,7 @@ Al iniciar i3 se aplican las mismas variables que en `hyprland/hyperland/scripts
 | `QT_QPA_PLATFORMTHEME` | `qt5ct` |
 | `XDG_CURRENT_DESKTOP` | `i3` |
 
-- **`conf.d/00-env.conf`** — al arrancar i3 ejecuta `scripts/i3-environment.sh` (env + cava X11 + `dbus-update-activation-environment`; no toca `~/.bashrc` en cada reload).
+- **`conf.d/00-env.conf`** — al arrancar i3 ejecuta `apply-i3-theme.sh` y luego `i3-environment.sh` (env + temas shared + `dbus-update-activation-environment`; no toca `~/.bashrc` en cada reload).
 - **`session/binscripts/sdm`** — script de consola (no es un display manager): antes de `startx` ejecuta `x11-environment.sh` (bashrc X11 + env + cava + mata restos Wayland). El equivalente Hyprland ocurre en `hypr-environment.sh` + `hypr-session-init.sh`.
 - Al entrar en i3 se terminan procesos Wayland/Hyprland huérfanos (waybar, ignis, swaync, cava, etc.); Hyprland hace lo propio con restos X11 vía `hypr-session-init.sh`.
 
@@ -69,10 +69,10 @@ Estado de sesión: `~/.cache/hypr/session-mode`.
 
 | Tema | Ventanas (gaps/bordes) | Barra |
 |------|------------------------|-------|
-| `classic` | Verde (#005818) | bumblebee-bar-classic.conf |
-| `iceberg` | Foco `#e2e4ea`, sin foco `#000000` | Workspaces `#565f75` (bumblebee-bar-iceberg.conf) |
+| `classic` | Verde (#005818) | bumblebee-bar-classic.conf | i3lock azul (#000445) |
+| `iceberg` | Foco `#e2e4ea`, sin foco `#000000` | Workspaces `#565f75` (bumblebee-bar-iceberg.conf) | i3lock gris (#161821) |
 
-`apply-i3-theme.sh` **reemplaza** `07-gaps_borders.conf` y `05-bbar.conf` copiando desde `conf.d/themes/`. Al cambiar de tema reinicia i3 para repintar ventanas abiertas.
+`apply-i3-theme.sh` **reemplaza** `07-gaps_borders.conf` y `05-bbar.conf` copiando desde `conf.d/themes/`, persiste `[i3]` + `[bumblebee]` `theme` en `config.local.toml`, regenera `~/.config/nvim/lua/config/theme.generated.lua` (Tokyo Night vía `palettes.json`: `classic`→`classic`, `iceberg`→`blue`), y sincroniza **tmux**, **cava** y **copyq** en `shared/` vía `activate_x11_shared_themes`. Al cambiar de tema reinicia i3 para repintar ventanas abiertas y relanzar bumblebee-status.
 
 Por defecto en `cnf-bin/config.toml`: `[i3] theme = "classic"`. Tras deploy o al arrancar i3 se ejecuta `apply-i3-theme.sh`.
 
@@ -83,7 +83,20 @@ Cambio manual:
 ~/.config/i3/scripts/apply-i3-theme.sh iceberg   # iceberg dark
 ```
 
-Tmux en sesión X11 usa `tmux/colors/gray.conf` (misma base #161821 que el tema i3 iceberg).
+Tmux en sesión X11: `classic` → `tmux/colors/classic.conf`; `iceberg` → `tmux/colors/gray.conf`. Cava y copyq usan la misma palette (`classic` o `blue`).
+
+## Fondos de pantalla
+
+Destino en el sistema: **`~/.config/fondos/`** (compartido con Hyprland/Ignis). El deploy **no** los copia salvo `--fondos` / `--fondos-all` en `deploy-configs.sh` o `install-i3.sh`.
+
+```bash
+fondo f              # aleatorio (excluye other/)
+fondo s              # elegir por número
+fondo p / fondo sp   # directorio other/
+life_fondo video.mp4 # fondo animado (requiere picom)
+```
+
+Ver [`../../shared/fondos/README.md`](../../shared/fondos/README.md).
 
 Probar **polybar** en lugar de bumblebee: menú dmenu → Utilidades → Pantallas → Barra, o:
 
@@ -282,15 +295,30 @@ environment.systemPackages = with pkgs; [
 sudo nixos-rebuild switch
 ```
 
+### Bloqueo de sesión (`xss-lock` + `lock.sh`)
+
+Flujo al arrancar i3 (`00-exec.conf`):
+
+```text
+xss-lock --transfer-sleep-lock -- lock.sh
+```
+
+- **xss-lock** escucha el screensaver de X11 y bloquea antes de suspender (`--transfer-sleep-lock`).
+- **lock.sh** intenta primero `loginctl lock-session` (paridad con `hypridle` en Hyprland).
+- Si logind no puede bloquear la sesión, usa **i3lock** con colores del tema i3 (`classic` / `iceberg`).
+- Si `lock.sh` se ejecutara como root, se re-lanza como usuario de sesión (evita “contraseña incorrecta” en i3lock).
+
+Atajos: `$mod+mod1+b`, menú dmenu “Bloquear”. Suspender/hibernar usan `loginctl lock-session` cuando está disponible.
+
 ### Scripts personalizados
 
 Atajos que dependen de scripts del repo (rutas tras `deploy-configs.sh`):
 
-- `i3-wm/scripts/lock.sh` — bloqueo (`xss-lock`)
+- `i3-wm/scripts/lock.sh` — bloqueo (`loginctl` → `i3lock`; usado por `xss-lock`)
 - `i3-wm/scripts/dmenu-script.sh`, `dmenu-script1.sh` — lanzadores
 - `cnf-bin/bin/toggle-keyboard.sh` o `~/.local/bin/toggle-keyboard.sh` — teclado
 - `eww/launch.sh` — widgets eww
-- `life_fondo`, `dead_fondo.sh` — fondos animados (opcional)
+- `life_fondo`, `dead_fondo.sh` — fondos animados en X11 (`~/.config/fondos/`, opcional)
 - `touchpad` — configuración del touchpad (script/alias local)
 
 Si no usas alguna función, comenta la línea en el `conf.d/` correspondiente.

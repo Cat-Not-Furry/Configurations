@@ -40,7 +40,7 @@ read_bumblebee_value() {
   ' "$file"
 }
 
-THEME="iceberg"
+THEME="classic"
 MODULES="media cpu sensors memory disk battery pipewire brightness kbdlight keyboard hostname datetime"
 
 if CONFIG_FILE="$(resolve_config_file)"; then

@@ -45,8 +45,8 @@ class UserOptions(OptionsManager):
 
     class WallpaperPicker(OptionsGroup):
         video_base_path: str = f"{os.path.expanduser('~')}/Videos/Wallpapers"
-        image_base_path: str = f"{os.path.expanduser('~')}/.config/i3/fondos"
-        other_image_base_path: str = f"{os.path.expanduser('~')}/.config/i3/fondos/other"
+        image_base_path: str = f"{os.path.expanduser('~')}/.config/fondos"
+        other_image_base_path: str = f"{os.path.expanduser('~')}/.config/fondos/other"
         picker_width: int = 1200
         picker_height: int = 600
         picker_columns: int = 3

@@ -5,6 +5,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+# shellcheck source=cnf-bin/lib/require-session-user.sh
+source "$SCRIPT_DIR/cnf-bin/lib/require-session-user.sh"
+require_session_user "$0" "$@"
 CNF_BIN="$SCRIPT_DIR/cnf-bin"
 CONFIG_ONLY=0
 WITH_BINARIES=0

@@ -13,6 +13,11 @@ Destino: `~/.config/copyq/`
 
 ## Temas
 
+| Entorno | Script |
+|---------|--------|
+| **Hyprland** | `generate-copyq-themes.sh` + `apply-theme.sh` |
+| **i3 / X11** | `apply-i3-theme.sh` → palette `classic` o `blue` (iceberg) |
+
 Generación desde palette Hyprland:
 
 ```bash

@@ -119,8 +119,8 @@ Edita en el **repo** (luego `deploy-configs.sh --config`):
 | Archivo en el repo | Qué cambiar |
 |--------------------|-------------|
 | `hyperland/conf.d/monitors.conf` | Salidas (`hyprctl monitors`) |
-| `hyperland/hyprlock.conf` | Imagen de bloqueo |
-| `hyperland/scripts/wofi_wallpaper.sh` | `STATIC_WALL_DIR`, `VIDEO_WALL_DIR` |
+| `hyperland/hyprlock.conf` | Imagen de bloqueo (`~/.config/fondos/…`) |
+| `hyperland/scripts/wofi_wallpaper.sh` | `STATIC_WALL_DIR` → `~/.config/fondos/`; `VIDEO_WALL_DIR` |
 | `hyperland/conf.d/keybinds.conf` | Terminal (`foot` → la tuya) |
 
 ## Temas
@@ -177,7 +177,7 @@ Ver `conf.d/keybinds.conf` para la lista completa.
 
 | Script | Función |
 |--------|---------|
-| `deploy-configs.sh` | Copia stack → `~/.config/` (+ mirror por defecto); `--config` solo config; `--all` + swaync |
+| `deploy-configs.sh` | Copia stack → `~/.config/` (+ mirror por defecto); `--config` solo config; `--all` + swaync; `--fondos` / `--fondos-all` → `~/.config/fondos/` |
 | `apply-theme.sh` | Tema activo en Hypr / Waybar / Wofi / Cava / Tmux / Nvim |
 | `x11-environment.sh` | Perfil shell + cava para sesión i3/X11 |
 | `hypr-environment.sh` | Restaurar perfil Wayland |

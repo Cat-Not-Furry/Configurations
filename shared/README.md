@@ -18,6 +18,20 @@ Configuración y scripts usados por **i3** y **Hyprland** (y parcialmente por DW
 
 El script maestro de dotfiles es `./deploy-configs.sh` (raíz del repo).
 
+### Temas en sesión X11/i3
+
+El tema por defecto está en `cnf-bin/config.toml` (`[i3] theme = "classic"`). Al arrancar i3 o ejecutar `apply-i3-theme.sh`, se sincronizan:
+
+| Componente | `classic` | `iceberg` |
+|------------|-----------|-----------|
+| i3 / bumblebee / polybar | ✓ | ✓ |
+| nvim | palette `classic` | palette `blue` |
+| tmux | `colors/classic.conf` | `colors/gray.conf` |
+| cava | `wayland/config.classic` | `wayland/config.blue` |
+| copyq | `themes/classic.ini` | `themes/blue.ini` |
+
+Orquestación: `activate_x11_shared_themes` en `hyprland/hyperland/scripts/lib/session-env.sh`.
+
 ---
 
 ## Contenido
@@ -36,14 +50,14 @@ El script maestro de dotfiles es `./deploy-configs.sh` (raíz del repo).
 | **ignis/** | Shell GTK (Hyprland) | [ignis/README.md](ignis/README.md) |
 | **session/** | dunst, sdm, binscripts | [session/README.md](session/README.md) |
 | **utilidades/** | monitor, cpu-mode, etc. | [utilidades/README.md](utilidades/README.md) |
-| **fondos/** | Wallpapers (i3 / Hypr) | — |
+| **fondos/** | Wallpapers → `~/.config/fondos/` (deploy con `--fondos`) | [fondos/README.md](fondos/README.md) |
 
 ---
 
 ## cnf-bin (resumen)
 
 - **Config:** `~/.config/cnf-bin/config.toml` (override local: `config.local.toml`)
-- **Binarios:** `/usr/local/bin` — no van a `~/.config/`
+- **Binarios:** `/usr/local/bin` — no van a `~/.config/` `~/.local/bin`
 - **Principales:** `cnf-info`, `cnf-media`, `sdm`, `thinkfan`, `docker-manager`, `web-manager`, `print-manager`
 
 Ver documentación completa en [cnf-bin/README.md](cnf-bin/README.md).
@@ -56,7 +70,7 @@ Tras instalar binarios y cargar bashrc:
 
 ```text
 /usr/local/bin
-~/Games/configurations/shared/utilidades   # vía bashrc si existe el clone
+~/.cache/Configurations/shared/utilidades   # vía bashrc si existe el clone
 ```
 
 ---

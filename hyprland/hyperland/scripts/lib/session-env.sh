@@ -379,13 +379,105 @@ start_wayland_session_services() {
   command -v swaync >/dev/null 2>&1 && ! pgrep -x swaync >/dev/null 2>&1 && swaync &
 }
 
-activate_tmux_gray_profile() {
-  local colors_src active_dst tmux_conf root
-
+_load_i3_theme_lib() {
+  local candidate root
   root="${CONFIG_ROOT:-$HOME/Games/configurations}"
+  for candidate in \
+    "${I3_WM_ROOT:-$root/I3/i3-wm}/scripts/i3-theme-lib.sh" \
+    "$root/I3/i3-wm/scripts/i3-theme-lib.sh" \
+    "$root/i3-wm/scripts/i3-theme-lib.sh" \
+    "${HOME}/.config/i3/scripts/i3-theme-lib.sh"; do
+    if [ -f "$candidate" ]; then
+      # shellcheck source=/dev/null
+      source "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+_resolve_i3_theme_for_x11() {
+  local i3_theme_arg="${1:-}"
+  if _load_i3_theme_lib 2>/dev/null && declare -f resolve_i3_theme >/dev/null; then
+    resolve_i3_theme "" "$i3_theme_arg"
+    return 0
+  fi
+  case "$i3_theme_arg" in
+    classic | iceberg) printf '%s\n' "$i3_theme_arg" ;;
+    *) printf '%s\n' classic ;;
+  esac
+}
+
+_resolve_palette_for_x11() {
+  local i3_theme_arg="${1:-}"
+  local i3_theme
+  i3_theme="$(_resolve_i3_theme_for_x11 "$i3_theme_arg")"
+  if _load_i3_theme_lib 2>/dev/null && declare -f nvim_palette_for_i3 >/dev/null; then
+    nvim_palette_for_i3 "$i3_theme"
+    return 0
+  fi
+  case "$i3_theme" in
+    iceberg) printf '%s\n' blue ;;
+    *) printf '%s\n' classic ;;
+  esac
+}
+
+_resolve_tmux_x11_colors_slug() {
+  local i3_theme_arg="${1:-}"
+  local i3_theme
+  i3_theme="$(_resolve_i3_theme_for_x11 "$i3_theme_arg")"
+  if _load_i3_theme_lib 2>/dev/null && declare -f tmux_colors_slug_for_i3 >/dev/null; then
+    tmux_colors_slug_for_i3 "$i3_theme"
+    return 0
+  fi
+  case "$i3_theme" in
+    iceberg) printf '%s\n' gray ;;
+    *) printf '%s\n' classic ;;
+  esac
+}
+
+_cava_shared_root() {
+  if [ -n "${SHARED_ROOT:-}" ] && [ -d "${SHARED_ROOT}/cava" ]; then
+    printf '%s\n' "$SHARED_ROOT/cava"
+  elif [ -d "${CONFIG_ROOT:-}/shared/cava" ]; then
+    printf '%s\n' "${CONFIG_ROOT}/shared/cava"
+  else
+    printf '%s\n' "${CONFIG_ROOT:-$HOME/Games/configurations}/cava"
+  fi
+}
+
+_find_cava_x11_config() {
+  local cava_slug="$1"
+  local shared_root candidate
+  shared_root="$(_cava_shared_root)"
+  for candidate in \
+    "${HOME}/.config/cava/x11/config.${cava_slug}" \
+    "${HOME}/.config/cava/wayland/config.${cava_slug}" \
+    "${HOME}/.config/cava/wayland/${cava_slug}.conf" \
+    "$shared_root/x11/config.${cava_slug}" \
+    "$shared_root/wayland/config.${cava_slug}" \
+    "$shared_root/wayland/${cava_slug}.conf" \
+    "${HOME}/.config/cava/x11/config.txt" \
+    "$shared_root/x11/config.txt"; do
+    if [ -f "$candidate" ]; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+activate_tmux_x11_profile() {
+  local i3_theme_arg="${1:-}"
+  local colors_slug colors_src active_dst tmux_conf shared_root
+
+  colors_slug="$(_resolve_tmux_x11_colors_slug "$i3_theme_arg")"
+  shared_root="${SHARED_ROOT:-${CONFIG_ROOT:-$HOME/Games/configurations}/shared}"
+
   for colors_src in \
-    "${HOME}/.config/tmux/colors/gray.conf" \
-    "$root/tmux/colors/gray.conf"; do
+    "${HOME}/.config/tmux/colors/${colors_slug}.conf" \
+    "$shared_root/tmux/colors/${colors_slug}.conf" \
+    "${CONFIG_ROOT:-}/tmux/colors/${colors_slug}.conf"; do
     if [ -f "$colors_src" ]; then
       break
     fi
@@ -395,18 +487,47 @@ activate_tmux_gray_profile() {
   tmux_conf="${HOME}/.config/tmux/tmux.conf"
 
   if [ ! -f "$colors_src" ]; then
-    echo "tmux-x11: no existe gray.conf; omitido." >&2
+    echo "tmux-x11: no existe colors/${colors_slug}.conf; omitido." >&2
     return 1
   fi
 
   mkdir -p "${HOME}/.config/tmux"
   cp "$colors_src" "$active_dst"
-  echo "Tmux X11: colors/gray.conf → colors.active.conf"
+  echo "Tmux X11: colors/${colors_slug}.conf → colors.active.conf (i3=$(_resolve_i3_theme_for_x11 "$i3_theme_arg"))"
 
   if [ -f "$tmux_conf" ] && tmux info &>/dev/null; then
     tmux source-file "$tmux_conf" 2>/dev/null && echo "Tmux: config recargada en sesión activa" || true
   fi
   return 0
+}
+
+activate_tmux_gray_profile() {
+  activate_tmux_x11_profile "$@"
+}
+
+activate_copyq_for_i3_theme() {
+  local i3_theme_arg="${1:-}"
+  local palette script_dir
+
+  if ! command -v copyq >/dev/null 2>&1; then
+    echo "copyq-i3: copyq no instalado; omitido."
+    return 0
+  fi
+
+  palette="$(_resolve_palette_for_x11 "$i3_theme_arg")"
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  # shellcheck source=copyq-theme.sh
+  source "$script_dir/copyq-theme.sh"
+  activate_copyq_profile "$palette" || return $?
+  echo "copyq-i3: palette=${palette} (i3=$(_resolve_i3_theme_for_x11 "$i3_theme_arg"))"
+  return 0
+}
+
+activate_x11_shared_themes() {
+  local i3_theme_arg="${1:-}"
+  activate_tmux_x11_profile "$i3_theme_arg" || true
+  activate_cava_x11_profile "$i3_theme_arg" || true
+  activate_copyq_for_i3_theme "$i3_theme_arg" || true
 }
 
 # i3 ventanas + i3bar: copia themes/{classic,iceberg}.conf → 07-gaps_borders.conf.
@@ -422,6 +543,8 @@ activate_i3_theme_profile() {
 
   for script in \
     "${HOME}/.config/i3/scripts/apply-i3-theme.sh" \
+    "${I3_WM_ROOT:-$root/I3/i3-wm}/scripts/apply-i3-theme.sh" \
+    "$root/I3/i3-wm/scripts/apply-i3-theme.sh" \
     "$root/i3-wm/scripts/apply-i3-theme.sh"; do
     if [[ -x "$script" ]]; then
       "$script" "${reload_args[@]}" || return $?
@@ -434,30 +557,41 @@ activate_i3_theme_profile() {
 }
 
 activate_cava_x11_profile() {
-  local theme_id="${1:-}"
-  local palettes cava_slug src dst
+  local i3_theme_arg="${1:-}"
+  local palette_id palettes cava_slug src dst
 
-  if [ -z "$theme_id" ] && [ -f "${HOME}/.cache/ignis/active-theme.json" ]; then
-    theme_id="$(python3 -c "import json; print(json.load(open('${HOME}/.cache/ignis/active-theme.json')).get('active',''))" 2>/dev/null || true)"
-  fi
-  theme_id="${theme_id:-blue}"
+  case "$i3_theme_arg" in
+    classic | iceberg) palette_id="$(_resolve_palette_for_x11 "$i3_theme_arg")" ;;
+    "")
+      palette_id="$(_resolve_palette_for_x11 "")" ;;
+    *)
+      palette_id="$i3_theme_arg" ;;
+  esac
 
   # shellcheck source=lib/cava-theme.sh
   source "$(dirname "${BASH_SOURCE[0]}")/cava-theme.sh"
 
   palettes="$(find_palettes_file)" || {
-    echo "cava-x11: palettes.json no encontrado; usando config.txt" >&2
-    src="${CONFIG_ROOT:-$HOME/hyprland}/cava/x11/config.txt"
-    dst="${HOME}/.config/cava/config"
-    if [ -f "$src" ]; then
+    echo "cava-x11: palettes.json no encontrado; fallback por tema i3" >&2
+    cava_slug="$palette_id"
+    if ! src="$(_find_cava_x11_config "$cava_slug")"; then
+      src="$(_find_cava_x11_config "classic")" || true
+    fi
+    if [ -n "${src:-}" ]; then
+      dst="${HOME}/.config/cava/config"
       mkdir -p "$(dirname "$dst")"
       cp "$src" "$dst"
-      echo "Cava X11: config.txt → config"
+      echo "Cava X11: $(basename "$src") → config (i3=$(_resolve_i3_theme_for_x11 "$i3_theme_arg"))"
+      if pgrep -x cava >/dev/null 2>&1; then
+        killall cava 2>/dev/null || true
+        echo "Cava: instancia terminada (relanzar manualmente en X11)"
+      fi
+      return 0
     fi
-    return 0
+    return 1
   }
 
-  cava_slug="$(python3 - "$theme_id" "$palettes" <<'PY'
+  cava_slug="$(python3 - "$palette_id" "$palettes" <<'PY'
 import json, sys
 from pathlib import Path
 theme_id = sys.argv[1]
@@ -467,24 +601,18 @@ print(theme.get("cava", theme_id.replace("_", "-")))
 PY
 )"
 
-  local root="${CONFIG_ROOT:-$HOME/hyprland}"
-  for src in \
-    "${HOME}/.config/cava/x11/config.${cava_slug}" \
-    "$root/cava/x11/config.${cava_slug}" \
-    "${HOME}/.config/cava/x11/config.txt" \
-    "$root/cava/x11/config.txt"; do
-    if [ -f "$src" ]; then
-      dst="${HOME}/.config/cava/config"
-      mkdir -p "$(dirname "$dst")"
-      cp "$src" "$dst"
-      echo "Cava X11: $(basename "$src") → config"
-      if pgrep -x cava >/dev/null 2>&1; then
-        killall cava 2>/dev/null || true
-        echo "Cava: instancia terminada (relanzar manualmente en X11)"
-      fi
-      return 0
-    fi
-  done
-  echo "cava-x11: no hay config X11; omitido." >&2
-  return 1
+  if ! src="$(_find_cava_x11_config "$cava_slug")"; then
+    echo "cava-x11: no hay config para slug=${cava_slug}; omitido." >&2
+    return 1
+  fi
+
+  dst="${HOME}/.config/cava/config"
+  mkdir -p "$(dirname "$dst")"
+  cp "$src" "$dst"
+  echo "Cava X11: $(basename "$src") → config (i3=$(_resolve_i3_theme_for_x11 "$i3_theme_arg"), palette=${palette_id})"
+  if pgrep -x cava >/dev/null 2>&1; then
+    killall cava 2>/dev/null || true
+    echo "Cava: instancia terminada (relanzar manualmente en X11)"
+  fi
+  return 0
 }

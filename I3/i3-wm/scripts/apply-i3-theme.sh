@@ -1,16 +1,28 @@
 #!/usr/bin/env bash
-# Tema i3: copia estática themes/{classic,iceberg}.conf → 07-gaps_borders.conf
+# Tema i3: copia themes/{classic,iceberg}.conf → 07-gaps_borders.conf
 # y bumblebee-bar-{tema}.conf → 05-bbar.conf (si bumblebee activo).
+# Sincroniza [i3] y [bumblebee] theme en config.local.toml.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=../../../shared/cnf-bin/lib/require-session-user.sh
+source "${HOME}/.config/cnf-bin/lib/require-session-user.sh" 2>/dev/null \
+  || source "$SCRIPT_DIR/../../../shared/cnf-bin/lib/require-session-user.sh"
+require_session_user "$0" "$@"
+# shellcheck source=i3-theme-lib.sh
+source "$SCRIPT_DIR/i3-theme-lib.sh"
+
 I3_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+if [[ -d "${HOME}/.config/i3/conf.d/themes" ]]; then
+  I3_ROOT="${HOME}/.config/i3"
+fi
 THEMES_DIR="$I3_ROOT/conf.d/themes"
 GAPS_FILE="$I3_ROOT/conf.d/07-gaps_borders.conf"
 BBAR_FILE="$I3_ROOT/conf.d/05-bbar.conf"
 MODE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/i3/status-bar-mode"
 POLYBAR_DIR="${HOME}/.config/polybar"
 NO_RELOAD=0
+THEME_ARG=""
 
 usage() {
   cat <<EOF
@@ -18,66 +30,10 @@ Uso: $(basename "$0") [--no-reload] [classic|iceberg]
 
   Reemplaza conf.d/07-gaps_borders.conf y (bumblebee) conf.d/05-bbar.conf
   desde conf.d/themes/{classic,iceberg}.conf
+  Persiste el tema en ~/.config/cnf-bin/config.local.toml ([i3] + [bumblebee])
 
-  Tema por defecto: [i3] theme en cnf-bin/config.toml
+  Tema por defecto: [i3] theme en cnf-bin/config.toml (+ override local)
 EOF
-}
-
-resolve_config_file() {
-  if [[ -n "${CNF_BIN_CONFIG:-}" && -f "$CNF_BIN_CONFIG" ]]; then
-    printf '%s\n' "$CNF_BIN_CONFIG"
-    return 0
-  fi
-  if [[ -f "${HOME}/.config/cnf-bin/config.toml" ]]; then
-    printf '%s\n' "${HOME}/.config/cnf-bin/config.toml"
-    return 0
-  fi
-  local sibling
-  sibling="$(cd "$SCRIPT_DIR/../../../shared/cnf-bin" 2>/dev/null && pwd)/config.toml"
-  if [[ -f "$sibling" ]]; then
-    printf '%s\n' "$sibling"
-    return 0
-  fi
-  sibling="$(cd "$SCRIPT_DIR/../../cnf-bin" 2>/dev/null && pwd)/config.toml"
-  [[ -f "$sibling" ]] && printf '%s\n' "$sibling" && return 0
-  return 1
-}
-
-read_i3_theme_from_toml() {
-  local file="$1"
-  awk '
-    /^\[i3\]/ { in_sec=1; next }
-    /^\[/ { in_sec=0 }
-    in_sec && $1 == "theme" {
-      gsub(/^[^=]*=[[:space:]]*"/, "")
-      gsub(/".*$/, "")
-      gsub(/^[[:space:]]*/, "")
-      print
-      exit
-    }
-  ' "$file"
-}
-
-resolve_theme() {
-  local explicit="${1:-}"
-  local from_toml="" config_file="" local_file=""
-
-  if [[ -n "$explicit" ]]; then
-    printf '%s\n' "$explicit"
-    return 0
-  fi
-
-  if config_file="$(resolve_config_file)"; then
-    from_toml="$(read_i3_theme_from_toml "$config_file")"
-    local_file="${config_file%.toml}.local.toml"
-    if [[ -f "$local_file" ]]; then
-      local from_local
-      from_local="$(read_i3_theme_from_toml "$local_file")"
-      [[ -n "$from_local" ]] && from_toml="$from_local"
-    fi
-  fi
-
-  printf '%s\n' "${from_toml:-classic}"
 }
 
 polybar_active() {
@@ -143,8 +99,10 @@ reload_i3() {
     && pgrep -x i3 >/dev/null 2>&1 \
     || return 0
 
-  echo "i3: reinicio para aplicar tema"
-  i3-msg restart 2>/dev/null || i3-msg reload 2>/dev/null || true
+  echo "i3: reload para aplicar tema ($THEME)"
+  i3-msg reload 2>/dev/null || true
+  sleep 0.3
+  ensure_single_i3bar
 }
 
 while [[ $# -gt 0 ]]; do
@@ -160,7 +118,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-THEME="$(resolve_theme "${THEME_ARG:-}")"
+THEME="$(resolve_i3_theme "$SCRIPT_DIR" "${THEME_ARG:-}")"
 
 case "$THEME" in
   classic | iceberg) ;;
@@ -170,5 +128,34 @@ case "$THEME" in
     ;;
 esac
 
+if [[ ! -f "$I3_ROOT/conf.d/07-gaps_borders.conf" ]]; then
+  echo "apply-i3-theme: no existe $GAPS_FILE" >&2
+  exit 1
+fi
+
+persist_i3_theme_config "$THEME"
+echo "cnf-bin: config.local.toml ← [i3] theme=${THEME}, [bumblebee] theme=$(bumblebee_theme_for_i3 "$THEME")"
+
 apply_theme_files "$THEME"
+activate_nvim_for_i3_theme "$THEME" "$SCRIPT_DIR" || true
+
+_load_session_env_for_x11_themes() {
+  local candidate
+  for candidate in \
+    "${HOME}/.config/hypr/scripts/lib/session-env.sh" \
+    "$SCRIPT_DIR/../../../hyprland/hyperland/scripts/lib/session-env.sh" \
+    "$SCRIPT_DIR/../../hyperland/scripts/lib/session-env.sh"; do
+    if [[ -f "$candidate" ]]; then
+      # shellcheck source=/dev/null
+      source "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+if _load_session_env_for_x11_themes; then
+  activate_x11_shared_themes "$THEME" || true
+fi
+
 reload_i3

@@ -4,6 +4,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+# shellcheck source=lib/require-session-user.sh
+source "$REPO_ROOT/shared/cnf-bin/lib/require-session-user.sh"
+require_session_user "$0" "$@"
+
 CNF_BIN="$REPO_ROOT/shared/cnf-bin"
 INSTALL="$REPO_ROOT/hyprland/hyperland/scripts/install-local-binaries.sh"
 
@@ -20,7 +24,7 @@ build_one cnf-media cnf-media
 
 if [[ -x "$INSTALL" ]]; then
   echo "==> install-local-binaries"
-  "$INSTALL"
+  sudo "$INSTALL"
 else
   echo "Instalando manualmente en /usr/local/bin..."
   sudo install -m 755 "$CNF_BIN/bin/cnf-info" "$CNF_BIN/bin/cnf-media" /usr/local/bin/

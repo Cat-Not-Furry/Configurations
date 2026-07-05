@@ -15,13 +15,28 @@ Usar [`launch.sh`](launch.sh) (lee [`../../shared/cnf-bin/config.toml`](../../sh
 status_command ~/.config/bumblebee-status/launch.sh
 ```
 
-Módulos en barra (sin `cmus`):
+Módulos en barra (config completa):
 
 ```text
 media cpu sensors memory disk battery pipewire brightness kbdlight keyboard hostname datetime
 ```
 
-`kbdlight` — módulo Python (`modules/contrib/kbdlight.py`); lee `[kbdlight]` en `cnf-bin/config.toml` (solo lectura).
+| Módulo | Fuente | Información mostrada |
+|--------|--------|----------------------|
+| `media` | **cnf-media** | ⏮ título/artista ⏭ (MPRIS) |
+| `cpu` | psutil | Uso CPU `{:.01f}%` |
+| `sensors` | lm_sensors / sysfs | Temperatura (+ frecuencia si activo) |
+| `memory` | `/proc/meminfo` | `{used}/{total} ({percent}%)` |
+| `disk` | `statvfs` | `{used}/{size} ({percent}%)` en `/` |
+| `battery` | UPower | `%` + icono carga |
+| `pipewire` | `wpctl` | Volumen `%` (scroll para ajustar) |
+| `brightness` | brightnessctl | Brillo pantalla `%` |
+| `kbdlight` | sysfs LED | Luz teclado `%` (lee `[kbdlight]` en config.toml) |
+| `keyboard` | xinput | Layout / toggle teclado |
+| `hostname` | `platform.node` | Nombre del equipo |
+| `datetime` | strftime | Fecha y hora completas (`%x %X`) |
+
+Waybar (Hyprland) usa **cnf-info** para CPU/temp; bumblebee usa módulos Python propios con el mismo tipo de datos.
 
 ## Módulos conservados
 
@@ -29,7 +44,7 @@ media cpu sensors memory disk battery pipewire brightness kbdlight keyboard host
 
 **contrib:** `sensors`, `battery`, `pipewire`, `brightness`, `kbdlight`, `hostname`, `shell`, `shortcut`, `cmus` (reserva; no en barra)
 
-**temas:** `themes/iceberg.json`, `themes/icons/awesome-fonts.json`
+**temas:** `themes/classic.json`, `themes/iceberg.json`, `themes/icons/awesome-fonts.json`
 
 **assets (solo repo):** `images/` — iconos PNG de referencia; no se despliegan a `~/.config/`
 

@@ -27,6 +27,15 @@ Scripts de uso diario, binarios Rust (`cnf-info`, `cnf-media`) y configuración 
 ~/Games/configurations/shared/utilidades   # vía bashrc
 ```
 
+## Usuario de sesión y sudo
+
+Scripts que llaman `sudo` internamente (`actualizar`, `hostname-nm`, `thinkfan`, `*-manager`, etc.) deben ejecutarse **como tu usuario**, no con `sudo ./script`.
+
+- `lib/require-session-user.sh` — si alguien hace `sudo ./script`, re-lanza como `SUDO_USER`.
+- `lib/bootstrap-session-user.sh` — lo usan binarios en `/usr/local/bin` para encontrar esa lib.
+
+Tras deploy, las libs viven en `~/.config/cnf-bin/lib/`. Si falta, ejecuta `./shared/install.sh --config-only`.
+
 ---
 
 ## cnf-info
@@ -70,7 +79,19 @@ Config en `[media]`: `prefer_players` incluye `zen-browser`, `zen`.
 
 Control **temporal** del ventilador en ThinkPad (`/proc/acpi/ibm/fan`).
 
-**No uses `sudo thinkfan`** — el script llama sudo solo para escribir en el interfaz del ventilador.
+**No uses `sudo thinkfan`** — si lo haces por error, el script se re-lanza como tu usuario (`bootstrap-session-user`). El `sudo` interno agrupa escrituras en `/proc/acpi/ibm/fan` (un prompt por lote, no tres seguidos).
+
+Antes de cambiar de perfil conviene `thinkfan stop`. El worker corre en segundo plano; no hace falta dejar la terminal abierta (puedes usar tmux u otra ventana auxiliar).
+
+Estado, log y bus de sesión para notificaciones: `~/.cache/cnf-bin/thinkfan/` (`thinkfan.env` guarda `DBUS_SESSION_BUS_ADDRESS` al lanzar desde una sesión gráfica).
+
+Si quedaron restos de versiones antiguas o workers root: `thinkfan cleanup`.
+
+Opcional avanzado (sin huella en cada refresco del ventilador): en `/etc/sudoers.d/thinkfan`:
+
+```text
+tu_usuario ALL=(root) NOPASSWD: /usr/bin/tee /proc/acpi/ibm/fan
+```
 
 ### Modo simple
 
@@ -93,7 +114,7 @@ thinkfan status    # muestra paso actual y restante total
 
 Perfiles: `idle`, `cool`, `dev`, `turbo`, `overdrive`
 
-Estado y log: `~/.cache/cnf-bin/thinkfan/`
+Estado y log: `~/.cache/cnf-bin/thinkfan/` (ver notas arriba sobre `thinkfan.env` y `cleanup`)
 
 ---
 
@@ -106,6 +127,8 @@ Estado y log: `~/.cache/cnf-bin/thinkfan/`
 | `web-manager` | Apache + MariaDB |
 | `print-manager` | CUPS / impresión |
 | `actualizar` | Actualización Arch interactiva |
+| `hostname-nm` | Cambiar hostname vía NetworkManager |
+| `thinkfan` | Control ventilador ThinkPad (fuente en `bin/thinkfan`) |
 | `fondo` / `life_fondo` | Fondos i3 |
 | `bgterm` | Terminal como fondo (cava, btop) |
 | `git-push` / `git-configure` | Utilidades git |
@@ -121,6 +144,8 @@ Estado y log: `~/.cache/cnf-bin/thinkfan/`
 | `secrets/*.env` | Credenciales managers (desde `.example`) |
 
 Secciones: `[brillo]`, `[kbdlight]`, `[media]`, `[bumblebee]`, `[i3]`, `[session.x11]`, `[session.wayland]`, `[paths]`.
+
+`[paths] fondos` apunta a `~/.config/fondos/` (comando `fondo`, Ignis, Hyprlock). El deploy no copia wallpapers salvo `--fondos` / `--fondos-all` — ver [fondos/README.md](../fondos/README.md).
 
 Deploy incluido en `deploy-configs.sh`; **bin/** no se copia a `~/.config/`.
 

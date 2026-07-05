@@ -49,6 +49,11 @@ copyq/copyq_geometry.ini
 copyq/copyq_tabs.ini
 
 # fondos/other — JPG extraídos localmente (los .7z sí van en el repo)
+shared/fondos/other/*.jpg
+shared/fondos/other/*.jpeg
+shared/fondos/other/*.png
+shared/fondos/other/*.webp
+shared/fondos/other/other-*.7z.xml
 fondos/other/*.jpg
 fondos/other/*.jpeg
 fondos/other/*.png

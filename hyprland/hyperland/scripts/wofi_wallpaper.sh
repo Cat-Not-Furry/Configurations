@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/wofi-common.sh
 source "$SCRIPT_DIR/lib/wofi-common.sh"
 
-STATIC_WALL_DIR="$HOME/.config/i3/fondos/"
+STATIC_WALL_DIR="$HOME/.config/fondos/"
 VIDEO_WALL_DIR="$HOME/Videos/"
 
 opciones=$'Fondo Estático\nFondo Aleatorio\nFondo de Video'

@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 # Utilidades compartidas para *-manager: servicios bajo demanda (sesión), sin enable al arranque.
 
+for _rsu_lib in \
+  "${HOME}/.config/cnf-bin/lib/require-session-user.sh" \
+  "$(dirname "${BASH_SOURCE[0]}")/require-session-user.sh"; do
+  if [[ -f "$_rsu_lib" ]]; then
+    # shellcheck source=/dev/null
+    source "$_rsu_lib"
+    break
+  fi
+done
+unset _rsu_lib
+
 resolve_cnf_bin_root() {
   if [[ -n "${CNF_BIN_ROOT:-}" && -d "$CNF_BIN_ROOT" ]]; then
     printf '%s\n' "$CNF_BIN_ROOT"

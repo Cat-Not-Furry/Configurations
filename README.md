@@ -1,8 +1,8 @@
 # Configuraciones de escritorio
 
-Dotfiles para entornos Linux: **Hyprland** (Wayland), **i3** (X11), **DWM**, herramientas compartidas (`cnf-bin`, tmux, nvim, etc.).
+Dotfiles para entornos Linux: **Hyprland** (Wayland), **i3** (X11), **DWM**, que utilizan temas personalizados para algunas herramientas (`cnf-bin`, tmux, nvim, etc.).
 
-Pensado para clonar en `~/Games/configurations` (o `~/hyprland`) y desplegar con scripts incluidos. Los README y scripts **no se copian** a `~/.config/`; solo viven en el repo.
+Pensado para clonar  y desplegar con scripts incluidos. Los README y scripts **no se copian** a `~/.config/`
 
 ---
 
@@ -12,12 +12,12 @@ Pensado para clonar en `~/Games/configurations` (o `~/hyprland`) y desplegar con
 |----------|---------|
 | **Hyprland** (config + recarga) | `./hyprland/scripts/install-hypr.sh` |
 | **i3** (config + recarga) | `./I3/scripts/install-i3.sh` |
-| **Deploy maestro** | `./deploy-configs.sh [--config-hypr \| --config-i3]` |
+| **Deploy maestro** | `./deploy-configs.sh [--config-hypr \| --config-i3] [--fondos \| --fondos-all]` |
 | **Binarios** (`cnf-info`, `thinkfan`, …) | `./shared/install.sh --binaries` |
 | **Compilar Rust + instalar** | `./shared/cnf-bin/build-install.sh` |
 | **Solo cnf-bin config** | `./shared/install.sh --config-only` |
 
-Añade `--binaries` a `install-hypr.sh` / `install-i3.sh` para copiar también a `/usr/local/bin`.
+Añade `--binaries` a `install-hypr.sh` / `install-i3.sh` para copiar también a `/usr/local/bin` (donde yo los instalo).
 
 ---
 
@@ -41,23 +41,20 @@ configurations/
 │       └── install-hypr.sh   ← despliegue Hyprland
 ├── shared/                   ← componentes compartidos entre stacks
 │   ├── cnf-bin/              ← scripts, cnf-info, cnf-media, config.toml
-│   ├── bash/, tmux/, nvim/, polybar/, wofi/, cava/, …
+│   ├── bash/, tmux/, nvim/, polybar/, wofi/, cava/, fondos/, …
 │   └── install.sh
 ├── dwm-full/                 ← fork DWM + st (compilación manual)
-├── btop/                     ← tema btop
-├── waybar-auto-hide-cnf/     ← crate Rust wb_autohide (opcional)
-└── i3space/                  ← overview i3 (repo aparte, opcional)
+└── btop/                     ← tema btop
 ```
 
 ---
 
 ## Requisitos generales
 
-- **Arch Linux** (o derivado) — los ejemplos usan `pacman`
-- **Rust + cargo** — solo si compilas `cnf-info` / `cnf-media` / `wb_autohide`
-- **CMake + C++20** — solo si compilas `i3space` (overview i3)
-- **sudo** — para instalar en `/usr/local/bin` y escribir en `/proc/acpi/ibm/fan` (`thinkfan`)
-- Clone del repo en una ruta fija; los scripts resuelven rutas relativas al repo
+- **Arch Linux** (o derivado) — ya que los ejemplos usan `pacman`
+- **Rust + cargo** — solo si compilas `cnf-info` / `cnf-media` 
+- **sudo** — para instalar en `/usr/local/bin` y escribir en `/proc/acpi/ibm/fan` (`thinkfan`), (si se prefiere instalar en `~/.local/bin`, sudo no es necesario).
+- Clone del repo en una ruta fija; los scripts resuelven rutas relativas a este repo.
 
 ### Paquetes habituales (Hyprland)
 
@@ -69,7 +66,7 @@ sudo pacman -S hyprland waybar wofi playerctl brightnessctl wireplumber \
 ### Paquetes habituales (i3)
 
 ```bash
-sudo pacman -S i3 i3status xorg-xinit picom playerctl brightnessctl \
+sudo pacman -S i3 i3status i3lock xorg-xinit picom playerctl brightnessctl \
   blueman network-manager-applet copyq
 ```
 
@@ -89,7 +86,7 @@ Repositorio: `https://github.com/Cat-Not-Furry/Configurations`
 | **i3** | `I3/` + `shared/` + `hyprland/hyperland/scripts/` | Los instaladores usan `deploy-configs.sh` dentro de `hyprland/hyperland/scripts/` |
 | **Solo cnf-bin** | `shared/cnf-bin/` (+ `shared/install.sh` si quieres el script) | O baja `shared/` entero |
 | **DWM** | `dwm-full/` + `shared/cnf-bin/` | Para la barra con `cnf-info` / `cnf-media` |
-| **btop / wb_autohide / i3space** | `btop/`, `waybar-auto-hide-cnf/` o `i3space/` | Opcionales; no dependen del resto |
+| **btop** | `btop` | Opcional; no dependen del resto |
 
 Enlaces directos (rama `main`):
 
@@ -99,10 +96,10 @@ Enlaces directos (rama `main`):
 - [Scripts de deploy](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/hyprland/hyperland/scripts) (necesario para i3)
 - [dwm-full](https://downgit.github.io/#/home?url=https://github.com/Cat-Not-Furry/Configurations/tree/main/dwm-full)
 
-Tras descomprimir, **mantén la estructura de carpetas** y coloca todo bajo la misma raíz (p. ej. `~/Games/configurations/`):
+Tras descomprimir, **mantén la estructura de carpetas** y coloca todo bajo la misma raíz (p. ej. `~/Configurations/`):
 
 ```
-~/Games/configurations/
+~/Configurations/
 ├── I3/              # si usas i3
 ├── hyprland/        # si usas Hyprland (incluye hyperland/scripts/)
 └── shared/          # casi siempre necesario
@@ -117,14 +114,17 @@ Luego ejecuta el instalador correspondiente desde esa raíz (ver sección siguie
 ### 1. Hyprland completo
 
 ```bash
-git clone https://github.com/Cat-Not-Furry/Configurations.git ~/Games/configurations
-cd ~/Games/configurations
+git clone https://github.com/Cat-Not-Furry/Configurations.git ~/.cache/Configurations
+cd ~/.cache/Configurations
 
 # Config → ~/.config/ (hypr, waybar, ignis, wofi, cnf-bin, tmux, …)
 ./hyprland/scripts/install-hypr.sh
 
 # Opcional: binarios en /usr/local/bin
 ./hyprland/scripts/install-hypr.sh --binaries
+
+# Opcional: fondos → ~/.config/fondos/
+./hyprland/scripts/install-hypr.sh --fondos-all
 
 # Tema
 ./hyprland/hyperland/scripts/apply-theme.sh blue
@@ -135,13 +135,14 @@ cd ~/Games/configurations
 ### 2. i3 completo
 
 ```bash
-git clone https://github.com/Cat-Not-Furry/Configurations.git ~/Games/configurations
-cd ~/Games/configurations
+git clone https://github.com/Cat-Not-Furry/Configurations.git ~/.cahe/Configurations
+cd ~/.cahe/Configurations
 
 ./I3/scripts/install-i3.sh
 ./I3/scripts/install-i3.sh --binaries   # opcional
+./I3/scripts/install-i3.sh --fondos-all # opcional: wallpapers → ~/.config/fondos/
 
-# Tema i3
+# Tema i3 (ventanas, barra, nvim vía palettes.json)
 ~/.config/i3/scripts/apply-i3-theme.sh classic
 
 # Iniciar i3 (p. ej. startx / sdm)
@@ -179,7 +180,11 @@ Opciones de `deploy-configs.sh`:
 --config-i3       Solo stack i3
 --config          Sin mirror al repo local
 --all             Reinicia swaync (Hyprland)
+--fondos          Copia wallpapers del repo → ~/.config/fondos/ (merge; sin other/)
+--fondos-all      Igual que --fondos e incluye shared/fondos/other/ (sin README)
 ```
+
+Por defecto el deploy **no** copia fondos. Ver [`shared/fondos/README.md`](shared/fondos/README.md).
 
 ---
 
@@ -190,6 +195,7 @@ Opciones de `deploy-configs.sh`:
 | [I3/](I3/README.md) | Stack i3 | `I3/scripts/install-i3.sh` |
 | [hyprland/](hyprland/README.md) | Stack Hyprland | `hyprland/scripts/install-hypr.sh` |
 | [shared/](shared/README.md) | Componentes compartidos | `shared/install.sh` |
+| [shared/fondos/](shared/fondos/README.md) | Wallpapers (`~/.config/fondos/`) | `--fondos` en deploy/install |
 | [shared/cnf-bin/](shared/cnf-bin/README.md) | cnf-info, cnf-media, thinkfan, managers | `shared/cnf-bin/build-install.sh` |
 | [dwm-full/](dwm-full/README.md) | DWM + st | `dwm-full/install.sh` |
 | [btop/](btop/README.md) | Monitor de recursos | `btop/install.sh` |
@@ -200,7 +206,8 @@ Opciones de `deploy-configs.sh`:
 
 ## Notas importantes
 
-- **`cnf-bin/bin/`** no se despliega a `~/.config/`; instálalo en `/usr/local/bin` con los scripts de arriba.
+- **`cnf-bin/bin/`** no se despliega a `~/.config/`; instálalo en `/usr/local/bin` con los scripts de arriba o bien en ~/.local/bin.
+- **Fondos:** destino `~/.config/fondos/`; deploy con `--fondos` o `--fondos-all` ([`shared/fondos/README.md`](shared/fondos/README.md)).
 - **Documentación (`.md`)** permanece en el clone; `deploy-configs.sh` la excluye de `~/.config/`.
 - **`thinkfan`**: no uses `sudo thinkfan`; el script llama sudo solo para el ventilador. Soporta modo cadena (`-c`/`-C`). Ver [`shared/cnf-bin/README.md`](shared/cnf-bin/README.md).
 - **Rutas legacy**: algunos scripts aceptan el layout antiguo (`hyperland/` en raíz). La fuente canónica es `hyprland/hyperland/`, `shared/`, `I3/`.

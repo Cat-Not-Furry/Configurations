@@ -5,6 +5,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib/project-paths.sh
 source "$SCRIPT_DIR/lib/project-paths.sh"
 resolve_project_paths "$SCRIPT_DIR"
+# shellcheck source=../../../shared/cnf-bin/lib/require-session-user.sh
+source "${CNF_BIN_ROOT}/lib/require-session-user.sh"
+require_session_user "$0" "$@"
 # shellcheck source=lib/service-reload.sh
 source "$SCRIPT_DIR/lib/service-reload.sh"
 # shellcheck source=lib/cava-theme.sh

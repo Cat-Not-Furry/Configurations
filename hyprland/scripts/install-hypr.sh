@@ -4,6 +4,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# shellcheck source=../../shared/cnf-bin/lib/require-session-user.sh
+source "$REPO_ROOT/shared/cnf-bin/lib/require-session-user.sh"
+require_session_user "$0" "$@"
 WITH_BINARIES=0
 DEPLOY_ARGS=()
 
@@ -17,6 +20,7 @@ Despliega Hyprland + waybar + ignis + wofi + componentes compartidos a ~/.config
   -h, --help    Esta ayuda
 
 Equivalente interno: deploy-configs.sh --config-hypr
+Flags de fondos (opcionales): --fondos, --fondos-all
 
 Ejemplos (probar en VM):
   ./hyprland/scripts/install-hypr.sh

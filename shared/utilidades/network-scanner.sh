@@ -1,7 +1,23 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script: network-scanner.sh
 # Descripción: Escanea la red cada 2 minutos usando arp-scan
+
+for _bootstrap in \
+  "${HOME}/.config/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/Games/configurations/shared/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/hyprland/cnf-bin/lib/bootstrap-session-user.sh"; do
+  if [[ -f "$_bootstrap" ]]; then
+    # shellcheck source=/dev/null
+    source "$_bootstrap"
+    bootstrap_session_user "$0" "$@"
+    break
+  fi
+done
+if ! declare -F require_session_user >/dev/null 2>&1; then
+  echo "bootstrap-session-user.sh no encontrado; despliega shared/cnf-bin/lib." >&2
+  exit 1
+fi
 
 # Colores para output
 RED='\033[0;31m'
@@ -15,15 +31,11 @@ timestamp() {
   echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')]${NC}"
 }
 
-# Verificar si arp-scan está instalado
+# Verificar si arp-scan está instalado (instalar manualmente; sin sudo pacman automático)
 if ! command -v arp-scan &>/dev/null; then
   echo -e "$(timestamp) ${RED}arp-scan no está instalado.${NC}"
-  echo -e "$(timestamp) ${YELLOW}Instalando arp-scan...${NC}"
-  sudo pacman -S --noconfirm arp-scan
-  if [ $? -ne 0 ]; then
-    echo -e "$(timestamp) ${RED}Error al instalar arp-scan.${NC}"
-    exit 1
-  fi
+  echo -e "$(timestamp) ${YELLOW}Instálalo manualmente: pacman -S arp-scan${NC}"
+  exit 1
 fi
 
 echo -e "$(timestamp) ${GREEN}Iniciando escaneo de red cada 5 segundos${NC}"

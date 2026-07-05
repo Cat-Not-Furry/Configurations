@@ -41,7 +41,6 @@ stop_wayland_session_processes
 write_session_mode x11
 write_x11_env
 propagate_env_from_file
-activate_cava_x11_profile "" || true
-activate_tmux_gray_profile || true
+activate_x11_shared_themes || true
 sleep 0.3
 start_x11_session_services

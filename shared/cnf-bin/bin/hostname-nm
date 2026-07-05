@@ -1,3 +1,19 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 
-sudo nmcli general hostname $1
+for _bootstrap in \
+  "${HOME}/.config/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/Games/configurations/shared/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/hyprland/cnf-bin/lib/bootstrap-session-user.sh"; do
+  if [[ -f "$_bootstrap" ]]; then
+    # shellcheck source=/dev/null
+    source "$_bootstrap"
+    bootstrap_session_user "$0" "$@"
+    break
+  fi
+done
+if ! declare -F require_session_user >/dev/null 2>&1; then
+  echo "bootstrap-session-user.sh no encontrado; despliega shared/cnf-bin/lib." >&2
+  exit 1
+fi
+
+sudo nmcli general hostname "$1"

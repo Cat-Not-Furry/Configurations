@@ -5,7 +5,7 @@ opcion=$(echo -e " Bloquear\n󰁯 Suspender\n󱋑 Hibernar\n󰈆 Salir\n R
 
 case "$opcion" in
 " Bloquear")
-  ~/.config/i3/lock.sh # o el bloqueador de tu preferencia
+  ~/.config/i3/scripts/lock.sh
   ;;
 "󰈆 Salir")
   i3-msg exit
@@ -17,11 +17,19 @@ case "$opcion" in
   poweroff
   ;;
 "󰁯 Suspender")
-  ~/.config/i3/lock.sh &
+  if command -v loginctl >/dev/null 2>&1; then
+    loginctl lock-session 2>/dev/null || ~/.config/i3/scripts/lock.sh &
+  else
+    ~/.config/i3/scripts/lock.sh &
+  fi
   systemctl suspend
   ;;
 "󱋑 Hibernar")
-  ~/.config/i3/lock.sh &
+  if command -v loginctl >/dev/null 2>&1; then
+    loginctl lock-session 2>/dev/null || ~/.config/i3/scripts/lock.sh &
+  else
+    ~/.config/i3/scripts/lock.sh &
+  fi
   systemctl hibernate
   ;;
 *)

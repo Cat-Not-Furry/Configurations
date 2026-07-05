@@ -71,6 +71,10 @@ Archivo en el sistema (no en el repo): `~/.config/ignis/user_options.json`
 | `theme.active` | `blue`, `green`, `tokyo_night`, `catppuccin_mocha`, … |
 | `bar.position` | `top` / `bottom` |
 | `bar.height` | Altura Waybar (default 26) |
+| `wallpaperpicker.image_base_path` | `~/.config/fondos` |
+| `wallpaperpicker.other_image_base_path` | `~/.config/fondos/other` |
+
+Rutas en `configs/wallpapers.json` y `other-wallpapers.json` (relativas a `$HOME`).
 
 ## Personalización
 

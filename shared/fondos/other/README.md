@@ -43,22 +43,20 @@ Escribir o pegar esa frase para desbloquear el `.7z` equivale a aceptar los punt
 Extraer (solo tras aceptar el aviso):
 
 ```bash
-cd fondos/other
+cd shared/fondos/other
 for f in other-*.7z; do 7z x -p"acepto la responsabilidad" -y "$f"; done
 ```
 
 Volver a empaquetar (sin subir JPG al repo):
 
 ```bash
-cd fondos/other
+cd shared/fondos/other
 rm -f other-*.7z other-*.7z.xml
 7z a -p"acepto la responsabilidad" -mhe=on other-1.7z ./*.jpg
 # Repartir en varios .7z si hace falta (como antes)
 ```
 
-> **Deploy:** `deploy-configs.sh` **no** copia `README.md`, **no** copia `other-*.7z` ni imágenes de `fondos/other/` a `~/.config/`. Los `.7z` viven solo en el repositorio; extrae manualmente si quieres JPG en `~/.config/i3/fondos/other/`.
->
-> En `~/.config/i3/fondos/` el deploy solo **añade o reemplaza** wallpapers sueltos del repo (`fondos/*.{jpg,png,...}`); lo que ya tengas en local **no se borra**.
+> **Deploy:** `deploy-configs.sh --fondos` o `--fondos-all` copia wallpapers a `~/.config/fondos/` (sin README). `--fondos-all` incluye `other/` (`.7z` y archivos; sin `*.md`). Sin flags, los fondos no se tocan en deploy.
 
 ## Descargo final
 

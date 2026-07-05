@@ -1,11 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib/project-paths.sh
+source "$SCRIPT_DIR/lib/project-paths.sh"
+resolve_project_paths "$SCRIPT_DIR"
+# shellcheck source=../../../shared/cnf-bin/lib/require-session-user.sh
+source "${CNF_BIN_ROOT}/lib/require-session-user.sh"
+require_session_user "$0" "$@"
+
 TIMESTAMP=$(date +%Y%m%d%H%M%S)
 RSYNC=$(command -v rsync || true)
 SYNC_REPO=1
 DEPLOY_ALL=0
 DEPLOY_TARGET=all
+DEPLOY_FONDOS=0
+DEPLOY_FONDOS_ALL=0
 
 # Excluir documentación al copiar a ~/.config (solo vive en el repo)
 CONFIG_DOC_EXCLUDES=(--exclude='README.md' --exclude='readme.md' --exclude='docs/' --exclude='*.md')
@@ -45,9 +55,16 @@ for arg in "$@"; do
       fi
       ;;
     --all) DEPLOY_ALL=1 ;;
+    --fondos)
+      DEPLOY_FONDOS=1
+      ;;
+    --fondos-all)
+      DEPLOY_FONDOS=1
+      DEPLOY_FONDOS_ALL=1
+      ;;
     -h | --help)
       cat <<EOF
-Uso: $(basename "$0") [--all] [--config] [--config-hypr | --config-i3]
+Uso: $(basename "$0") [--all] [--config] [--config-hypr | --config-i3] [--fondos | --fondos-all]
 
 Despliega dotfiles del repo a ~/.config/ (y mirror local por defecto).
 
@@ -56,6 +73,8 @@ Despliega dotfiles del repo a ~/.config/ (y mirror local por defecto).
   --config-hypr     Solo stack Hyprland + compartidos; recarga waybar/hypr/ignis (si activo)
   --config-i3       Solo stack i3 + compartidos; recarga i3/bumblebee (si activo)
   --all             Con recarga Hyprland: reinicia swaync al final
+  --fondos          Copia wallpapers del repo → ~/.config/fondos/ (merge; sin other/)
+  --fondos-all      Igual que --fondos e incluye shared/fondos/other/ (sin README)
 
 Compartidos (cnf-bin, tmux, nvim, powerline, copyq): se despliegan en cualquier modo.
 cnf-bin/bin no se copia a ~/.config (→ /usr/local/bin manual).
@@ -71,11 +90,6 @@ EOF
       ;;
   esac
 done
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/project-paths.sh
-source "$SCRIPT_DIR/lib/project-paths.sh"
-resolve_project_paths "$SCRIPT_DIR"
 
 WAYBAR_SRC="$(path_hyprland_component waybar)"
 WOFI_SRC="$(path_shared wofi)"
@@ -113,7 +127,7 @@ DEST_TMUX="$HOME/.config/tmux"
 DEST_I3="$HOME/.config/i3"
 DEST_POLYBAR="$HOME/.config/polybar"
 FONDOS_SRC="$(path_shared fondos)"
-DEST_I3_FONDOS="$HOME/.config/i3/fondos"
+DEST_FONDOS="$HOME/.config/fondos"
 
 # shellcheck source=lib/service-reload.sh
 source "$SCRIPT_DIR/lib/service-reload.sh"
@@ -137,6 +151,24 @@ copy_dir_config() {
     rm -rf "$dst/docs" 2>/dev/null || true
   fi
   echo "Copied (config, merge): $src -> $dst"
+}
+
+fix_config_tree_owner_if_root() {
+  local dst="$1"
+  local label="${2:-config}"
+  local owner
+  owner="$(deploy_config_owner)"
+  if [ -n "$owner" ] && [ "$owner" != "root" ] && [ -d "$dst" ]; then
+    if [ "$(stat -c '%U' "$dst" 2>/dev/null)" = "root" ]; then
+      if chown -R "$owner:$owner" "$dst" 2>/dev/null; then
+        echo "${label}: permisos corregidos → $owner"
+      elif command -v sudo >/dev/null 2>&1 && sudo -n chown -R "$owner:$owner" "$dst" 2>/dev/null; then
+        echo "${label}: permisos corregidos (sudo) → $owner"
+      else
+        echo "Aviso: ${label}: $dst pertenece a root; ejecuta: sudo chown -R ${owner}:${owner} ${dst}" >&2
+      fi
+    fi
+  fi
 }
 
 copy_dir() {
@@ -261,13 +293,7 @@ copy_copyq_assets() {
     echo "Copied copyq themes (stale .ini removed)"
   fi
   echo "CopyQ assets deployed to $dst (tabs/geometría preservados)"
-  local owner
-  owner="$(id -un 2>/dev/null || echo "${USER:-}")"
-  if [ -n "$owner" ] && [ "$owner" != "root" ] && [ -d "$dst" ]; then
-    if [ "$(stat -c '%U' "$dst" 2>/dev/null)" = "root" ]; then
-      chown -R "$owner:$owner" "$dst" 2>/dev/null && echo "CopyQ: permisos corregidos → $owner"
-    fi
-  fi
+  fix_config_tree_owner_if_root "$dst" "CopyQ"
 }
 
 copy_tmux_assets() {
@@ -358,34 +384,61 @@ copy_i3_config() {
   if [ ! -d "$src" ]; then
     return 0
   fi
-  # fondos/ vive bajo ~/.config/i3 pero no forma parte de i3-wm/
+  # fondos/ legado bajo i3-wm/ (hoy viven en ~/.config/fondos)
   copy_dir_config "$src" "$DEST_I3" \
     --exclude='fondos/' \
     --exclude='conf.d/07-gaps_borders.conf' \
     --exclude='conf.d/05-bbar.conf'
   chmod +x "$DEST_I3/scripts/"*.sh 2>/dev/null || true
-  echo "i3 config deployed to $DEST_I3 (fondos/ no tocado)"
+  fix_config_tree_owner_if_root "$DEST_I3" "i3"
+  echo "i3 config deployed to $DEST_I3"
 }
 
-# Fondos i3: solo wallpapers del repo → ~/.config/i3/fondos/ (merge).
-# fondos/other/*.7z NO se despliegan a ~/.config (quedan solo en el repo).
-copy_i3_fondos_assets() {
-  local img
+# Fondos: solo con --fondos o --fondos-all → ~/.config/fondos/ (merge).
+# --fondos-all incluye other/ (sin README ni *.md).
+copy_fondos_assets() {
+  local img item base
 
-  if [ ! -d "$FONDOS_SRC" ]; then
+  if [ "$DEPLOY_FONDOS" -eq 0 ]; then
     return 0
   fi
 
-  mkdir -p "$DEST_I3_FONDOS"
+  if [ ! -d "$FONDOS_SRC" ]; then
+    echo "Warning: Fondos source not found: $FONDOS_SRC"
+    return 0
+  fi
+
+  mkdir -p "$DEST_FONDOS"
 
   shopt -s nullglob
   for img in "$FONDOS_SRC"/*.{jpg,jpeg,png,gif,webp,JPG,JPEG,PNG}; do
     [ -f "$img" ] || continue
-    cp -a "$img" "$DEST_I3_FONDOS/"
+    cp -a "$img" "$DEST_FONDOS/"
   done
   shopt -u nullglob
+  echo "Fondos: merge en $DEST_FONDOS (wallpapers raíz)"
 
-  echo "i3 fondos: merge en $DEST_I3_FONDOS (other/*.7z solo en repo; imágenes locales preservadas)"
+  if [ "$DEPLOY_FONDOS_ALL" -eq 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$FONDOS_SRC/other" ]; then
+    echo "Warning: Fondos other/ no encontrado en $FONDOS_SRC"
+    return 0
+  fi
+
+  mkdir -p "$DEST_FONDOS/other"
+  shopt -s nullglob
+  for item in "$FONDOS_SRC/other"/*; do
+    [ -e "$item" ] || continue
+    base="$(basename "$item")"
+    case "$base" in
+      README.md | readme.md | *.md) continue ;;
+    esac
+    cp -a "$item" "$DEST_FONDOS/other/"
+  done
+  shopt -u nullglob
+  echo "Fondos: merge en $DEST_FONDOS/other (--fondos-all)"
 }
 
 copy_cnf_bin_assets() {
@@ -590,9 +643,14 @@ deploy_i3_assets() {
     deploy_i3_bash_profile
   fi
 
+  if [ -d "$THEMES_SRC" ]; then
+    mkdir -p "$DEST_IGNIS/themes"
+    cp -a "$THEMES_SRC/palettes.json" "$DEST_IGNIS/themes/" 2>/dev/null || true
+    cp -a "$THEMES_SRC/palettes.example.json" "$DEST_IGNIS/themes/" 2>/dev/null || true
+  fi
+
   copy_cava_x11_assets "$CAVA_SRC" "$DEST_CAVA"
   copy_i3_config
-  copy_i3_fondos_assets
   copy_bumblebee_status
   copy_polybar_assets
 
@@ -636,14 +694,13 @@ deploy_hypr_post() {
 }
 
 deploy_i3_post() {
-  activate_i3_theme_profile || true
+  activate_i3_theme_profile || activate_x11_shared_themes || true
 
   if ! pgrep -x i3 >/dev/null 2>&1; then
     log_deploy "deploy_i3_post: i3 no activo; tema escrito en disco"
     return 0
   fi
 
-  activate_tmux_gray_profile || true
   deploy_i3_reload_flow
   log_deploy "deploy_i3_reload_flow done"
 }
@@ -873,6 +930,8 @@ main() {
       deploy_i3_assets
       ;;
   esac
+
+  copy_fondos_assets
 
   run_deploy_post
 

@@ -20,9 +20,16 @@ cava/
 
 Destino: `~/.config/cava/`
 
-## Generación de temas Wayland
+## Temas
 
-Desde el repo Hyprland:
+| Entorno | Activación |
+|---------|------------|
+| **Hyprland** | `apply-theme.sh [theme_id]` |
+| **i3 / X11** | `apply-i3-theme.sh` (lee `[i3] theme` en `cnf-bin/config.toml`) |
+
+En X11 se copia `wayland/config.{slug}` o `x11/config.txt` según la palette (`classic` o `blue` para iceberg).
+
+Generación desde palette Hyprland:
 
 ```bash
 ./hyprland/hyperland/scripts/generate-cava-wayland.sh

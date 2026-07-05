@@ -5,6 +5,24 @@
 
 set -Eeuo pipefail
 
+for _bootstrap in \
+  "${HOME}/.config/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/Games/configurations/shared/cnf-bin/lib/bootstrap-session-user.sh" \
+  "${HOME}/hyprland/cnf-bin/lib/bootstrap-session-user.sh"; do
+  if [[ -f "$_bootstrap" ]]; then
+    # shellcheck source=/dev/null
+    source "$_bootstrap"
+    bootstrap_session_user "$0" "$@"
+    break
+  fi
+done
+unset _bootstrap
+
+if ! declare -F require_session_user >/dev/null 2>&1 && [[ $EUID -eq 0 ]]; then
+  echo "thinkfan: no ejecutes con sudo. Despliega shared/cnf-bin/lib (./shared/install.sh --config-only)." >&2
+  exit 1
+fi
+
 # ------------------------------------------------------------
 # CONSTANTES
 # ------------------------------------------------------------
@@ -50,15 +68,6 @@ init_runtime_paths() {
     LOG_FILE="$base/$LOG_FILE_NAME"
     READY_FILE="$base/$READY_FILE_NAME"
     STOP_REQUESTED_FILE="$base/$STOP_REQUESTED_NAME"
-}
-
-assert_invoked_as_user() {
-    if [[ $EUID -eq 0 ]]; then
-        echo "thinkfan: no ejecutes con sudo." >&2
-        echo "  Usa tu usuario normal; el script ya llama sudo solo para $FAN_INTERFACE." >&2
-        [[ -n "${SUDO_USER:-}" ]] && echo "  Prueba: sudo -u $SUDO_USER thinkfan status" >&2
-        exit 1
-    fi
 }
 
 # Restos en /tmp de versiones antiguas o de ejecuciones con sudo.
@@ -178,28 +187,62 @@ log_message() {
     append_log_line "$(date '+%F %H:%M:%S') - $*"
 }
 
+resolve_session_dbus() {
+    local user_id="${1:-$(id -u)}"
+    local bus="${DBUS_SESSION_BUS_ADDRESS:-}"
+
+    if [[ -z "$bus" && -f "$ENV_FILE" ]]; then
+        # shellcheck disable=SC1090
+        source "$ENV_FILE"
+        bus="${DBUS_SESSION_BUS_ADDRESS:-}"
+    fi
+
+    if [[ -z "$bus" && -S "/run/user/$user_id/bus" ]]; then
+        bus="unix:path=/run/user/$user_id/bus"
+    fi
+
+    [[ -n "$bus" ]] || return 1
+
+    export DBUS_SESSION_BUS_ADDRESS="$bus"
+    export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$user_id}"
+    return 0
+}
+
+notifications_daemon_ready() {
+    resolve_session_dbus || return 1
+    timeout 1s dbus-send --session --print-reply \
+        --dest=org.freedesktop.Notifications \
+        /org/freedesktop/Notifications \
+        org.freedesktop.Notifications.GetCapabilities >/dev/null 2>&1
+}
+
 notify_user() {
     local title="$1" message="$2"
-    local real_user user_id bus_address
+    local real_user user_id
+
+    [[ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] || return 0
+    command -v notify-send >/dev/null 2>&1 || return 0
 
     real_user="${USER:-}"
-
-    if [[ -z "$real_user" ]]; then
-        return 0
-    fi
+    [[ -n "$real_user" ]] || return 0
 
     user_id=$(id -u "$real_user" 2>/dev/null || echo "")
     [[ "$user_id" =~ ^[0-9]+$ ]] || return 0
 
-    bus_address="unix:path=/run/user/$user_id/bus"
+    notifications_daemon_ready || return 0
 
-    timeout 3s sudo -u "$real_user" \
-        DBUS_SESSION_BUS_ADDRESS="$bus_address" \
-        DISPLAY="${DISPLAY:-}" \
-        WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}" \
-        XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$user_id}" \
-        XAUTHORITY="${XAUTHORITY:-}" \
-        notify-send "$title" "$message" 2>/dev/null || true
+    if (( EUID == 0 )); then
+        timeout 3s sudo -u "$real_user" \
+            DBUS_SESSION_BUS_ADDRESS="${DBUS_SESSION_BUS_ADDRESS}" \
+            DISPLAY="${DISPLAY:-}" \
+            WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-}" \
+            XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$user_id}" \
+            XAUTHORITY="${XAUTHORITY:-}" \
+            notify-send "$title" "$message" 2>/dev/null || true
+        return 0
+    fi
+
+    timeout 3s notify-send "$title" "$message" 2>/dev/null || true
 }
 
 # ------------------------------------------------------------
@@ -214,6 +257,67 @@ write_to_fan() {
     fi
 
     printf '%s\n' "$value" | sudo tee "$FAN_INTERFACE" >/dev/null
+}
+
+write_fan_lines() {
+    if (( $# == 0 )); then
+        return 0
+    fi
+
+    if fan_writable; then
+        local line
+        for line in "$@"; do
+            printf '%s\n' "$line" >"$FAN_INTERFACE"
+        done
+        return 0
+    fi
+
+    local script="" line
+    for line in "$@"; do
+        script+="printf '%s\\n' $(printf '%q' "$line") | tee $(printf '%q' "$FAN_INTERFACE") >/dev/null;"
+    done
+    sudo bash -c "$script"
+}
+
+write_fan_level_sequence() {
+    local level="$1"
+
+    if fan_writable; then
+        printf '%s\n' "level auto" >"$FAN_INTERFACE"
+        sleep 0.2
+        printf '%s\n' "watchdog $WATCHDOG_VALUE" >"$FAN_INTERFACE"
+        printf '%s\n' "$level" >"$FAN_INTERFACE"
+        return 0
+    fi
+
+    sudo bash -c "
+        printf '%s\\n' 'level auto' | tee $(printf '%q' "$FAN_INTERFACE") >/dev/null
+        sleep 0.2
+        printf '%s\\n' 'watchdog $WATCHDOG_VALUE' | tee $(printf '%q' "$FAN_INTERFACE") >/dev/null
+        printf '%s\\n' $(printf '%q' "$level") | tee $(printf '%q' "$FAN_INTERFACE") >/dev/null
+    "
+}
+
+ensure_fan_sudo() {
+    fan_writable && return 0
+    sudo -v
+}
+
+fan_setting_matches() {
+    local key="$1" expected="$2"
+    [[ "$(read_fan_line "$key")" == "$expected" ]]
+}
+
+write_watchdog_if_needed() {
+    fan_setting_matches "watchdog" "$WATCHDOG_VALUE" && return 0
+    write_to_fan "watchdog $WATCHDOG_VALUE" || true
+}
+
+write_overdrive_if_needed() {
+    local current
+    current=$(read_fan_line "level")
+    [[ "$current" == "disengaged" ]] && return 0
+    write_to_fan "level disengaged" || write_to_fan "level 7"
 }
 
 read_fan_interface() {
@@ -376,8 +480,7 @@ kill_all_workers() {
 
     remove_worker_state
 
-    write_to_fan "level auto" || true
-    write_to_fan "watchdog $WATCHDOG_VALUE" || true
+    write_fan_lines "level auto" "watchdog $WATCHDOG_VALUE" || true
 
     log_message "Instancias detenidas"
 }
@@ -403,18 +506,14 @@ map_profile_to_level() {
 apply_fan_level() {
     local level="$1"
 
-    write_to_fan "level auto"
-    sleep 0.2
-    write_to_fan "watchdog $WATCHDOG_VALUE"
-
-    if write_to_fan "$level"; then
+    if write_fan_level_sequence "$level"; then
         log_message "Nivel aplicado: $level"
         return 0
     fi
 
     if [[ "$level" == "level disengaged" ]]; then
         level="level 7"
-        if write_to_fan "$level"; then
+        if write_fan_level_sequence "$level"; then
             notify_user "Thinkfan" "Overdrive no soportado, usando turbo (level 7)"
             log_message "Overdrive no soportado, usando turbo"
             return 0
@@ -565,8 +664,7 @@ cleanup_worker() {
 
     [[ -f "${STOP_REQUESTED_FILE:-}" ]] && skip_notify=1
 
-    write_to_fan "level auto" || true
-    write_to_fan "watchdog $WATCHDOG_VALUE" || true
+    write_fan_lines "level auto" "watchdog $WATCHDOG_VALUE" || true
     rm -f "$STATE_FILE" "$PID_FILE" "$READY_FILE"
     log_message "Cleanup: vuelta a automático"
 
@@ -598,12 +696,12 @@ run_step_loop() {
         fi
 
         if [[ "$mode" == "overdrive" && $now -ge $next_overdrive ]]; then
-            write_to_fan "level disengaged" || write_to_fan "level 7"
+            write_overdrive_if_needed
             next_overdrive=$((now + OVERDRIVE_REFRESH_SECONDS))
         fi
 
         if (( now >= next_watchdog )); then
-            write_to_fan "watchdog $WATCHDOG_VALUE" || true
+            write_watchdog_if_needed
             next_watchdog=$((now + FAN_REFRESH_INTERVAL))
         fi
 
@@ -621,6 +719,9 @@ run_step_loop() {
 run_worker_loop() {
     local mode="$1" duration="$2" level="$3"
     set +e
+
+    load_graphical_environment
+    ensure_fan_sudo
 
     trap cleanup_worker EXIT INT TERM
 
@@ -652,11 +753,11 @@ run_worker_loop() {
         while true; do
             now=$(date +%s)
             if [[ "$mode" == "overdrive" && $now -ge $next_overdrive ]]; then
-                write_to_fan "level disengaged" || write_to_fan "level 7"
+                write_overdrive_if_needed
                 next_overdrive=$((now + OVERDRIVE_REFRESH_SECONDS))
             fi
             if (( now >= next_watchdog )); then
-                write_to_fan "watchdog $WATCHDOG_VALUE" || true
+                write_watchdog_if_needed
                 next_watchdog=$((now + FAN_REFRESH_INTERVAL))
             fi
             if (( now >= next_notify )); then
@@ -680,8 +781,10 @@ run_chain_worker_loop() {
     chain_total=${#profiles[@]}
 
     set +e
-    trap cleanup_worker EXIT INT TERM
     load_graphical_environment
+    ensure_fan_sudo
+
+    trap cleanup_worker EXIT INT TERM
 
     : > "$READY_FILE"
 
@@ -944,7 +1047,11 @@ COMANDOS
 
 NOTAS
   No uses sudo thinkfan. Estado/log en ~/.cache/cnf-bin/thinkfan/
-  Escritura del ventilador: sudo interno en $FAN_INTERFACE
+  Escritura del ventilador: un sudo por lote en $FAN_INTERFACE
+  thinkfan stop antes de cambiar de perfil; el worker no necesita la terminal abierta
+  Notificaciones vía bus de sesión (~/.cache/cnf-bin/thinkfan/thinkfan.env)
+  Tras ejecuciones antiguas con sudo: thinkfan cleanup
+  Opcional (sudoers): NOPASSWD para /usr/bin/tee $FAN_INTERFACE
 
 EOF
 }
@@ -954,7 +1061,6 @@ EOF
 # ------------------------------------------------------------
 main() {
     init_runtime_paths
-    assert_invoked_as_user
 
     local command="${1:-}"
 

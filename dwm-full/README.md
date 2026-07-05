@@ -21,7 +21,7 @@ Tras compilar, configura `~/.xinitrc` para ejecutar `dwm` y copia/enlaza `st`.
 | Binario | Uso en barra |
 |---------|--------------|
 | `cnf-info` | Batería, temperatura, CPU, brillo |
-| `cnf-media` | Media MPRIS (Zen, Firefox, …) |
+| `cnf-media` | Media MPRIS (Zen, Firefox, Brave…) |
 
 Plantilla: [`bar/scripts/cnf-bar.sh`](bar/scripts/cnf-bar.sh)
 

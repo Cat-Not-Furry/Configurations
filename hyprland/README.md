@@ -22,6 +22,9 @@ cd ~/Games/configurations
 # + binarios en /usr/local/bin
 ./hyprland/scripts/install-hypr.sh --binaries
 
+# Opcional: fondos → ~/.config/fondos/
+./hyprland/scripts/install-hypr.sh --fondos-all
+
 # Tema unificado (hypr, waybar, wofi, ignis, tmux, …)
 ./hyprland/hyperland/scripts/apply-theme.sh blue
 ```
@@ -51,7 +54,7 @@ hyprctl reload
 | Waybar | [`waybar/README.md`](waybar/README.md) |
 | Powerline bash | [`powerline/README.md`](powerline/README.md) |
 | cnf-bin | [`../shared/cnf-bin/README.md`](../shared/cnf-bin/README.md) |
-| wb_autohide | [`../waybar-auto-hide-cnf/README.md`](../waybar-auto-hide-cnf/README.md) |
+| wb_autohide | [`README.md`](https://github.com/Cat-Not-Furry/waybar-auto-hide-cnf/blob/main/README.md) |
 
 ## Palettes
 
@@ -63,4 +66,4 @@ Fuente: `hyprland/hyperland/themes/palettes.json`
 
 ## Deploy maestro
 
-[`hyperland/scripts/deploy-configs.sh`](hyperland/scripts/deploy-configs.sh) — usado también por i3 (`--config-i3`).
+[`hyperland/scripts/deploy-configs.sh`](hyperland/scripts/deploy-configs.sh) — `--config-hypr` usado también por i3 (`--config-i3`). Fondos opcionales: `--fondos`, `--fondos-all` → [`../shared/fondos/README.md`](../shared/fondos/README.md).

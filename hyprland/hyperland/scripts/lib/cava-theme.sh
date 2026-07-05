@@ -13,6 +13,8 @@ find_palettes_file() {
   local candidate
   for candidate in \
     "$HOME/.config/ignis/themes/palettes.json" \
+    "${HYPRLAND_ROOT:-}/themes/palettes.json" \
+    "${CONFIG_ROOT:-}/hyprland/hyperland/themes/palettes.json" \
     "${HYPRLAND_ROOT:-$HOME/hyprland}/themes/palettes.json" \
     "${CONFIG_ROOT:-$HOME/hyprland}/themes/palettes.json"; do
     if [ -f "$candidate" ]; then
