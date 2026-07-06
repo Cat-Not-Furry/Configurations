@@ -303,18 +303,17 @@ Flujo al arrancar i3 (`00-exec.conf`):
 xss-lock --transfer-sleep-lock -- lock.sh
 ```
 
-- **xss-lock** escucha el screensaver de X11 y bloquea antes de suspender (`--transfer-sleep-lock`).
-- **lock.sh** intenta primero `loginctl lock-session` (paridad con `hypridle` en Hyprland).
-- Si logind no puede bloquear la sesión, usa **i3lock** con colores del tema i3 (`classic` / `iceberg`).
+- **xss-lock** escucha el screensaver de X11, `loginctl lock-session` y bloquea antes de suspender (`--transfer-sleep-lock`).
+- **lock.sh** ejecuta **i3lock-color** con colores del tema i3 (`classic` / `iceberg`). No llama a `loginctl` (evita bucle: logind → xss-lock → lock.sh).
 - Si `lock.sh` se ejecutara como root, se re-lanza como usuario de sesión (evita “contraseña incorrecta” en i3lock).
 
-Atajos: `$mod+mod1+b`, menú dmenu “Bloquear”. Suspender/hibernar usan `loginctl lock-session` cuando está disponible.
+Atajos: `$mod+mod1+b`, menú dmenu “Bloquear”. Suspender/hibernar: `loginctl lock-session` (dispara xss-lock → lock.sh) antes de `systemctl suspend`.
 
 ### Scripts personalizados
 
 Atajos que dependen de scripts del repo (rutas tras `deploy-configs.sh`):
 
-- `i3-wm/scripts/lock.sh` — bloqueo (`loginctl` → `i3lock`; usado por `xss-lock`)
+- `i3-wm/scripts/lock.sh` — bloqueo i3lock (usado por `xss-lock` y atajos)
 - `i3-wm/scripts/dmenu-script.sh`, `dmenu-script1.sh` — lanzadores
 - `cnf-bin/bin/toggle-keyboard.sh` o `~/.local/bin/toggle-keyboard.sh` — teclado
 - `eww/launch.sh` — widgets eww
